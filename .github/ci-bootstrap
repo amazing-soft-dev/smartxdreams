@@ -1,0 +1,6 @@
+Bootstrap flag for CI.
+
+While this file exists and package.json does not, CI skips the lint and build jobs
+and still reports "CI passed". It exists only so the pipeline can be proven before
+the app is restored (issue #67). Issue #67 deletes this file; after that, a missing
+package.json fails CI.
