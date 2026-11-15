@@ -70,10 +70,41 @@ jobs:
       # Each photo must be used exactly once. --if-present until the script lands in issue #2.
       - run: npm run --if-present check:images
 
+  build:
+    name: Build (${{ matrix.target }})
+    needs: detect
+    if: needs.detect.outputs.app == 'true'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        target: [server, static]
+    env:
+      # static writes plain HTML to out/ (no /api); server is the full app Vercel runs.
+      NEXT_OUTPUT: ${{ matrix.target == 'static' && 'export' || '' }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: latest
+          cache: npm
+      - run: npm ci
+      - name: Build responsive WebP images (static only)
+        if: matrix.target == 'static'
+        run: npm run --if-present images
+      - run: npm run build
+      - name: Verify static output (static only)
+        if: matrix.target == 'static'
+        run: |
+          # --if-present until verify:out lands in issue #2. The script checks the expected HTML,
+          # sitemap, icons and image files, and that out/api does not exist.
+          npm run --if-present verify:out
+          if [ -d out/api ]; then echo "::error::out/api must not exist in the static export"; exit 1; fi
+
   passed:
     name: CI passed
     if: always()
-    needs: [detect, actionlint, lint]
+    needs: [detect, actionlint, lint, build]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -86,6 +117,7 @@ jobs:
           DETECT: ${{ needs.detect.result }}
           ACTIONLINT: ${{ needs.actionlint.result }}
           LINT: ${{ needs.lint.result }}
+          BUILD: ${{ needs.build.result }}
         run: |
           status=pass
           rows=""
@@ -99,9 +131,11 @@ jobs:
           mode="strict (app present)"
           if [ "$APP" = "true" ]; then
             expect "Lint and type check" "$LINT" success
+            expect "Build (server and static)" "$BUILD" success
           else
             mode="bootstrap (no app yet)"
             expect "Lint and type check" "$LINT" skipped
+            expect "Build (server and static)" "$BUILD" skipped
           fi
           {
             echo "### CI summary"
