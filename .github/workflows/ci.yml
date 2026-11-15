@@ -53,10 +53,27 @@ jobs:
           tar -xzf "$RUNNER_TEMP/$archive" -C "$RUNNER_TEMP" actionlint
           "$RUNNER_TEMP/actionlint" -color
 
+  lint:
+    name: Lint and type check
+    needs: detect
+    if: needs.detect.outputs.app == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: latest
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      # Each photo must be used exactly once. --if-present until the script lands in issue #2.
+      - run: npm run --if-present check:images
+
   passed:
     name: CI passed
     if: always()
-    needs: [detect, actionlint]
+    needs: [detect, actionlint, lint]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -68,6 +85,7 @@ jobs:
           APP: ${{ needs.detect.outputs.app }}
           DETECT: ${{ needs.detect.result }}
           ACTIONLINT: ${{ needs.actionlint.result }}
+          LINT: ${{ needs.lint.result }}
         run: |
           status=pass
           rows=""
@@ -79,7 +97,12 @@ jobs:
           expect "Detect app" "$DETECT" success
           expect "actionlint" "$ACTIONLINT" success
           mode="strict (app present)"
-          if [ "$APP" != "true" ]; then mode="bootstrap (no app yet)"; fi
+          if [ "$APP" = "true" ]; then
+            expect "Lint and type check" "$LINT" success
+          else
+            mode="bootstrap (no app yet)"
+            expect "Lint and type check" "$LINT" skipped
+          fi
           {
             echo "### CI summary"
             echo
