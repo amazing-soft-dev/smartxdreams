@@ -2,7 +2,8 @@
 
 import { motion } from "motion/react";
 import Link from "next/link";
-import { useState } from "react";
+import { usePathname } from "next/navigation";
+import { useId, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Container } from "@/components/ui/Container";
 import { Logo } from "@/components/ui/Logo";
@@ -10,6 +11,8 @@ import { headerCta } from "@/content/site";
 import { cx } from "@/lib/cx";
 import { ease } from "@/styles/motion";
 import { DesktopNav } from "./DesktopNav";
+import { MenuButton } from "./MenuButton";
+import { MobileMenu } from "./MobileMenu";
 import { useHideOnScroll } from "./useHideOnScroll";
 import { useNavTheme } from "./useNavTheme";
 
@@ -19,6 +22,13 @@ import { useNavTheme } from "./useNavTheme";
  */
 export function Header() {
   const [focusInside, setFocusInside] = useState(false);
+  // The menu remembers the page it was opened on, so it closes by itself after any navigation
+  // (a link inside it, or the browser back button).
+  const pathname = usePathname();
+  const [menuOpenOn, setMenuOpenOn] = useState<string | null>(null);
+  const menuOpen = menuOpenOn === pathname;
+  const setMenuOpen = (next: boolean) => setMenuOpenOn(next ? pathname : null);
+  const menuId = useId();
   // Never tuck the header away while keyboard focus is inside it.
   const hidden = useHideOnScroll(focusInside);
   // Match the section behind the header: dark glass on dark heroes, light glass on light sections.
@@ -57,11 +67,16 @@ export function Header() {
             <Logo tone={onDark ? "light" : "dark"} height={26} decorative />
           </Link>
           <DesktopNav theme={theme} />
-          <Button href={headerCta.href} variant={onDark ? "coral" : "ink"} size="sm">
-            {headerCta.label}
-          </Button>
+          <div className="flex items-center gap-2">
+            {/* Below 640 px the call to action moves into the menu. */}
+            <Button href={headerCta.href} variant={onDark ? "coral" : "ink"} size="sm" className="max-sm:hidden">
+              {headerCta.label}
+            </Button>
+            <MenuButton open={menuOpen} onToggle={() => setMenuOpen(!menuOpen)} controls={menuId} theme={theme} />
+          </div>
         </div>
       </Container>
+      <MobileMenu id={menuId} open={menuOpen} onOpenChange={setMenuOpen} />
     </motion.header>
   );
 }
