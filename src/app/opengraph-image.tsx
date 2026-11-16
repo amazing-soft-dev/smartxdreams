@@ -1,3 +1,5 @@
+import { readFile } from "node:fs/promises";
+import path from "node:path";
 import { ImageResponse } from "next/og";
 import { company } from "@/content/site";
 
@@ -7,8 +9,18 @@ export const alt = `${company.name}: ${company.tagline}`;
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
-/** Default social card: ink background, the brand mark, the name and the tagline. */
-export default function OpenGraphImage() {
+/**
+ * The dark-background symbol master (1024 px square). The strokes fill only part of it: they span
+ * x 291-732 and y 153-870, so the card shows that box and crops the padding around it.
+ */
+const SYMBOL_FILE = path.join(process.cwd(), "public", "brand", "smartxdreams-symbol-dark-bg.png");
+const SYMBOL_BOX = { size: 1024, x: 291, y: 153, width: 442, height: 718 } as const;
+const SYMBOL_HEIGHT = 84;
+
+/** Default social card: ink background, the brand symbol, the name and the tagline. */
+export default async function OpenGraphImage() {
+  const symbol = `data:image/png;base64,${(await readFile(SYMBOL_FILE)).toString("base64")}`;
+  const scale = SYMBOL_HEIGHT / SYMBOL_BOX.height;
   return new ImageResponse(
     (
       <div
@@ -36,11 +48,24 @@ export default function OpenGraphImage() {
           }}
         />
         <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
-          <svg viewBox="38 82 380 328" width="88" height="76">
-            <rect x="38" y="82" width="253" height="254" rx="38" fill="#FFFFFF" />
-            <circle cx="291" cy="283.5" r="126.5" fill="#6D4AFF" />
-            <path d="M291 157A126.5 126.5 0 0 0 175.9 336H253A38 38 0 0 0 291 298Z" fill="#FF6B3D" />
-          </svg>
+          <div
+            style={{
+              display: "flex",
+              position: "relative",
+              overflow: "hidden",
+              width: Math.round(SYMBOL_BOX.width * scale),
+              height: SYMBOL_HEIGHT,
+            }}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element -- rendered to a PNG by next/og, not the DOM */}
+            <img
+              src={symbol}
+              alt=""
+              width={Math.round(SYMBOL_BOX.size * scale)}
+              height={Math.round(SYMBOL_BOX.size * scale)}
+              style={{ position: "absolute", left: -Math.round(SYMBOL_BOX.x * scale), top: -Math.round(SYMBOL_BOX.y * scale) }}
+            />
+          </div>
           <div style={{ fontSize: 44, letterSpacing: -1 }}>{company.name}</div>
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
