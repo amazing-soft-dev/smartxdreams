@@ -40,7 +40,7 @@ export function ProductGrid() {
                   className={cx(
                     "group relative flex h-full min-h-64 flex-col rounded-[30px] p-7",
                     "outline-offset-4 has-[a:focus-visible]:outline-2 has-[a:focus-visible]:outline-violet-500",
-                    "transition-[translate,box-shadow] duration-500 ease-[var(--ease-out-quint)] hover:-translate-y-1.5 hover:shadow-card-hover",
+                    "transition-[translate,box-shadow] duration-500 ease-[var(--ease-out-quint)] hover:-translate-y-1.5 motion-reduce:hover:translate-y-0 hover:shadow-card-hover",
                     tone.surface,
                   )}
                 >
@@ -66,7 +66,7 @@ export function ProductGrid() {
                     <span
                       aria-hidden="true"
                       className={cx(
-                        "inline-flex size-10 shrink-0 items-center justify-center rounded-xl transition-transform duration-500 ease-[var(--ease-out-quint)] group-hover:-rotate-8 group-hover:scale-106",
+                        "inline-flex size-10 shrink-0 items-center justify-center rounded-xl transition-transform duration-500 ease-[var(--ease-out-quint)] group-hover:-rotate-8 group-hover:scale-106 motion-reduce:group-hover:rotate-0 motion-reduce:group-hover:scale-100",
                         tone.dark ? "bg-white text-ink" : "bg-ink text-white",
                       )}
                     >
