@@ -81,6 +81,8 @@ export function SmokeBackground({ className, intensity = 0.9, scale = 1.6, quali
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
+    // Reduced motion: keep only the static gradient underneath.
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const gl = canvas.getContext("webgl", { alpha: true, premultipliedAlpha: true, antialias: false });
     if (!gl) return;
     const scene = setup(gl);
@@ -153,10 +155,17 @@ export function SmokeBackground({ className, intensity = 0.9, scale = 1.6, quali
   }, [intensity, scale, quality]);
 
   return (
-    <canvas
-      ref={canvasRef}
-      aria-hidden="true"
-      className={cx("pointer-events-none absolute inset-0 -z-10 size-full", className)}
-    />
+    <div aria-hidden="true" className={cx("pointer-events-none absolute inset-0 -z-10", className)}>
+      {/* Static fallback: always painted underneath, so reduced motion, missing WebGL or a failed shader
+          still show soft brand colour instead of a flat footer. */}
+      <div
+        className="absolute inset-0 opacity-60"
+        style={{
+          background:
+            "radial-gradient(60% 50% at 20% 70%, rgb(109 74 255 / 0.28), transparent 70%), radial-gradient(45% 40% at 80% 40%, rgb(255 107 61 / 0.16), transparent 70%)",
+        }}
+      />
+      <canvas ref={canvasRef} className="absolute inset-0 size-full" />
+    </div>
   );
 }
