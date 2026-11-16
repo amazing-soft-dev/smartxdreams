@@ -106,8 +106,7 @@
         "photoUrl": "https://unsplash.com/photos/qWwpHwip31M",
         "source": "unsplash",
         "license": "Unsplash License"
-      },
-      "pending": true
+      }
     },
     {
       "slot": "about-team",
