@@ -155,8 +155,9 @@ export function TransitionProvider({ children }: { children: ReactNode }) {
       });
       router.push(href);
       await routeChanged;
-      // One frame for the new page to paint under the cover.
-      await new Promise((resolve) => requestAnimationFrame(() => resolve(null)));
+      // A moment for the new page to paint under the cover. A timer, not requestAnimationFrame, which
+      // never fires in a hidden tab.
+      await new Promise((resolve) => window.setTimeout(resolve, 32));
 
       // Label leaves upward and the layer fades, then the panels reveal the page.
       word?.animate([{ transform: "translateY(0)" }, { transform: "translateY(-110%)" }], {
