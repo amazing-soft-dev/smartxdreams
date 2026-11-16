@@ -2,6 +2,7 @@
 
 import Lenis from "lenis";
 import "lenis/dist/lenis.css";
+import { usePathname } from "next/navigation";
 import { type ReactNode, useEffect, useSyncExternalStore } from "react";
 
 /**
@@ -42,6 +43,8 @@ function createLenis() {
     duration: 1.1,
     easing: easeOutExpo,
     autoRaf: true,
+    // In-page links (#section) scroll smoothly through Lenis instead of jumping.
+    anchors: true,
   });
 }
 
@@ -72,6 +75,14 @@ export function SmoothScroll({ children }: { children: ReactNode }) {
       setInstance(null);
     };
   }, []);
+
+  // On client-side navigation Next.js resets the scroll position; Lenis must jump with it instead of
+  // easing from the old position. Hash links keep their own target.
+  const pathname = usePathname();
+  useEffect(() => {
+    if (window.location.hash) return;
+    instance?.scrollTo(0, { immediate: true, force: true });
+  }, [pathname]);
 
   return children;
 }
