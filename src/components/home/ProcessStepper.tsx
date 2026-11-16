@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, useMotionValueEvent, useScroll, useSpring } from "motion/react";
+import { motion, useMotionValueEvent, useReducedMotion, useScroll, useSpring } from "motion/react";
 import { useRef, useState } from "react";
 import { Container } from "@/components/ui/Container";
 import { Photo } from "@/components/ui/Photo";
@@ -17,6 +17,11 @@ const TICKS = 40;
  */
 export function ProcessStepper() {
   const section = useRef<HTMLElement>(null);
+  // Scroll scrubbing is a desktop enhancement. With reduced motion the section is a plain stacked list at
+  // every width: all steps open, each with its photo, nothing sticky.
+  const reduced = useReducedMotion();
+  const scrub = !reduced;
+  const desktop = (classes: string) => (scrub ? classes : "");
   // Progress through the tall section, 0 at its top and 1 when its bottom reaches the viewport bottom.
   const { scrollYProgress } = useScroll({ target: section, offset: ["start start", "end end"] });
   // The rail follows progress through a spring, which smooths wheel steps into a continuous fill.
@@ -46,10 +51,10 @@ export function ProcessStepper() {
       id="how-we-build"
       aria-labelledby="how-we-build-title"
       data-nav-theme="light"
-      className="relative bg-canvas-200 text-ink lg:h-[300vh]"
+      className={cx("relative bg-canvas-200 text-ink", desktop("lg:h-[300vh]"))}
     >
-      <div className="lg:sticky lg:top-0 lg:flex lg:h-svh lg:items-center">
-        <Container className="py-20 md:py-28 lg:py-0">
+      <div className={desktop("lg:sticky lg:top-0 lg:flex lg:h-svh lg:items-center")}>
+        <Container className={cx("py-20 md:py-28", desktop("lg:py-0"))}>
           <SectionHeader
             id="how-we-build-title"
             tag="How we build"
@@ -57,6 +62,7 @@ export function ProcessStepper() {
             align="left"
           />
           {/* Tick bar and step counter (desktop, decorative). */}
+          {scrub ? (
           <div aria-hidden="true" className="mt-10 hidden h-8 items-end gap-[5px] lg:flex">
             {Array.from({ length: TICKS }, (_, i) => (
               <span
@@ -71,17 +77,20 @@ export function ProcessStepper() {
               {String(active + 1).padStart(2, "0")} / {String(processSteps.length).padStart(2, "0")}
             </span>
           </div>
-          <div className="mt-12 grid gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] lg:gap-16">
-            <ol className="relative flex flex-col gap-1 lg:pl-8">
+          ) : null}
+          <div className={cx("mt-12 grid gap-10", desktop("lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] lg:gap-16"))}>
+            <ol className={cx("relative flex flex-col gap-1", desktop("lg:pl-8"))}>
               {/* Coral progress rail (desktop): a faint track with a fill that grows from the top. */}
-              <span aria-hidden="true" className="absolute top-0 bottom-0 left-0 hidden w-[1.5px] rounded-full bg-ink/10 lg:block">
-                <motion.span className="block h-full w-full origin-top rounded-full bg-coral-500" style={{ scaleY: rail }} />
-              </span>
+              {scrub ? (
+                <span aria-hidden="true" className="absolute top-0 bottom-0 left-0 hidden w-[1.5px] rounded-full bg-ink/10 lg:block">
+                  <motion.span className="block h-full w-full origin-top rounded-full bg-coral-500" style={{ scaleY: rail }} />
+                </span>
+              ) : null}
               {processSteps.map((step, i) => (
                 <li
                   key={step.title}
-                  aria-current={i === active ? "step" : undefined}
-                  className={cx("py-4 transition-opacity duration-500 lg:opacity-55 lg:aria-[current=step]:opacity-100")}
+                  aria-current={scrub && i === active ? "step" : undefined}
+                  className={cx("py-4 transition-opacity duration-500", desktop("lg:opacity-55 lg:aria-[current=step]:opacity-100"))}
                 >
                   <h3 className="text-h5">
                     <span className="mr-3 font-mono text-micro text-ink/70">{String(i + 1).padStart(2, "0")}</span>
@@ -91,17 +100,23 @@ export function ProcessStepper() {
                   <p
                     className={cx(
                       "max-w-md overflow-hidden text-body text-ink/70 transition-[max-height,opacity,margin] duration-700 ease-[var(--ease-out-quint)]",
-                      "mt-2 lg:max-h-0 lg:opacity-0 lg:mt-0",
-                      i === active && "lg:mt-2 lg:max-h-40 lg:opacity-100",
+                      "mt-2",
+                      desktop("lg:mt-0 lg:max-h-0 lg:opacity-0"),
+                      scrub && i === active && "lg:mt-2 lg:max-h-40 lg:opacity-100",
                     )}
                   >
                     {step.body}
                   </p>
+                  {/* Stacked layout (phones, tablets, and reduced motion): each step shows its own photo. */}
+                  <div className={cx("relative mt-5 aspect-[16/10] overflow-hidden rounded-[22px]", desktop("lg:hidden"))}>
+                    <Photo slot={step.slot} fill sizes="(min-width: 810px) 80vw, 100vw" />
+                  </div>
                 </li>
               ))}
             </ol>
             {/* Media panel (desktop): the photos are stacked, and each one is revealed by a circle that grows from
                 the left edge when its step becomes active, settling from a slight zoom and blur. Decorative. */}
+            {scrub ? (
             <div className="relative hidden aspect-[4/3] overflow-hidden rounded-[30px] bg-ink lg:block">
               {processSteps.map((step, i) => (
                 <div
@@ -117,6 +132,7 @@ export function ProcessStepper() {
                 </div>
               ))}
             </div>
+            ) : null}
           </div>
         </Container>
       </div>
