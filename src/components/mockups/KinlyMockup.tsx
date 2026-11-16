@@ -24,11 +24,35 @@ export function KinlyLetterMockup({ className }: { className?: string }) {
   );
 }
 
-/** The KinlyMockup used by the product page; extended with the document shelf and check-in below. */
+/** The document shelf: folders with what is inside and the next date that matters. */
+function ShelfMockup({ className }: { className?: string }) {
+  const folders = [
+    { name: "Health insurance", note: "Renews 1 June" },
+    { name: "Bank letters", note: "3 this month" },
+    { name: "Home and utilities", note: "Water bill due Friday" },
+  ];
+  return (
+    <MockupFrame title="Your papers" tone="dark" className={className}>
+      {folders.map((f) => (
+        <p key={f.name} className="flex items-center justify-between rounded-xl bg-white/[0.08] px-3 py-2 text-[0.875rem]">
+          {f.name}
+          <span className="text-[0.8125rem] text-white/75">{f.note}</span>
+        </p>
+      ))}
+      <div className="rounded-xl bg-violet-500 px-3 py-2.5 text-[0.875rem] text-white">
+        <p className="font-semibold">Weekly check-in</p>
+        <p className="mt-0.5">How are things this week? Your water bill is due on Friday.</p>
+      </div>
+    </MockupFrame>
+  );
+}
+
+/** The Kinly product page mockup: the explained letter, with the document shelf and weekly check-in. */
 export function KinlyMockup({ className }: { className?: string }) {
   return (
     <div aria-hidden="true" className={cx("relative", className)}>
-      <KinlyLetterMockup />
+      <KinlyLetterMockup className="sm:mr-20" />
+      <ShelfMockup className="mt-3 sm:absolute sm:-right-3 sm:-bottom-20 sm:mt-0 sm:w-72" />
     </div>
   );
 }
