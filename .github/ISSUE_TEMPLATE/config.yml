@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: How changes land
+    url: https://github.com/amazing-soft-dev/smartxdreams/blob/main/CONTRIBUTING.md
+    about: Branch naming, commits, co-authors and the automatic pull request pipeline.
