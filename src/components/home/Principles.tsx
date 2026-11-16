@@ -3,6 +3,7 @@ import { Card } from "@/components/ui/Card";
 import { Section } from "@/components/ui/Section";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { company } from "@/content/site";
+import { HonestStats } from "./HonestStats";
 
 /** Small line icons for the three principles, in order. Decorative. */
 const icons = [
@@ -44,6 +45,8 @@ export function Principles() {
           </li>
         ))}
       </ul>
+      {/* Real numbers only: hidden until src/content/stats.ts has a sourced value. */}
+      <HonestStats />
     </Section>
   );
 }
