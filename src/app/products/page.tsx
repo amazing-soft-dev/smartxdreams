@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import { ProductsBrowser, ProductsListFallback } from "@/components/products/ProductsBrowser";
+import { WhichIsRight } from "@/components/products/WhichIsRight";
 import { Container } from "@/components/ui/Container";
 import { Glow } from "@/components/ui/Glow";
 import { Section } from "@/components/ui/Section";
@@ -32,6 +33,7 @@ export default function ProductsPage() {
           <ProductsBrowser />
         </Suspense>
       </Section>
+      <WhichIsRight />
     </main>
   );
 }
