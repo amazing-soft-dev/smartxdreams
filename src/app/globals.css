@@ -220,3 +220,23 @@
     opacity: 0;
   }
 }
+
+/*
+ * Large readability (product pages with readability: "large", such as Kinly): bigger body type and full-strength
+ * text. Muted text (ink/xx and white/xx) becomes full ink or white, so body text is at least 16:1 (AAA).
+ */
+[data-readable="large"] {
+  --text-body: 1.1875rem; /* 19 */
+  --text-body--line-height: 1.6;
+  --text-body-l: 1.375rem; /* 22 */
+  --text-label: 1.0625rem; /* 17 */
+  --text-micro: 0.9375rem; /* 15 */
+}
+
+[data-readable="large"] [class*="text-ink/"] {
+  color: var(--color-ink);
+}
+
+[data-readable="large"] [class*="text-white/"] {
+  color: var(--color-white);
+}
