@@ -41,4 +41,32 @@
   --color-coral-700: #bf3f1c;
   --color-coral-800: #932f15;
   --color-coral-900: #6b220f;
+
+  /* Type: Inter Tight (variable) via next/font. Headings use weight 400 with tight tracking. */
+  --font-sans: var(--font-inter-tight), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  /* Fluid scale between 390 px and 1440 px viewports. One h1 per page at every width. */
+  --text-display: clamp(2.75rem, 1.6rem + 3.2vw, 4.25rem); /* 44 -> 68 */
+  --text-display--line-height: 1.1;
+  --text-display--letter-spacing: -0.02em;
+  --text-h2: clamp(2.125rem, 1.5rem + 1.9vw, 3.25rem); /* 34 -> 52 */
+  --text-h2--line-height: 1.2;
+  --text-h2--letter-spacing: -0.015em;
+  --text-h3: clamp(1.75rem, 1.4rem + 1vw, 2.5rem); /* 28 -> 40 */
+  --text-h3--line-height: 1.2;
+  --text-h4: clamp(1.5rem, 1.3rem + 0.6vw, 2rem); /* 24 -> 32 */
+  --text-h4--line-height: 1.25;
+  --text-h5: 1.5rem; /* 24 */
+  --text-h5--line-height: 1.4;
+  --text-h6: 1.25rem; /* 20 */
+  --text-h6--line-height: 1.5;
+  --text-body-l: 1.125rem; /* 18 */
+  --text-body-l--line-height: 1.5;
+  --text-body: 1rem; /* 16 */
+  --text-body--line-height: 1.5;
+  --text-label: 0.875rem; /* 14 */
+  --text-label--line-height: 1.43;
+  --text-micro: 0.75rem; /* 12, mono labels */
+  --text-micro--line-height: 1.5;
 }
