@@ -2,10 +2,12 @@ import { Glow } from "@/components/ui/Glow";
 import { Section } from "@/components/ui/Section";
 import { Tag } from "@/components/ui/Tag";
 import { products } from "@/content/products";
-import { WaitlistInline } from "@/components/forms/WaitlistInline";
+import { WaitlistForm } from "@/components/forms/WaitlistForm";
 import { TypedWord } from "./TypedWord";
 
 const names = products.map((p) => p.name);
+/** Just what the product select needs, so product copy stays out of the client bundle. */
+const productOptions = products.map((p) => ({ slug: p.slug, name: p.name }));
 
 /**
  * The closing call to action on content pages: "Be the first to try" with the product names typed in turn.
@@ -32,7 +34,7 @@ export function CtaSection() {
           Every product starts with a short waitlist. Join the ones you care about and we will email you when early
           access opens.
         </p>
-        <WaitlistInline />
+        <WaitlistForm products={productOptions} />
       </div>
     </Section>
   );
