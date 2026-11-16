@@ -31,7 +31,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <head>
         {/* Without JavaScript, reveal animations never run: show their content instead. */}
         <noscript>
-          <style>{"[data-reveal]{opacity:1!important;transform:none!important}"}</style>
+          <style>{"[data-reveal]{opacity:1!important;transform:none!important;filter:none!important}"}</style>
         </noscript>
       </head>
       <body>
