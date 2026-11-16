@@ -21,8 +21,8 @@ const pages: SiteRoute[] = [
   { path: "/terms", ready: false, changeFrequency: "yearly", priority: 0.2 },
 ];
 
-/** Product pages exist once the product template lands (issue #34). */
-export const productPagesReady = false;
+/** Product pages exist since the product template landed (issue #34). */
+export const productPagesReady = true;
 
 const productRoutes = (): SiteRoute[] =>
   productSlugs().map((slug) => ({

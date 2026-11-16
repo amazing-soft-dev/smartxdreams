@@ -1,4 +1,5 @@
 import type { ComponentType } from "react";
+import { WaitlistInline } from "@/components/forms/WaitlistInline";
 import { Reveal } from "@/components/motion/Reveal";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -156,6 +157,28 @@ export function ProductLimits({ product }: ProductProps) {
             </p>
           ) : null}
         </div>
+      </div>
+    </Section>
+  );
+}
+
+/**
+ * Waitlist slot at the end of every product page (anchor #waitlist, the hero button's target). The form
+ * here is the inline stub until the waitlist API and form issues wire it to this product.
+ */
+export function ProductWaitlist({ product }: ProductProps) {
+  return (
+    <Section id="waitlist" labelledBy="waitlist-title" surface="dark" className="text-center">
+      <Glow color="violet" size={760} opacity={0.35} className="-bottom-1/2 left-1/2 -translate-x-1/2" />
+      <div className="flex flex-col items-center">
+        <Tag tone="dark">Waitlist</Tag>
+        <h2 id="waitlist-title" className="mt-6 max-w-2xl text-h2">
+          Be first to try <span className="text-violet-300">{product.name}.</span>
+        </h2>
+        <p className="mt-5 max-w-xl text-body-l text-white/70">
+          We will email you once when early access opens. No newsletters, and you can leave the list at any time.
+        </p>
+        <WaitlistInline />
       </div>
     </Section>
   );
