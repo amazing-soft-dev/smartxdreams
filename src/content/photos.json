@@ -212,8 +212,7 @@
         "photoUrl": "https://unsplash.com/photos/bXJjWbD9VOY",
         "source": "unsplash",
         "license": "Unsplash License"
-      },
-      "pending": true
+      }
     },
     {
       "slot": "product-trustdraft",
