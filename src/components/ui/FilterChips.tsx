@@ -11,6 +11,8 @@ type FilterChipsProps = {
   onChange: (id: string) => void;
   /** Accessible name of the group, e.g. "Filter products by audience". */
   label: string;
+  /** Announced politely after each change, e.g. "4 products". */
+  liveMessage?: string;
   className?: string;
 };
 
@@ -18,8 +20,9 @@ type FilterChipsProps = {
  * A row of toggle chips. Each chip is a real button with aria-pressed, inside a labelled group.
  * The active chip is coral-tinted with coral-700 text (4.77:1 on canvas).
  */
-export function FilterChips({ options, value, onChange, label, className }: FilterChipsProps) {
+export function FilterChips({ options, value, onChange, label, liveMessage, className }: FilterChipsProps) {
   return (
+    <>
     <div role="group" aria-label={label} className={cx("flex flex-wrap gap-2", className)}>
       {options.map((option) => {
         const active = option.id === value;
@@ -39,5 +42,11 @@ export function FilterChips({ options, value, onChange, label, className }: Filt
         );
       })}
     </div>
+    {liveMessage !== undefined ? (
+      <p aria-live="polite" className="sr-only">
+        {liveMessage}
+      </p>
+    ) : null}
+    </>
   );
 }
