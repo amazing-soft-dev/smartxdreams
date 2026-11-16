@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { blogCategories } from "@/content/blog/categories";
 import { publishedPosts } from "@/lib/blog/posts";
 import { readyRoutes } from "@/lib/routes";
 import { absoluteUrl } from "@/lib/seo";
@@ -19,5 +20,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
     changeFrequency: "yearly",
     priority: 0.6,
   }));
-  return [...pages, ...posts];
+  // Category pages that have at least one published post; the others are noindex.
+  const categories: MetadataRoute.Sitemap = blogCategories
+    .filter((c) => publishedPosts().some((p) => p.category === c.id))
+    .map((c) => ({ url: absoluteUrl(`/blog/category/${c.id}`), changeFrequency: "weekly", priority: 0.5 }));
+  return [...pages, ...posts, ...categories];
 }
