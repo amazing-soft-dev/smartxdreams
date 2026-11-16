@@ -1,0 +1,48 @@
+/*
+ * Button effects. Colours and sizes are Tailwind classes in Button.tsx.
+ * The label is two rows of letters stacked in a clipped box: at rest the top row shows.
+ */
+
+.label {
+  position: relative;
+  display: inline-block;
+  overflow: hidden;
+  line-height: 1.25;
+  height: 1.25em;
+}
+
+.row {
+  display: block;
+  white-space: pre;
+}
+
+.rowBottom {
+  position: absolute;
+  inset: 100% 0 auto 0;
+}
+
+.letter {
+  display: inline-block;
+  will-change: transform;
+}
+
+.tile {
+  position: relative;
+  overflow: hidden;
+}
+
+.arrow {
+  display: inline-flex;
+}
+
+.shine {
+  position: absolute;
+  inset: -20% auto -20% 0;
+  z-index: 2;
+  width: 38%;
+  pointer-events: none;
+  opacity: 0;
+  background: linear-gradient(100deg, transparent 0%, rgb(255 255 255 / 0.55) 50%, transparent 100%);
+  mix-blend-mode: soft-light;
+  transform: translateX(-120%) skewX(-18deg);
+}
