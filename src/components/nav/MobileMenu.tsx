@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useRef } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { Logo } from "@/components/ui/Logo";
+import { products } from "@/content/products";
 import { headerCta, mainNav } from "@/content/site";
 import { cx } from "@/lib/cx";
 import { Button } from "@/components/ui/Button";
@@ -22,6 +23,9 @@ type MobileMenuProps = {
 export function MobileMenu({ id, open, onOpenChange }: MobileMenuProps) {
   const dialog = useRef<HTMLDialogElement>(null);
   const pathname = usePathname();
+  const productsId = useId();
+  // Start expanded on product pages, so the current product is visible right away.
+  const [productsOpen, setProductsOpen] = useState(() => pathname.startsWith("/products"));
 
   // Keep the native dialog in step with React state.
   useEffect(() => {
@@ -65,7 +69,60 @@ export function MobileMenu({ id, open, onOpenChange }: MobileMenuProps) {
 
         <nav aria-label="Main" className="mt-8 px-4">
           <ul className="flex flex-col">
-            {mainNav.map((item) => (
+            {mainNav.map((item) =>
+              item.href === "/products" ? (
+                <li key={item.href} className="border-b border-white/10">
+                  <button
+                    type="button"
+                    aria-expanded={productsOpen}
+                    aria-controls={productsId}
+                    onClick={() => setProductsOpen((o) => !o)}
+                    className={cx(
+                      "flex min-h-14 w-full items-center justify-between text-left text-h4 transition-colors",
+                      isCurrent(item.href) ? "text-white" : "text-white/70 hover:text-white",
+                    )}
+                  >
+                    {item.label}
+                    <svg
+                      viewBox="0 0 16 16"
+                      width="18"
+                      height="18"
+                      aria-hidden="true"
+                      className={cx("transition-transform duration-300", productsOpen && "rotate-180")}
+                    >
+                      <path d="M4 6l4 4 4-4" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                    </svg>
+                  </button>
+                  <div
+                    id={productsId}
+                    className={cx(
+                      "grid transition-[grid-template-rows] duration-400 ease-[var(--ease-out-quint)]",
+                      productsOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]",
+                    )}
+                  >
+                    <ul className="overflow-hidden" inert={!productsOpen}>
+                      {products.map((product) => (
+                        <li key={product.slug}>
+                          <Link
+                            href={`/products/${product.slug}`}
+                            aria-current={pathname === `/products/${product.slug}` ? "page" : undefined}
+                            onClick={() => onOpenChange(false)}
+                            className="flex flex-col py-2.5 pl-4"
+                          >
+                            <span className="text-body-l text-white">{product.name}</span>
+                            <span className="text-label text-white/65">{product.tagline}</span>
+                          </Link>
+                        </li>
+                      ))}
+                      <li>
+                        <Link href="/products" onClick={() => onOpenChange(false)} className="flex py-3 pl-4 text-label text-violet-300">
+                          All products
+                        </Link>
+                      </li>
+                    </ul>
+                  </div>
+                </li>
+              ) : (
               <li key={item.href} className="border-b border-white/10">
                 <Link
                   href={item.href}
@@ -79,7 +136,8 @@ export function MobileMenu({ id, open, onOpenChange }: MobileMenuProps) {
                   {item.label}
                 </Link>
               </li>
-            ))}
+              ),
+            )}
           </ul>
         </nav>
 
