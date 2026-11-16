@@ -133,7 +133,11 @@ jobs:
             expect "Lint and type check" "$LINT" success
             expect "Build (server and static)" "$BUILD" success
           else
-            mode="bootstrap (no app yet)"
+            if [ "$DETECT" = success ]; then
+              mode="bootstrap (no app yet)"
+            else
+              mode="unknown (detect-app failed)"
+            fi
             expect "Lint and type check" "$LINT" skipped
             expect "Build (server and static)" "$BUILD" skipped
           fi
