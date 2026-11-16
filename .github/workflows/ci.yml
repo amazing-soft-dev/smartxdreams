@@ -106,10 +106,36 @@ jobs:
           npm run verify:out
           if [ -d out/api ]; then echo "::error::out/api must not exist in the static export"; exit 1; fi
 
+  e2e:
+    name: End-to-end (smoke and axe)
+    needs: detect
+    if: needs.detect.outputs.app == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: latest
+          cache: npm
+      - run: npm ci
+      # The production server build, which Playwright starts with `next start`.
+      - run: npm run build
+      - name: Install Chromium for Playwright
+        run: npx playwright install --with-deps chromium
+      # Smoke test of every page, axe on every page, and Home's throttled LCP and CLS.
+      - run: npm run test:e2e
+      - name: Upload the Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
+
   passed:
     name: CI passed
     if: always()
-    needs: [detect, actionlint, lint, build]
+    needs: [detect, actionlint, lint, build, e2e]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -123,6 +149,7 @@ jobs:
           ACTIONLINT: ${{ needs.actionlint.result }}
           LINT: ${{ needs.lint.result }}
           BUILD: ${{ needs.build.result }}
+          E2E: ${{ needs.e2e.result }}
         run: |
           status=pass
           rows=""
@@ -137,6 +164,7 @@ jobs:
           if [ "$APP" = "true" ]; then
             expect "Lint and type check" "$LINT" success
             expect "Build (server and static)" "$BUILD" success
+            expect "End-to-end (smoke and axe)" "$E2E" success
           else
             if [ "$DETECT" = success ]; then
               mode="bootstrap (no app yet)"
@@ -145,6 +173,7 @@ jobs:
             fi
             expect "Lint and type check" "$LINT" skipped
             expect "Build (server and static)" "$BUILD" skipped
+            expect "End-to-end (smoke and axe)" "$E2E" skipped
           fi
           {
             echo "### CI summary"
