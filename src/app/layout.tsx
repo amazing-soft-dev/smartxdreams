@@ -7,6 +7,7 @@ import { MotionProvider } from "@/components/motion/MotionProvider";
 import { SmoothScroll } from "@/components/motion/SmoothScroll";
 import { Footer } from "@/components/footer/Footer";
 import { Header } from "@/components/nav/Header";
+import { TransitionProvider } from "@/components/transition/TransitionProvider";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { defaultMetadata, organizationJsonLd, websiteJsonLd } from "@/lib/seo";
 import "./globals.css";
@@ -37,9 +38,11 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <JsonLd data={[organizationJsonLd(), websiteJsonLd()]} />
         <SmoothScroll>
           <MotionProvider>
+            <TransitionProvider>
             <Header />
             {children}
             <Footer />
+            </TransitionProvider>
           </MotionProvider>
         </SmoothScroll>
         {isProduction ? (
