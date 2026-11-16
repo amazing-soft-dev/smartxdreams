@@ -27,6 +27,11 @@ type PostCardProps = {
  * With a mouse (hover and a fine pointer, motion allowed), the card lifts, the cover drifts against the
  * pointer, a light sweep crosses it and a "Read" badge follows the pointer. PostCard.module.css holds
  * the effects; this component only tracks the pointer position in CSS variables.
+ *
+ * Keep every ancestor of the link between it and the <article> free of transform, translate, scale,
+ * filter and similar properties: any of them would become the containing block of the link's ::after,
+ * shrinking the clickable area to that ancestor (the cover would stop opening the post on hover). That is
+ * why the hover lift sits on each line of text (styles.lift), not on the text column.
  */
 export function PostCard({
   href,
@@ -78,20 +83,23 @@ export function PostCard({
           </svg>
         </span>
       </div>
-      <div className={cx(styles.meta, "flex flex-1 flex-col", featured ? "justify-center p-5 md:p-8" : "px-4 pt-5 pb-4")}>
-        <p className="flex flex-wrap items-center gap-2 text-label font-medium text-coral-700">
+      <div className={cx("flex flex-1 flex-col", featured ? "justify-center p-5 md:p-8" : "px-4 pt-5 pb-4")}>
+        <p className={cx(styles.lift, "flex flex-wrap items-center gap-2 text-label font-medium text-coral-700")}>
           {category}
           {draft ? <span className="rounded-full bg-ink/[0.07] px-2 py-0.5 text-micro text-ink/75">Draft</span> : null}
         </p>
         <Heading className={cx("mt-3", featured ? "text-h3" : "text-h6")}>
           <TransitionLink href={href} className="outline-none after:absolute after:inset-0 after:z-10 after:rounded-[30px]">
-            {title}
+            <span className={cx(styles.lift, "inline-block")}>{title}</span>
           </TransitionLink>
         </Heading>
-        {description ? <p className="mt-4 text-body-l text-ink/70">{description}</p> : null}
-        <p className={cx("text-label text-ink/60", featured ? "mt-6" : "mt-auto pt-4")}>{meta}</p>
+        {description ? <p className={cx(styles.lift, "mt-4 text-body-l text-ink/70")}>{description}</p> : null}
+        <p className={cx(styles.lift, "text-label text-ink/60", featured ? "mt-6" : "mt-auto pt-4")}>{meta}</p>
         {featured ? (
-          <span aria-hidden="true" className="mt-8 inline-flex w-fit items-center gap-2 text-label font-medium text-ink">
+          <span
+            aria-hidden="true"
+            className={cx(styles.lift, "mt-8 inline-flex w-fit items-center gap-2 text-label font-medium text-ink")}
+          >
             Read article
             <svg viewBox="0 0 16 16" width="14" height="14" fill="none">
               <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />

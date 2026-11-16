@@ -4,6 +4,7 @@
   "outputDir": "public/_img",
   "outputPublicPath": "/_img",
   "widths": [
+    320,
     640,
     1024,
     1600,

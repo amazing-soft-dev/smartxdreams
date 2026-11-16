@@ -97,12 +97,14 @@
     scale: 1;
   }
 
-  /* The text block lifts a little further than the card: a two-layer parallax. */
-  .meta {
+  /* The text lifts a little further than the card: a two-layer parallax. Each line lifts on its own: a
+     translate on the text column would make it the containing block of the title link's ::after, and the
+     cover would stop being clickable while hovered. The title lifts through a span inside the link. */
+  .lift {
     transition: translate 0.5s var(--ease-out-quint);
   }
 
-  .card:hover .meta {
+  .card:hover .lift {
     translate: 0 -3px;
   }
 }
