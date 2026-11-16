@@ -130,10 +130,14 @@ export function ProductsMenu({ theme }: ProductsMenuProps) {
         </svg>
       </button>
 
+      {/* Closed: invisible (out of the tab order and the accessibility tree), faded, raised and blurred. */}
       <div
         id={panelId}
-        hidden={!open}
-        className="absolute top-[calc(100%+14px)] left-1/2 w-[760px] -translate-x-1/2"
+        className={cx(
+          "absolute top-[calc(100%+14px)] left-1/2 w-[760px] -translate-x-1/2",
+          "transition-[opacity,translate,scale,filter,visibility] duration-300 ease-[var(--ease-out-quint)]",
+          open ? "visible scale-100 opacity-100 blur-0" : "pointer-events-none invisible -translate-y-2 scale-98 opacity-0 blur-[6px]",
+        )}
       >
         <div
           data-surface="dark"
