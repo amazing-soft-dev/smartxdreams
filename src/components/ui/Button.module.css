@@ -127,10 +127,22 @@
 
 /* Press feedback works on every pointer type: shrink on press, spring back on release. */
 .button {
-  transition: transform 420ms var(--ease-back);
+  transition:
+    transform 420ms var(--ease-back),
+    background-color 250ms ease,
+    color 250ms ease,
+    box-shadow 250ms ease;
 }
 
 .button:active {
   transform: scale(0.96);
   transition: transform 140ms ease-out;
+}
+
+/* Reduced motion: no scaling or movement at all, only the colour change. */
+@media (prefers-reduced-motion: reduce) {
+  .button,
+  .button:active {
+    transform: none;
+  }
 }

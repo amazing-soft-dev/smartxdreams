@@ -76,7 +76,7 @@ export function Button({ children, variant = "coral", size = "md", icon = true, 
   const classes = cx(
     styles.button,
     "relative isolate inline-flex shrink-0 items-center overflow-hidden rounded-btn font-medium whitespace-nowrap",
-    "transition-colors duration-250 disabled:pointer-events-none disabled:opacity-50",
+    "disabled:pointer-events-none disabled:opacity-50",
     v.button,
     s.button,
     !icon && "pr-5",
