@@ -17,6 +17,8 @@ const nextConfig: NextConfig = {
 
 if (isStaticExport) {
   nextConfig.output = "export";
+  // Tells forms there is no /api to post to, so they show a clear message instead (src/lib/forms/availability.ts).
+  nextConfig.env = { NEXT_PUBLIC_STATIC_EXPORT: "true" };
   // The default image optimizer needs a server. The static export uses a custom loader that serves the
   // WebP variants pre-built by `npm run images`. Requested widths round up to those variants.
   nextConfig.images = {

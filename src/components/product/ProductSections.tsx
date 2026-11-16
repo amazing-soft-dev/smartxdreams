@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { ComponentType } from "react";
 import { WaitlistInline } from "@/components/forms/WaitlistInline";
 import { Reveal } from "@/components/motion/Reveal";
@@ -217,7 +218,22 @@ export function ProductWaitlist({ product }: ProductProps) {
 /** Product questions, with FAQPage JSON-LD. Renders nothing until the product has FAQs. */
 export function ProductFaq({ product }: ProductProps) {
   if (product.faq.length === 0) return null;
-  return <FaqSection id="product-faq" items={product.faq} title={`${product.name} *questions.*`} />;
+  return (
+    <FaqSection
+      id="product-faq"
+      items={product.faq}
+      title={`${product.name} *questions.*`}
+      footer={
+        <>
+          Something else you want to know?{" "}
+          <Link href={`/contact?product=${product.slug}#contact-form`} className="font-medium text-ink underline underline-offset-4">
+            Ask us about {product.name}
+          </Link>
+          .
+        </>
+      }
+    />
+  );
 }
 
 /** The product's core promise as a full-width band. Renders nothing for products without one. */
