@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { ComponentType } from "react";
-import { WaitlistInline } from "@/components/forms/WaitlistInline";
+import { WaitlistForm } from "@/components/forms/WaitlistForm";
 import { Reveal } from "@/components/motion/Reveal";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -209,7 +209,7 @@ export function ProductWaitlist({ product }: ProductProps) {
         <p className="mt-5 max-w-xl text-body-l text-white/70">
           We will email you once when early access opens. No newsletters, and you can leave the list at any time.
         </p>
-        <WaitlistInline />
+        <WaitlistForm product={{ slug: product.slug, name: product.name }} />
       </div>
     </Section>
   );
