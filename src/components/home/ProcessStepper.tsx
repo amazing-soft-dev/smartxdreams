@@ -90,10 +90,10 @@ export function ProcessStepper() {
                 <li
                   key={step.title}
                   aria-current={scrub && i === active ? "step" : undefined}
-                  className={cx("py-4 transition-opacity duration-500", desktop("lg:opacity-55 lg:aria-[current=step]:opacity-100"))}
+                  className={cx("py-4 transition-opacity duration-500", desktop("lg:opacity-65 lg:aria-[current=step]:opacity-100"))}
                 >
                   <h3 className="text-h5">
-                    <span className="mr-3 font-mono text-micro text-ink/70">{String(i + 1).padStart(2, "0")}</span>
+                    <span className="mr-3 font-mono text-micro text-ink">{String(i + 1).padStart(2, "0")}</span>
                     {step.title}
                   </h3>
                   {/* On desktop only the active step shows its detail (opacity only, no height change). */}

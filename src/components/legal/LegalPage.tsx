@@ -26,7 +26,7 @@ function Block({ block }: { block: LegalBlock }) {
 export function LegalPage({ doc }: { doc: LegalDocument }) {
   const date = longDate.format(new Date(`${doc.draftDate}T00:00:00Z`));
   return (
-    <main>
+    <main id="main" tabIndex={-1}>
       <section aria-labelledby="legal-title" data-nav-theme="light" className="bg-canvas pt-36 pb-14 md:pt-44 md:pb-16">
         <Container>
           <Tag>Legal</Tag>
@@ -52,7 +52,7 @@ export function LegalPage({ doc }: { doc: LegalDocument }) {
                 <li key={section.id}>
                   <a
                     href={`#${section.id}`}
-                    className="-ml-px inline-flex min-h-10 items-center border-l border-transparent pl-4 text-label text-ink/70 transition-colors hover:border-ink hover:text-ink"
+                    className="-ml-px inline-flex min-h-11 items-center border-l border-transparent pl-4 text-label text-ink/70 transition-colors hover:border-ink hover:text-ink"
                   >
                     {section.title}
                   </a>

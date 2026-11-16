@@ -30,7 +30,7 @@ export const metadata: Metadata = pageMetadata({
 /** /contact: ways to reach the studio, the contact form and practical questions. */
 export default function ContactPage() {
   return (
-    <main>
+    <main id="main" tabIndex={-1}>
       <section
         aria-labelledby="contact-title"
         data-surface="dark"
@@ -58,7 +58,7 @@ export default function ContactPage() {
                   <Card tone="glass-dark" padding="lg" className="flex h-full flex-col">
                     <h2 className="text-h6">{channel.title}</h2>
                     <p className="mt-3 flex-1 text-body text-white/70">{channel.body}</p>
-                    <Link href={channel.href} className="mt-6 text-label font-medium text-violet-300 underline underline-offset-4">
+                    <Link href={channel.href} className="mt-4 inline-flex min-h-11 w-fit items-center text-label font-medium text-violet-300 underline underline-offset-4">
                       {channel.cta}
                     </Link>
                   </Card>

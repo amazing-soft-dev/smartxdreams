@@ -36,7 +36,7 @@ function Links({ headings, active }: { headings: Heading[]; active?: string }) {
             href={`#${h.id}`}
             aria-current={h.id === active ? "location" : undefined}
             className={cx(
-              "-ml-px flex min-h-10 items-center border-l py-1.5 text-label transition-colors",
+              "-ml-px flex min-h-11 items-center border-l py-1.5 text-label transition-colors",
               h.depth === 3 ? "pl-7" : "pl-4",
               h.id === active
                 ? "border-violet-500 font-medium text-ink"
@@ -61,7 +61,7 @@ export function TableOfContents({ headings, variant }: { headings: Heading[]; va
   if (variant === "inline") {
     return (
       <details className="group mb-4 rounded-[18px] bg-canvas px-5 py-3 lg:hidden">
-        <summary className="flex min-h-10 cursor-pointer list-none items-center justify-between text-label font-medium text-ink">
+        <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between text-label font-medium text-ink">
           On this page
           <svg
             aria-hidden="true"

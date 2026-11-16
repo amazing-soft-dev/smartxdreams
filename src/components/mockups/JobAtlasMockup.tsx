@@ -29,9 +29,9 @@ export function JobAtlasFeedMockup({ className }: { className?: string }) {
         <div key={job.role} className="rounded-xl bg-canvas px-3 py-2.5">
           <div className="flex items-baseline justify-between gap-2">
             <p className="font-medium">{job.role}</p>
-            <p className="shrink-0 text-[0.6875rem] text-ink/50">{job.posted}</p>
+            <p className="shrink-0 text-[0.6875rem] text-ink/65">{job.posted}</p>
           </div>
-          <p className="text-ink/55">
+          <p className="text-ink/65">
             {job.company} · {job.place}
           </p>
           <div className="mt-1.5 flex flex-wrap gap-1">

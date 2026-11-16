@@ -62,7 +62,7 @@ export function Header() {
             onDark ? "bg-ink/70 text-white ring-1 ring-white/10" : "bg-white/75 text-ink shadow-tag ring-1 ring-ink/5",
           )}
         >
-          <Link href="/" aria-label="SmartxDreams home" className="inline-flex shrink-0 items-center rounded-md">
+          <Link href="/" aria-label="SmartxDreams home" className="inline-flex min-h-11 shrink-0 items-center rounded-md">
             {/* White artwork on dark sections, ink artwork on light ones. */}
             <Logo tone={onDark ? "light" : "dark"} height={26} decorative />
           </Link>

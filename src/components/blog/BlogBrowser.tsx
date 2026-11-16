@@ -62,14 +62,16 @@ export function BlogBrowser({ items, options, featuredSlug }: BlogBrowserProps) 
   };
   return (
     <>
-      <FilterChips
-        options={options}
-        value={category}
-        onChange={setCategory}
-        label="Filter articles by category"
-        liveMessage={category === "all" ? `Showing all articles` : `Showing ${count} in ${label}`}
-        className="mt-8"
-      />
+      {/* The margin sits on a wrapper so it does not override the chips' own negative margins. */}
+      <div className="mt-8">
+        <FilterChips
+          options={options}
+          value={category}
+          onChange={setCategory}
+          label="Filter articles by category"
+          liveMessage={category === "all" ? `Showing all articles` : `Showing ${count} in ${label}`}
+        />
+      </div>
       <FilterList
         items={visible}
         getKey={(i) => i.slug}
