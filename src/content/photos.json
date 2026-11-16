@@ -353,6 +353,42 @@
         "source": "unsplash",
         "license": "Unsplash License"
       }
+    },
+    {
+      "slot": "not-found",
+      "src": "/images/site/not-found.jpg",
+      "width": 2400,
+      "height": 1600,
+      "alt": "A motorway disappearing into thick fog",
+      "decorative": true,
+      "tint": "#d8d8d8",
+      "blurDataURL": "data:image/webp;base64,UklGRjwAAABXRUJQVlA4IDAAAACwAQCdASoQAAsAA4BaJQBOgCHW39sgAP7tQgh6k1BNDVjCXRR2TSn1GyHJABmXgAA=",
+      "focal": "50% 50%",
+      "credit": {
+        "photographer": "Markus Spiske",
+        "profileUrl": "https://unsplash.com/@markusspiske",
+        "photoUrl": "https://unsplash.com/photos/_v6mhdOK2g0",
+        "source": "unsplash",
+        "license": "Unsplash License"
+      }
+    },
+    {
+      "slot": "contact",
+      "src": "/images/site/contact.jpg",
+      "width": 2400,
+      "height": 1600,
+      "alt": "Hands writing a letter beside a cup of coffee on a wooden desk",
+      "decorative": true,
+      "tint": "#583808",
+      "blurDataURL": "data:image/webp;base64,UklGRnQAAABXRUJQVlA4IGgAAAAwAgCdASoQAAsAA4BaJbACdADp9P4umYye4AD+7E/W5MFztcX7mfRprnkJ9gGPAUkfN+CZsqkoKbNpLwJCCHq7ZvLeUqLkc0ngeRRYsooTqEmzNhmCnOrSPptRVk8MDHDBO3pKLIPAAA==",
+      "focal": "50% 50%",
+      "credit": {
+        "photographer": "Kelly Sikkema",
+        "profileUrl": "https://unsplash.com/@kellysikkema",
+        "photoUrl": "https://unsplash.com/photos/Nv-87ynmdHA",
+        "source": "unsplash",
+        "license": "Unsplash License"
+      }
     }
   ]
 }

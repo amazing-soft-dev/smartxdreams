@@ -57,6 +57,8 @@ Each photo page was opened on the date shown and checked for: the plain Unsplash
 | `blog-dental` | [e7MJLM5VGjY](https://unsplash.com/photos/e7MJLM5VGjY) | Benyamin Bohlouli | 2026-11-16 | Empty treatment room; dental page, so no people |
 | `blog-scams` | [uGcDWKN91Fs](https://unsplash.com/photos/uGcDWKN91Fs) | Joanna Kosinska | 2026-11-16 | Plain envelopes; no text or brands |
 | `blog-security` | [05HLFQu8bFw](https://unsplash.com/photos/05HLFQu8bFw) | Viktor Talashuk | 2026-11-16 | Binder spine labels are internal codes, no brands |
+| `not-found` | [_v6mhdOK2g0](https://unsplash.com/photos/_v6mhdOK2g0) | Markus Spiske | 2026-11-16 | Motorway in fog; distant gantry sign unreadable, no vehicles identifiable |
+| `contact` | [Nv-87ynmdHA](https://unsplash.com/photos/Nv-87ynmdHA) | Kelly Sikkema | 2026-11-16 | Hands writing a letter; no face, no brands |
 
 Rejected: [C5GeaRZp2D4](https://unsplash.com/photos/C5GeaRZp2D4) (social network names and a company logo on the board) and [IisDPFNUS4k](https://unsplash.com/photos/IisDPFNUS4k) (laptop maker logo in the centre); for the product pages, two laptop photos with third-party websites on screen and a construction photo with a company logo on the hard hats.
 

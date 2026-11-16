@@ -9,6 +9,7 @@ import { Accent } from "@/components/ui/Accent";
 import { Card } from "@/components/ui/Card";
 import { Container } from "@/components/ui/Container";
 import { Glow } from "@/components/ui/Glow";
+import { Photo } from "@/components/ui/Photo";
 import { Section } from "@/components/ui/Section";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { Tag } from "@/components/ui/Tag";
@@ -36,6 +37,11 @@ export default function ContactPage() {
         data-nav-theme="dark"
         className="relative isolate overflow-hidden bg-ink pt-36 pb-20 text-white md:pt-44 md:pb-24"
       >
+        {/* Hands writing a letter. Decorative, under an ink veil so text keeps its contrast. */}
+        <div aria-hidden="true" className="absolute inset-0 -z-10">
+          <Photo slot="contact" fill sizes="100vw" />
+          <div className="absolute inset-0 bg-ink/85" />
+        </div>
         <Glow color="violet" size={880} opacity={0.4} className="-top-1/2 left-1/2 -translate-x-1/2" />
         <Container>
           <div className="text-center">
