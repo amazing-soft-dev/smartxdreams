@@ -1,5 +1,6 @@
 import type { NextConfig } from "next";
 import imageConfig from "./src/lib/image-config.json";
+import { siteRedirects } from "./src/lib/redirects";
 import { securityHeaders } from "./src/lib/security-headers";
 
 // NEXT_OUTPUT=export builds a static site into out/. There is no server, so /api routes are omitted
@@ -25,6 +26,8 @@ if (!isStaticExport) {
   // Security headers and CSP on every route of the server build (src/lib/security-headers.ts).
   const headers = securityHeaders({ dev: process.env.NODE_ENV !== "production", preview: process.env.VERCEL_ENV === "preview" });
   nextConfig.headers = async () => [{ source: "/:path*", headers }];
+  // Likely aliases and old links (src/lib/redirects.ts).
+  nextConfig.redirects = async () => siteRedirects;
 }
 
 if (isStaticExport) {
