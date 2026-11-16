@@ -85,6 +85,40 @@ optional, `message`) plus the spam-guard fields.
 
 Logs never include names, addresses or message text. `GET` answers 405.
 
+## `POST /api/waitlist` and `POST /api/waitlist/confirm`
+
+Double opt-in, and nothing is stored until someone confirms.
+
+**Sign up** (`src/app/api/waitlist/route.api.ts`). Body: `email`, `product` (one of the six slugs),
+`consent: true`, `consentVersion` (must match `waitlistConsent.version` in `src/lib/forms/waitlist.ts`)
+and the spam-guard fields.
+
+1. Rate limit (5 per IP per 10 minutes), validation (400), spam (silent 200), configuration (503).
+2. The address is lowercased. The same address and product get at most 2 confirmation emails a day.
+   Further attempts get the same 200 without an email, so the response never reveals a previous sign-up.
+3. A confirmation email with a link to `/waitlist/confirm?token=…`. The token is signed with
+   `WAITLIST_SECRET` (HMAC-SHA256), is valid for 7 days, and carries the address, product, consent version
+   and consent time.
+
+**Confirm** (`src/app/api/waitlist/confirm/route.api.ts`). The `/waitlist/confirm` page (noindex) shows what
+is being confirmed and posts `{ token }` only when the person presses Confirm. That way a mail scanner
+that opens the link cannot sign anyone up.
+
+- 400 `invalid_token`, or 410 `expired_token` with a link back to the product.
+- The first confirmation of a token sends the **consent record** to `CONTACT_TO_EMAIL`: address, product,
+  consent version and wording, when consent was given and when it was confirmed. If that fails, the
+  confirmation fails (503) and can be retried, so nobody counts as confirmed without a record.
+- If `RESEND_WAITLIST_SEGMENT_ID` is set, the address is also added to that Resend segment (best effort).
+- Confirming the same link again returns 200 and records nothing new.
+
+| Variable | Purpose |
+|---|---|
+| `WAITLIST_SECRET` | At least 32 random characters (`openssl rand -hex 32`); signs confirmation links |
+| `RESEND_WAITLIST_SEGMENT_ID` | Optional Resend segment for confirmed contacts |
+
+Changing the consent wording: edit `waitlistConsent.text` and bump `waitlistConsent.version`. Forms loaded
+before the change get "Reload the page" instead of agreeing to wording they did not see.
+
 Checked against a temporary route on `next start`: 400 with field errors, 400/415 for bad bodies, a silent
 200 for honeypot and too-fast submits, 503 without Resend, and 429 with `Retry-After: 60` on the fourth
 request in a minute.
