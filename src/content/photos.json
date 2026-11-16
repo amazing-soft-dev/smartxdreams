@@ -88,8 +88,7 @@
         "photoUrl": "https://unsplash.com/photos/VXpeQ3GetDU",
         "source": "unsplash",
         "license": "Unsplash License"
-      },
-      "pending": true
+      }
     },
     {
       "slot": "about-values",
