@@ -10,7 +10,7 @@ const largest = widths.at(-1) ?? 0;
  *
  * Photos under /images map to the WebP variant pre-built by `npm run images`, choosing the smallest
  * variant at least as wide as the requested width (or the largest one):
- *   /images/home/desk.jpg at 900 px -> /_img/home/desk-1024.webp
+ *   /images/<dir>/<name>.jpg at 900 px -> /_img/<dir>/<name>-1024.webp
  *
  * Anything else (logos, icons, SVGs) is served as is. The width query keeps Next.js from warning
  * that the loader ignores the width; static hosts ignore it.

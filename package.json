@@ -10,7 +10,8 @@
     "start": "next start",
     "lint": "eslint . --max-warnings 0",
     "typecheck": "next typegen && tsc --noEmit",
-    "images": "node scripts/build-images.mjs"
+    "images": "node scripts/build-images.mjs",
+    "check:images": "node scripts/check-images.mjs"
   },
   "dependencies": {
     "next": "16.4.6",
