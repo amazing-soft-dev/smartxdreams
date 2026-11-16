@@ -3,6 +3,7 @@
 import { motion, useMotionValueEvent, useScroll, useSpring } from "motion/react";
 import { useRef, useState } from "react";
 import { Container } from "@/components/ui/Container";
+import { Photo } from "@/components/ui/Photo";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { processSteps } from "@/content/process";
 import { cx } from "@/lib/cx";
@@ -99,7 +100,23 @@ export function ProcessStepper() {
                 </li>
               ))}
             </ol>
-            <div className="relative hidden aspect-[4/3] overflow-hidden rounded-[30px] bg-ink lg:block" />
+            {/* Media panel (desktop): the photos are stacked, and each one is revealed by a circle that grows from
+                the left edge when its step becomes active, settling from a slight zoom and blur. Decorative. */}
+            <div className="relative hidden aspect-[4/3] overflow-hidden rounded-[30px] bg-ink lg:block">
+              {processSteps.map((step, i) => (
+                <div
+                  key={step.slot}
+                  className="absolute inset-0 transition-[clip-path,scale,filter] duration-[1100ms] ease-[var(--ease-out-quint)]"
+                  style={{
+                    clipPath: i <= active ? "circle(150% at 0% 50%)" : "circle(0% at 0% 50%)",
+                    scale: i === active ? "1" : i < active ? "1" : "1.12",
+                    filter: i <= active ? "blur(0px)" : "blur(6px)",
+                  }}
+                >
+                  <Photo slot={step.slot} fill sizes="(min-width: 1024px) 50vw, 100vw" />
+                </div>
+              ))}
+            </div>
           </div>
         </Container>
       </div>
