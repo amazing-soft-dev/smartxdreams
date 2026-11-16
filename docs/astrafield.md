@@ -17,7 +17,7 @@ Place `<AstraField />` inside a positioned, dark container. It is decorative (`a
 
 1. `StarFallback` (pure CSS stars) renders with the page, so the hero is never empty.
 2. `LazyScene` imports `AstraScene`, and three.js with it, only when `useSceneSupport` allows it, the hero is near the viewport, and the browser is idle.
-3. It never runs for reduced motion, data saver, low-power devices (2 cores or 2 GB or fewer) or missing WebGL. Switching reduced motion on while the page is open removes the scene.
+3. It never runs for reduced motion, data saver, low-power devices (2 cores or 2 GB or fewer) or missing WebGL 2. three.js supports WebGL 2 only, so a browser with WebGL 1 alone keeps the CSS stars and never downloads three.js. Switching reduced motion on while the page is open removes the scene.
 
 `npm run check:bundle` (run in CI) keeps three.js out of the initial Home scripts and under 200 KB gzipped.
 
