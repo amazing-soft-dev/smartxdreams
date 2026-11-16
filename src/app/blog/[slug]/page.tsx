@@ -104,7 +104,7 @@ export default async function PostPage({ params }: PostPageProps) {
 
         <div data-nav-theme="light" className="bg-white py-16 md:py-20">
           <Container>
-            <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_15rem] lg:gap-16">
+            <div className="grid gap-10 text-body-l lg:grid-cols-[minmax(0,49ch)_15rem] lg:gap-20">
               <div>
                 {toc.length > 0 ? <TableOfContents headings={toc} variant="inline" /> : null}
                 {/* About 68 characters per line. CSS ch is the width of "0", wider than the average letter in Inter
