@@ -1,7 +1,9 @@
 // Checks the photo rules (see docs/images.md). Passes when there are no photos.
 // 1. Every photo file in public/images has exactly one registry entry (src/content/photos.json) with a
 //    credit from Unsplash or Pexels, and every entry points to a file that exists.
-// 2. Every registered slot is used exactly once in src/, as slot="<id>".
+// 2. Every registered slot is used exactly once in src/, as slot="<id>". A slot marked "pending": true
+//    is registered ahead of the page that will use it: it may be unused, but not used (the page issue
+//    removes the flag when it starts using the photo).
 // 3. Nothing in src/ references /images/... directly (photos go through <Photo slot />).
 
 import { readdir, readFile } from "node:fs/promises";
@@ -56,6 +58,7 @@ for (const entry of entries) {
 // 2 and 3. Scan src/ (except the registry) for slot uses and direct /images references.
 const sources = (await walk(srcDir, (n) => scanExtensions.has(path.extname(n)))).filter((f) => f !== registryFile);
 const uses = new Map(entries.map((e) => [e.slot, []]));
+const pending = new Set(entries.filter((e) => e.pending === true).map((e) => e.slot));
 const escaped = config.sourcePublicPath.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 const direct = new RegExp(`${escaped}/[A-Za-z0-9._/-]+\\.(?:jpe?g|png|webp)`, "gi");
 const slotUse = /\bslot=["']([a-z0-9-]+)["']/g;
@@ -70,6 +73,10 @@ for (const file of sources) {
   }
 }
 for (const [slot, where] of uses) {
+  if (pending.has(slot)) {
+    if (where.length > 0) problems.push(`slot "${slot}" is used but still marked pending; remove "pending" from photos.json`);
+    continue;
+  }
   if (where.length === 0) problems.push(`slot "${slot}" is never used`);
   if (where.length > 1) problems.push(`slot "${slot}" is used ${where.length} times (${where.join(", ")})`);
 }
@@ -79,4 +86,6 @@ if (problems.length > 0) {
   for (const p of problems) console.error(`  - ${p}`);
   process.exit(1);
 }
-console.log(`check:images: ${files.length} photo(s), each credited and used exactly once.`);
+console.log(
+  `check:images: ${files.length} photo(s), all credited; ${entries.length - pending.size} used exactly once, ${pending.size} pending their page.`,
+);

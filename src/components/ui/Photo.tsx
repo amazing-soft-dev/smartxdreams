@@ -23,7 +23,8 @@ type PhotoProps = {
 export function Photo({ slot, sizes, priority = false, fill = false, className }: PhotoProps) {
   const photo = photoBySlot(slot);
   const alt = photo.decorative ? "" : photo.alt;
-  const style = { backgroundColor: photo.tint };
+  // Cropped (fill) layouts keep the subject in frame using the registry focal point.
+  const style = { backgroundColor: photo.tint, objectPosition: photo.focal };
   return fill ? (
     <Image
       src={photo.src}
