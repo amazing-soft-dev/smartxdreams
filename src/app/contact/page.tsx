@@ -30,7 +30,7 @@ export const metadata: Metadata = pageMetadata({
 /** /contact: ways to reach the studio, the contact form and practical questions. */
 export default function ContactPage() {
   return (
-    <main>
+    <main id="main" tabIndex={-1}>
       <section
         aria-labelledby="contact-title"
         data-surface="dark"

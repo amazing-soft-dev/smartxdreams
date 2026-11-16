@@ -51,7 +51,7 @@ export default async function PostPage({ params }: PostPageProps) {
   const headings = extractHeadings(post.body);
   const toc = headings.length >= 3 ? headings : [];
   return (
-    <main>
+    <main id="main" tabIndex={-1}>
       <JsonLd data={blogPostingJsonLd(post)} />
       <ReadingProgress targetId="post-body" />
       <article aria-labelledby="post-title">

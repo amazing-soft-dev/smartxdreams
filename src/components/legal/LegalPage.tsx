@@ -26,7 +26,7 @@ function Block({ block }: { block: LegalBlock }) {
 export function LegalPage({ doc }: { doc: LegalDocument }) {
   const date = longDate.format(new Date(`${doc.draftDate}T00:00:00Z`));
   return (
-    <main>
+    <main id="main" tabIndex={-1}>
       <section aria-labelledby="legal-title" data-nav-theme="light" className="bg-canvas pt-36 pb-14 md:pt-44 md:pb-16">
         <Container>
           <Tag>Legal</Tag>

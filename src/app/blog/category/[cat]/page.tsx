@@ -49,7 +49,7 @@ export default async function BlogCategoryPage({ params }: CategoryPageProps) {
   const posts = listedPosts().filter((p) => p.category === category.id);
   const products = category.products.map((slug) => productBySlug(slug)).filter((p): p is Product => p !== undefined);
   return (
-    <main>
+    <main id="main" tabIndex={-1}>
       <section
         aria-labelledby="category-title"
         data-surface="dark"

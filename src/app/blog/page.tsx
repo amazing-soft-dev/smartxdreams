@@ -43,7 +43,7 @@ export default function BlogPage() {
   ];
   const items = posts.map((post) => ({ slug: post.slug, category: post.category, card: <PostTeaser post={post} /> }));
   return (
-    <main>
+    <main id="main" tabIndex={-1}>
       <section
         aria-labelledby="blog-title"
         data-surface="dark"

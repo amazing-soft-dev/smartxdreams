@@ -36,7 +36,7 @@ const aboutJsonLd = {
 /** /about: the studio's story, how it works, where it is headed and who is behind it. */
 export default function AboutPage() {
   return (
-    <main>
+    <main id="main" tabIndex={-1}>
       <JsonLd data={aboutJsonLd} />
       <section
         aria-labelledby="about-title"
