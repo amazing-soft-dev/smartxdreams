@@ -122,6 +122,21 @@ export function postCategory(post: Post): BlogCategory {
   return category;
 }
 
+/**
+ * Up to `limit` other listed posts to read next: same category first, then posts about the same products,
+ * then the newest. Ties keep newest-first order.
+ */
+export function relatedPosts(post: Post, limit = 3): Post[] {
+  const score = (other: Post) =>
+    (other.category === post.category ? 3 : 0) + other.products.filter((slug) => post.products.includes(slug)).length * 2;
+  return listedPosts()
+    .filter((other) => other.slug !== post.slug)
+    .map((other, index) => ({ other, index, score: score(other) }))
+    .sort((a, b) => b.score - a.score || a.index - b.index)
+    .slice(0, limit)
+    .map(({ other }) => other);
+}
+
 export function postBySlug(slug: string): Post | undefined {
   return allPosts().find((p) => p.slug === slug);
 }

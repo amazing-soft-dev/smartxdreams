@@ -1,13 +1,16 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { mdxComponents } from "@/components/blog/mdx-components";
+import { PostAside } from "@/components/blog/PostAside";
 import { PostCover } from "@/components/blog/PostCover";
 import { ReadingProgress } from "@/components/blog/ReadingProgress";
 import { TableOfContents } from "@/components/blog/TableOfContents";
+import { JsonLd } from "@/components/seo/JsonLd";
 import { TransitionLink } from "@/components/transition/TransitionLink";
 import { Container } from "@/components/ui/Container";
 import { formatPostDate } from "@/lib/blog/format";
 import { extractHeadings } from "@/lib/blog/headings";
+import { blogPostingJsonLd } from "@/lib/blog/json-ld";
 import { allPosts, postBySlug, postCategory, postContent } from "@/lib/blog/posts";
 import { pageMetadata } from "@/lib/seo";
 
@@ -49,6 +52,7 @@ export default async function PostPage({ params }: PostPageProps) {
   const toc = headings.length >= 3 ? headings : [];
   return (
     <main>
+      <JsonLd data={blogPostingJsonLd(post)} />
       <ReadingProgress targetId="post-body" />
       <article aria-labelledby="post-title">
         <header data-nav-theme="light" className="bg-canvas pt-32 pb-12 md:pt-40 md:pb-16">
@@ -118,6 +122,7 @@ export default async function PostPage({ params }: PostPageProps) {
           </Container>
         </div>
       </article>
+      <PostAside post={post} />
     </main>
   );
 }
