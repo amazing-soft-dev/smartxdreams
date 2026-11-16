@@ -28,6 +28,9 @@ export function DigitRoller({ value, className, countUp = true }: DigitRollerPro
   const chars = Array.from(value);
   return (
     <span ref={ref} className={cx(styles.roller, className)}>
+      {/* Screen readers get the real value once; the animated columns are hidden from them. */}
+      <span className="sr-only">{value}</span>
+      <span aria-hidden="true" className={styles.roller}>
       {chars.map((char, index) => {
         // Keyed from the right, so "$49" -> "$470" keeps the existing digits and adds one on the left.
         const key = chars.length - index;
@@ -48,6 +51,7 @@ export function DigitRoller({ value, className, countUp = true }: DigitRollerPro
           </span>
         );
       })}
+      </span>
     </span>
   );
 }
