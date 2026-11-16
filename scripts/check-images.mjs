@@ -86,4 +86,6 @@ if (problems.length > 0) {
   for (const p of problems) console.error(`  - ${p}`);
   process.exit(1);
 }
-console.log(`check:images: ${files.length} photo(s), each credited and used exactly once.`);
+console.log(
+  `check:images: ${files.length} photo(s), all credited; ${entries.length - pending.size} used exactly once, ${pending.size} pending their page.`,
+);

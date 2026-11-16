@@ -9,6 +9,7 @@
       "decorative": true,
       "tint": "#c8d8c8",
       "blurDataURL": "data:image/webp;base64,UklGRlYAAABXRUJQVlA4IEoAAAAwAgCdASoQAAsAA4BaJYwC7AELz+pCPPztgAD+8+boDkklbyBZfGebULy5+67zIddJgOxSYzS/RL88V42rbb/CUPZKymXMaoAAAA==",
+      "focal": "62% 40%",
       "credit": {
         "photographer": "Beatriz Cattel",
         "profileUrl": "https://unsplash.com/@bicattel",
@@ -27,6 +28,7 @@
       "decorative": true,
       "tint": "#c8c8b8",
       "blurDataURL": "data:image/webp;base64,UklGRloAAABXRUJQVlA4IE4AAADQAQCdASoQAAwAA4BaJQBOgBj43ubTAAD+1Ld3+oKwC8mtKjsSxio2dQfLvwveIMSwU7ZuxopwBnG7KouswcdYbznlU7kEoCwiwHIAAAA=",
+      "focal": "45% 50%",
       "credit": {
         "photographer": "Kvalifik",
         "profileUrl": "https://unsplash.com/@kvalifik",
@@ -45,6 +47,7 @@
       "decorative": true,
       "tint": "#181818",
       "blurDataURL": "data:image/webp;base64,UklGRkwAAABXRUJQVlA4IEAAAACwAQCdASoQAAsAA4BaJZwC7ADcxysAAP70o5AxUk6opRZxPeGTHp0sx7JbAbxGu8F7hGEAGosbiayQy2kMAAAA",
+      "focal": "35% 50%",
       "credit": {
         "photographer": "Chris Ried",
         "profileUrl": "https://unsplash.com/@cdr6934",
@@ -63,6 +66,7 @@
       "decorative": true,
       "tint": "#282828",
       "blurDataURL": "data:image/webp;base64,UklGRngAAABXRUJQVlA4IGwAAACQAgCdASoQAAsAA4BaJYwCdAYuvwn/abYPdSVfYADOD9p8eW759ScPaUGcrETgtwvhJz6IVeakBxoWXaAcG2tCeNr5p25GAFUZlGFEYXqlERQdT1OnFnOKrZibjS6pfsZNew31ASSUgAB5cAA=",
+      "focal": "55% 62%",
       "credit": {
         "photographer": "Mina Rad",
         "profileUrl": "https://unsplash.com/@miinrad",
@@ -81,6 +85,7 @@
       "decorative": false,
       "tint": "#b8b8b8",
       "blurDataURL": "data:image/webp;base64,UklGRmgAAABXRUJQVlA4IFwAAABQAgCdASoQAAsAA4BaJYgC7AYwTvQYaVQ5tcAA/sRcAKGOfwgkBlC6WhMl1rxhNO6p3Qm+VBk58cyKs1XoNVDMlWs4ewPYRQHEMXWfyjRXk0idMQyzJb24pJAAAA==",
+      "focal": "50% 55%",
       "credit": {
         "photographer": "Huy Phan",
         "profileUrl": "https://unsplash.com/@huyphan2602",
@@ -99,6 +104,7 @@
       "decorative": false,
       "tint": "#d8d8d8",
       "blurDataURL": "data:image/webp;base64,UklGRk4AAABXRUJQVlA4IEIAAAAwAgCdASoQAAsAA4BaJQBdgCHwy34sl4uJAAD+A7eYGDXf2tbsYnlkxlqbu1ekQe95vVserP55BZQYAbZyZH8AAAA=",
+      "focal": "50% 45%",
       "credit": {
         "photographer": "Alvaro Reyes",
         "profileUrl": "https://unsplash.com/@alvarordesign",
@@ -117,6 +123,7 @@
       "decorative": false,
       "tint": "#b8b8b8",
       "blurDataURL": "data:image/webp;base64,UklGRl4AAABXRUJQVlA4IFIAAAAQAgCdASoQAAsAA4BaJZQAAp/H+JF54jeAAP6bdiZhc+FxWiGBtakniIJGgS16fcnxYTFtvn4MCx46D6OGZpIioqQ87sY6TZrH0g1QYXWplRwA",
+      "focal": "60% 45%",
       "credit": {
         "photographer": "Kaleidico",
         "profileUrl": "https://unsplash.com/@kaleidico",

@@ -29,6 +29,8 @@ export const photoSchema = z
     tint: z.string().regex(/^#[0-9a-f]{6}$/i),
     /** Tiny base64 preview for the blur-up placeholder (scripts/photo-meta.mjs). */
     blurDataURL: z.string().startsWith("data:image/"),
+    /** Where the subject sits, as a CSS object-position (e.g. "60% 40%"), so cropped layouts keep it in frame. */
+    focal: z.string().regex(/^\d{1,3}% \d{1,3}%$/).optional(),
     credit: creditSchema,
     /** Registered ahead of the page that will use it. The page issue removes this flag. */
     pending: z.boolean().optional(),
