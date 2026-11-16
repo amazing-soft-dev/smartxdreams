@@ -1,4 +1,6 @@
 import { notFound } from "next/navigation";
+import { productMockups } from "@/components/product/mockups";
+import { ProductFeatures, ProductHero, ProductProblem, ProductSteps } from "@/components/product/ProductSections";
 import { productBySlug, productSlugs } from "@/content/selectors";
 
 type ProductPageProps = { params: Promise<{ slug: string }> };
@@ -17,8 +19,10 @@ export default async function ProductPage({ params }: ProductPageProps) {
   if (!product) notFound();
   return (
     <main>
-      <h1>{product.name}</h1>
-      <p>{product.tagline}</p>
+      <ProductHero product={product} Mockup={productMockups[product.slug]} />
+      <ProductProblem product={product} />
+      <ProductSteps product={product} />
+      <ProductFeatures product={product} />
     </main>
   );
 }
