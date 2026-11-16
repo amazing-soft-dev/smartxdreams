@@ -10,6 +10,7 @@ uniform float uPixelRatio;
 
 varying vec3 vColor;
 varying float vTwinkle;
+varying float vDepth;
 
 void main() {
   vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
@@ -21,6 +22,8 @@ void main() {
   // Slow twinkle, each star on its own phase and speed.
   vTwinkle = 0.65 + 0.35 * sin(uTime * (0.6 + fract(phase) * 1.4) + phase);
   vColor = color;
+  // Depth fade: the farthest stars (z about -12 in view space) fade to 25%.
+  vDepth = mix(0.25, 1.0, smoothstep(-12.0, -6.0, mvPosition.z));
 }
 `;
 
@@ -29,13 +32,14 @@ precision mediump float;
 
 varying vec3 vColor;
 varying float vTwinkle;
+varying float vDepth;
 
 void main() {
   // Soft round sprite: bright core, smooth falloff, nothing outside the circle.
   vec2 uv = gl_PointCoord - 0.5;
   float d = length(uv);
   float alpha = smoothstep(0.5, 0.0, d);
-  alpha *= alpha * vTwinkle;
+  alpha *= alpha * vTwinkle * vDepth;
   if (alpha < 0.01) discard;
   gl_FragColor = vec4(vColor * alpha, alpha);
 }

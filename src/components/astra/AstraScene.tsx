@@ -41,6 +41,9 @@ export default function AstraScene() {
       camera,
       update: (elapsed) => {
         material.uniforms.uTime!.value = elapsed;
+        // Slow drift: a full turn would take about 26 minutes, so it reads as stillness with life in it.
+        points.rotation.z = elapsed * 0.004;
+        points.rotation.y = Math.sin(elapsed * 0.05) * 0.04;
       },
       resize: (width, height) => {
         camera.aspect = width / height;
