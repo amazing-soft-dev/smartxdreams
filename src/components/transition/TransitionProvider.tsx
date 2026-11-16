@@ -143,7 +143,7 @@ export function TransitionProvider({ children }: { children: ReactNode }) {
             className="absolute top-1/2 left-1/2 size-[60vmin] -translate-1/2 rounded-full opacity-60 blur-[48px]"
             style={{ background: "radial-gradient(closest-side, rgb(109 74 255 / 0.85), rgb(255 107 61 / 0.35) 60%, transparent)" }}
           />
-          <Logo variant="mark" height={36} decorative className="relative" />
+          <Logo variant="mark" tone="light" height={36} decorative className="relative" />
           <div className="relative overflow-hidden px-1">
             <span
               ref={label}
