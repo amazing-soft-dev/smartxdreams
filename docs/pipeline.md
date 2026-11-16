@@ -81,3 +81,25 @@ The gate before any site code is the 15-point checklist in `SMARTXDREAMS-PLAN.md
 | No PR for a branch | Name is not `<prefix>/<number>-<slug>`; non-prefix branches (`wip/…`) do not trigger the workflow at all |
 | CI red with "package.json is missing" | The app was deleted without the bootstrap flag; restore `package.json` |
 | Merge skipped: "head is not the commit CI validated" | A newer commit was pushed after CI started; the newer run will merge |
+
+## Verification checklist
+
+Run by the pipeline probe issues (#68 happy path, #69 red CI, #70 rules and abuse paths). Results are recorded as run and PR links on those issues.
+
+| # | Check | Pass criterion |
+|---|---|---|
+| 1 | Prefixed branch opens a PR | `feat/ fix/ docs/ ci/ build/` + `<n>-slug` opens a PR into `dev` |
+| 2 | Bad branch ignored | `wip/…`, and a prefixed branch with no issue number, get no PR |
+| 3 | CI summary comment | Exactly one comment, updated, not duplicated |
+| 4 | Green merges automatically | Merge commit on `dev`, head validated |
+| 5 | `dev` push opens or updates `dev` → `main` | Correct `Closes` lines, no duplicate PR |
+| 6 | `dev` → `main` merges after green CI | Linked issues close |
+| 7 | Red CI never merges | PR stays open, "CI passed" red |
+| 8 | Newer push cancels the older run | Stale run shows cancelled |
+| 9 | Direct push to `dev` and `main` rejected | Rejected by ruleset |
+| 10 | Force-push and branch deletion rejected | Rejected on both |
+| 11 | Merge without green "CI passed" blocked | Blocked by required check |
+| 12 | Non-merge-commit methods blocked | Squash and rebase rejected |
+| 13 | Non-eligible pairs untouched | A feature → `main` PR is not auto-merged |
+| 14 | Head-moved race | No merge on the old SHA |
+| 15 | A bot merge starts the next workflow | The `dev` push run exists after step 4 |
