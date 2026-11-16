@@ -1,0 +1,74 @@
+name: Merge passing pull request
+
+# Starts only after the CI workflow finishes. If CI succeeded for a pull request, merge-commit it,
+# but only when its head is still the commit CI validated. Eligible pairs:
+#   <feat|fix|docs|ci|build>/<n>-<slug> -> dev, and dev -> main.
+# Anything else (Dependabot, forks, other bases) is left alone.
+# NOTE: workflow_run workflows are read from the default branch (main), so this file has no effect
+# until it has been merged to main. See docs/pipeline.md.
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+
+permissions:
+  contents: read
+
+jobs:
+  merge:
+    name: Merge if eligible
+    if: >-
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'pull_request' &&
+      github.event.workflow_run.head_repository.full_name == github.repository
+    runs-on: ubuntu-latest
+    concurrency:
+      group: merge-${{ github.event.workflow_run.head_branch }}
+      cancel-in-progress: false
+    env:
+      GH_TOKEN: ${{ secrets.GH_TOKEN }}
+      REPO: ${{ github.repository }}
+      HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
+      RUN_SHA: ${{ github.event.workflow_run.head_sha }}
+    steps:
+      - name: Require the GH_TOKEN secret
+        run: |
+          if [ -z "$GH_TOKEN" ]; then
+            echo "::error::The GH_TOKEN repository secret is not set. See docs/pipeline.md."
+            exit 1
+          fi
+
+      - name: Merge the validated pull request
+        run: |
+          set -euo pipefail
+          prs=$(gh pr list --repo "$REPO" --head "$HEAD_BRANCH" --state open \
+                  --json number,baseRefName,headRefOid,isCrossRepository \
+                  --jq '[.[] | select(.isCrossRepository == false)]')
+          count=$(jq 'length' <<< "$prs")
+          if [ "$count" -eq 0 ]; then
+            echo "::notice::No open same-repo pull request for $HEAD_BRANCH."
+            exit 0
+          fi
+
+          for i in $(seq 0 $((count - 1))); do
+            number=$(jq -r ".[$i].number" <<< "$prs")
+            base=$(jq -r ".[$i].baseRefName" <<< "$prs")
+            head_sha=$(jq -r ".[$i].headRefOid" <<< "$prs")
+
+            eligible=false
+            if [ "$base" = dev ] && [[ "$HEAD_BRANCH" =~ ^(feat|fix|docs|ci|build)/[0-9]+-[A-Za-z0-9._-]+$ ]]; then eligible=true; fi
+            if [ "$base" = main ] && [ "$HEAD_BRANCH" = dev ]; then eligible=true; fi
+            if [ "$eligible" != true ]; then
+              echo "::notice::#$number ($HEAD_BRANCH -> $base) is not an eligible pair. Leaving it."
+              continue
+            fi
+
+            if [ "$head_sha" != "$RUN_SHA" ]; then
+              echo "::notice::#$number head $head_sha is not the commit CI validated ($RUN_SHA). Not merging."
+              continue
+            fi
+
+            echo "Merging #$number ($HEAD_BRANCH -> $base) as a merge commit at $RUN_SHA."
+            gh pr merge "$number" --repo "$REPO" --merge --match-head-commit "$RUN_SHA"
+          done
