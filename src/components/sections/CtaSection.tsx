@@ -21,7 +21,7 @@ export function CtaSection() {
           <span className="sr-only">Be the first to try SmartxDreams products.</span>
           <span aria-hidden="true">
             Be the first to try{" "}
-            <TypedWord words={names} className="text-violet-300" />
+            <TypedWord words={names} staticText="our products." className="text-violet-300" />
           </span>
         </h2>
         <p className="mt-5 max-w-xl text-body-l text-white/65">

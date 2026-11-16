@@ -1,10 +1,13 @@
 "use client";
 
+import { useReducedMotion } from "motion/react";
 import { useEffect, useState } from "react";
 
 type TypedWordProps = {
   /** Words to cycle through. */
   words: readonly string[];
+  /** Shown instead of the animation when the visitor prefers reduced motion. */
+  staticText: string;
   className?: string;
 };
 
@@ -14,15 +17,18 @@ const HOLD_MS = 1600;
 
 /**
  * Types each word letter by letter, holds it, deletes it, and moves on, with a blinking caret.
- * Visual only (aria-hidden): the surrounding heading carries a static text alternative.
+ * Visual only (aria-hidden): the surrounding heading carries a static text alternative. Under reduced motion
+ * it shows staticText with no typing and no caret.
  */
-export function TypedWord({ words, className }: TypedWordProps) {
+export function TypedWord({ words, staticText, className }: TypedWordProps) {
+  const reduced = useReducedMotion();
   const [index, setIndex] = useState(0);
   const [length, setLength] = useState(0);
   const [deleting, setDeleting] = useState(false);
   const word = words[index % words.length] ?? "";
 
   useEffect(() => {
+    if (reduced) return;
     let delay = deleting ? DELETE_MS : TYPE_MS;
     if (!deleting && length === word.length) delay = HOLD_MS;
     const timer = window.setTimeout(() => {
@@ -33,7 +39,15 @@ export function TypedWord({ words, className }: TypedWordProps) {
       } else setLength((n) => n + (deleting ? -1 : 1));
     }, delay);
     return () => window.clearTimeout(timer);
-  }, [deleting, length, word.length]);
+  }, [deleting, length, word.length, reduced]);
+
+  if (reduced) {
+    return (
+      <span aria-hidden="true" className={className}>
+        {staticText}
+      </span>
+    );
+  }
 
   return (
     <span aria-hidden="true" className={className}>
