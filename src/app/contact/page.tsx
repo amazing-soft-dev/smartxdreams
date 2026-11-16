@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Suspense } from "react";
 import { ContactForm } from "@/components/forms/ContactForm";
+import { ContactFormFromUrl } from "@/components/forms/ContactFormFromUrl";
 import { Reveal } from "@/components/motion/Reveal";
 import { Accent } from "@/components/ui/Accent";
 import { Card } from "@/components/ui/Card";
@@ -10,7 +12,11 @@ import { Section } from "@/components/ui/Section";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { Tag } from "@/components/ui/Tag";
 import { contact } from "@/content/contact";
+import { products } from "@/content/products";
 import { pageMetadata } from "@/lib/seo";
+
+/** Only what the product select needs, so the rest of the product copy stays out of the client bundle. */
+const productOptions = products.map((p) => ({ slug: p.slug, name: p.name }));
 
 export const metadata: Metadata = pageMetadata({
   title: "Contact",
@@ -62,11 +68,13 @@ export default function ContactPage() {
             id="contact-form-title"
             tag="Message"
             title="Send us a *message*."
-            description="Every field is required. A person reads each message and replies by email."
+            description="Every field is required unless it says optional. A person reads each message and replies by email."
             align="left"
           />
           <Card padding="lg">
-            <ContactForm />
+            <Suspense fallback={<ContactForm products={productOptions} />}>
+              <ContactFormFromUrl products={productOptions} />
+            </Suspense>
           </Card>
         </div>
       </Section>

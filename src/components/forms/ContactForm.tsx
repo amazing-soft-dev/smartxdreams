@@ -18,6 +18,15 @@ type Status =
 
 type Errors = Partial<Record<ContactField, string>>;
 
+/** A product the message can be about: just what the select needs, so product copy stays out of the bundle. */
+export type ProductOption = { slug: string; name: string };
+
+type ContactFormProps = {
+  products: ProductOption[];
+  /** Preselects a product (from ?product= on the URL) and sets the topic to a product question. */
+  defaultProduct?: string;
+};
+
 const isField = (name: string): name is ContactField => (contactFields as string[]).includes(name);
 
 /**
@@ -28,7 +37,7 @@ const isField = (name: string): name is ContactField => (contactFields as string
  * Spam guards travel with the message for the API to check: a honeypot field people never see, and how long
  * the form was open before sending. In the static export nothing is sent and the form says so.
  */
-export function ContactForm() {
+export function ContactForm({ products, defaultProduct }: ContactFormProps) {
   const id = useId();
   const [errors, setErrors] = useState<Errors>({});
   const [status, setStatus] = useState<Status>({ kind: "idle" });
@@ -160,16 +169,33 @@ export function ContactForm() {
           error={errors.email}
         />
       </div>
-      <SelectField id={fieldId("topic")} name="topic" label="Topic" defaultValue="" error={errors.topic}>
-        <option value="" disabled>
-          Choose a topic
-        </option>
-        {contactTopics.map((t) => (
-          <option key={t.id} value={t.id}>
-            {t.label}
+      <div className="grid gap-6 sm:grid-cols-2">
+        <SelectField id={fieldId("topic")} name="topic" label="Topic" defaultValue={defaultProduct ? "product" : ""} error={errors.topic}>
+          <option value="" disabled>
+            Choose a topic
           </option>
-        ))}
-      </SelectField>
+          {contactTopics.map((t) => (
+            <option key={t.id} value={t.id}>
+              {t.label}
+            </option>
+          ))}
+        </SelectField>
+        <SelectField
+          id={fieldId("product")}
+          name="product"
+          label="Product"
+          optional
+          defaultValue={defaultProduct ?? ""}
+          error={errors.product}
+        >
+          <option value="">Not about one product</option>
+          {products.map((p) => (
+            <option key={p.slug} value={p.slug}>
+              {p.name}
+            </option>
+          ))}
+        </SelectField>
+      </div>
       <TextAreaField
         id={fieldId("message")}
         name="message"

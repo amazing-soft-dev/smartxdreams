@@ -28,6 +28,13 @@ export const contactSchema = z.object({
     .min(1, "Enter your email address so we can reply.")
     .pipe(z.email("Enter an email address like name@example.com.")),
   topic: z.enum(topicIds, { error: "Choose a topic." }),
+  /** A product slug, or empty for none. The API also checks the slug is a real product. */
+  product: z
+    .string()
+    .trim()
+    .regex(/^[a-z0-9-]{0,40}$/, "Choose a product from the list.")
+    .optional()
+    .transform((v) => v || undefined),
   message: z
     .string()
     .trim()
@@ -39,7 +46,7 @@ export type ContactInput = z.infer<typeof contactSchema>;
 export type ContactField = keyof ContactInput;
 
 /** Field order on the page: the first field with an error gets focus. */
-export const contactFields: ContactField[] = ["name", "email", "topic", "message"];
+export const contactFields: ContactField[] = ["name", "email", "topic", "product", "message"];
 
 /** The first error message for each field, keyed by field name. */
 export function fieldErrors<F extends string>(error: z.ZodError): Partial<Record<F, string>> {
