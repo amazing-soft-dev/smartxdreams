@@ -1,6 +1,7 @@
 import { evaluate } from "@mdx-js/mdx";
 import type { MDXContent } from "mdx/types";
 import * as runtime from "react/jsx-runtime";
+import { rehypeHeadingIds } from "./headings";
 
 /**
  * Compiles a post's MDX body (frontmatter already removed) into a React component.
@@ -16,6 +17,8 @@ export async function compileMdx(source: string, file: string): Promise<MDXConte
       jsx: runtime.jsx,
       jsxs: runtime.jsxs,
       development: false,
+      // Section ids for the table of contents and for links to a section.
+      rehypePlugins: [rehypeHeadingIds],
     });
     return Content;
   } catch (error) {

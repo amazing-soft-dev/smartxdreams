@@ -2,9 +2,11 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { mdxComponents } from "@/components/blog/mdx-components";
 import { PostCover } from "@/components/blog/PostCover";
+import { TableOfContents } from "@/components/blog/TableOfContents";
 import { TransitionLink } from "@/components/transition/TransitionLink";
 import { Container } from "@/components/ui/Container";
 import { formatPostDate } from "@/lib/blog/format";
+import { extractHeadings } from "@/lib/blog/headings";
 import { allPosts, postBySlug, postCategory, postContent } from "@/lib/blog/posts";
 import { pageMetadata } from "@/lib/seo";
 
@@ -41,6 +43,9 @@ export default async function PostPage({ params }: PostPageProps) {
   if (!post) notFound();
   const Content = await postContent(post);
   const category = postCategory(post);
+  // A contents list helps only when there are a few sections to jump between.
+  const headings = extractHeadings(post.body);
+  const toc = headings.length >= 3 ? headings : [];
   return (
     <main>
       <article aria-labelledby="post-title">
@@ -93,10 +98,20 @@ export default async function PostPage({ params }: PostPageProps) {
 
         <div data-nav-theme="light" className="bg-white py-16 md:py-20">
           <Container>
-            {/* About 68 characters per line. CSS ch is the width of "0", wider than the average letter in Inter
-                Tight, so max-width: 68ch would give about 95. 49ch at 18 px renders about 68. */}
-            <div className="max-w-[49ch] text-body-l">
-              <Content components={mdxComponents} />
+            <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_15rem] lg:gap-16">
+              <div>
+                {toc.length > 0 ? <TableOfContents headings={toc} variant="inline" /> : null}
+                {/* About 68 characters per line. CSS ch is the width of "0", wider than the average letter in Inter
+                    Tight, so max-width: 68ch would give about 95. 49ch at 18 px renders about 68. */}
+                <div className="max-w-[49ch] text-body-l">
+                  <Content components={mdxComponents} />
+                </div>
+              </div>
+              {toc.length > 0 ? (
+                <aside className="hidden lg:block">
+                  <TableOfContents headings={toc} variant="sidebar" />
+                </aside>
+              ) : null}
             </div>
           </Container>
         </div>
