@@ -25,6 +25,9 @@ npm run dev     # start the dev server on http://localhost:3000
 | `npm run start` | Serve the production build |
 | `npm run lint` | ESLint, any warning fails the run |
 | `npm run typecheck` | Generate route types, then `tsc --noEmit` |
+| `npm run images` | Build responsive WebP variants of `public/images` into `public/_img` |
+| `npm run check:images` | Fail unless every photo in `public/images` is used exactly once in `src/` |
+| `npm run verify:out` | Check the static export in `out/` (pages, sitemap, icons, assets, image variants, no `out/api`) |
 
 Run `npm run lint`, `npm run typecheck` and `npm run build` before pushing.
 

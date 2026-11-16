@@ -11,7 +11,8 @@
     "lint": "eslint . --max-warnings 0",
     "typecheck": "next typegen && tsc --noEmit",
     "images": "node scripts/build-images.mjs",
-    "check:images": "node scripts/check-images.mjs"
+    "check:images": "node scripts/check-images.mjs",
+    "verify:out": "node scripts/verify-out.mjs"
   },
   "dependencies": {
     "next": "16.4.6",
