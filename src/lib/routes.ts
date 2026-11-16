@@ -13,7 +13,7 @@ export type SiteRoute = {
 
 const pages: SiteRoute[] = [
   { path: "/", ready: true, changeFrequency: "weekly", priority: 1 },
-  { path: "/products", ready: false, changeFrequency: "monthly", priority: 0.9 },
+  { path: "/products", ready: true, changeFrequency: "monthly", priority: 0.9 },
   { path: "/about", ready: false, changeFrequency: "monthly", priority: 0.6 },
   { path: "/blog", ready: false, changeFrequency: "weekly", priority: 0.7 },
   { path: "/contact", ready: false, changeFrequency: "yearly", priority: 0.5 },
