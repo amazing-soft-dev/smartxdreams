@@ -30,10 +30,28 @@ export function ProductGrid() {
         {products.map((product, i) => (
           <li key={product.slug} className={cx(spans[i])}>
             <Reveal delay={(i % 4) * 0.08} className="h-full">
-              <article className={cx("flex h-full min-h-64 flex-col rounded-[30px] p-7", tones[i])}>
-                <h3 className="text-h4">{product.name}</h3>
-                <p className="mt-3 max-w-md text-body opacity-80">{product.tagline}</p>
-                <p className="mt-auto pt-8 text-label opacity-70">{product.summary.split(". ")[0]}.</p>
+              <article
+                className={cx(
+                  "group relative flex h-full min-h-64 flex-col rounded-[30px] p-7",
+                  "transition-[translate,box-shadow] duration-500 ease-[var(--ease-out-quint)] hover:-translate-y-1.5 hover:shadow-card-hover",
+                  tones[i],
+                )}
+              >
+                <div className="flex items-start justify-between gap-4">
+                  <h3 className="text-h4">{product.name}</h3>
+                  {/* Arrow tile: tilts and nudges on hover, like the site buttons. */}
+                  <span
+                    aria-hidden="true"
+                    className="inline-flex size-10 shrink-0 items-center justify-center rounded-xl bg-white text-ink transition-transform duration-500 ease-[var(--ease-out-quint)] group-hover:-rotate-8 group-hover:scale-106"
+                  >
+                    <svg viewBox="0 0 16 16" width="16" height="16" fill="none">
+                      <path d="M4.5 11.5l7-7M6 4.5h5.5V10" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </span>
+                </div>
+                {/* Text stays at 90% strength: enough for 4.5:1 on every card surface. */}
+                <p className="mt-3 max-w-md text-body opacity-90">{product.tagline}</p>
+                <p className="mt-auto pt-8 text-label opacity-90">{product.summary.split(". ")[0]}.</p>
               </article>
             </Reveal>
           </li>
