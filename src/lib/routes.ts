@@ -16,7 +16,7 @@ const pages: SiteRoute[] = [
   { path: "/products", ready: true, changeFrequency: "monthly", priority: 0.9 },
   { path: "/about", ready: true, changeFrequency: "monthly", priority: 0.6 },
   { path: "/blog", ready: false, changeFrequency: "weekly", priority: 0.7 },
-  { path: "/contact", ready: false, changeFrequency: "yearly", priority: 0.5 },
+  { path: "/contact", ready: true, changeFrequency: "yearly", priority: 0.5 },
   { path: "/privacy", ready: false, changeFrequency: "yearly", priority: 0.2 },
   { path: "/terms", ready: false, changeFrequency: "yearly", priority: 0.2 },
 ];
