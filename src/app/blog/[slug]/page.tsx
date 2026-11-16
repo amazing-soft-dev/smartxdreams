@@ -69,7 +69,12 @@ export default async function PostPage({ params }: PostPageProps) {
             <div className="mt-8 max-w-4xl">
               <p className="flex flex-wrap items-center gap-x-3 gap-y-2 text-label text-ink/70">
                 {post.draft ? <span className="rounded-full bg-coral-50 px-2.5 py-0.5 font-medium text-coral-900">Draft</span> : null}
-                <span className="font-medium text-coral-700">{category.label}</span>
+                <TransitionLink
+                  href={`/blog/category/${category.id}`}
+                  className="font-medium text-coral-700 underline-offset-4 hover:underline"
+                >
+                  {category.label}
+                </TransitionLink>
                 <span aria-hidden="true">·</span>
                 <span>{post.readingMinutes} min read</span>
               </p>
