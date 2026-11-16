@@ -1,15 +1,40 @@
+import type { Metadata } from "next";
 import { Suspense } from "react";
+import { JsonLd } from "@/components/seo/JsonLd";
 import { ProductsBrowser, ProductsListFallback } from "@/components/products/ProductsBrowser";
 import { WhichIsRight } from "@/components/products/WhichIsRight";
 import { Container } from "@/components/ui/Container";
 import { Glow } from "@/components/ui/Glow";
 import { Section } from "@/components/ui/Section";
 import { Tag } from "@/components/ui/Tag";
+import { products } from "@/content/products";
+import { absoluteUrl, pageMetadata } from "@/lib/seo";
+
+export const metadata: Metadata = pageMetadata({
+  title: "Products",
+  description:
+    "Six focused AI products from SmartxDreams: JobAtlas, ApplyPilot, SiteLog, ToothLedger, Kinly and TrustDraft. Find the one made for you and join its waitlist.",
+  path: "/products",
+});
+
+/** schema.org ItemList of the six product pages, in display order. */
+const itemList = {
+  "@context": "https://schema.org",
+  "@type": "ItemList",
+  name: "SmartxDreams products",
+  itemListElement: products.map((p, i) => ({
+    "@type": "ListItem",
+    position: i + 1,
+    name: p.name,
+    url: absoluteUrl(`/products/${p.slug}`),
+  })),
+};
 
 /** /products: all six products, filterable by who they are for. */
 export default function ProductsPage() {
   return (
     <main>
+      <JsonLd data={itemList} />
       <section
         aria-labelledby="products-title"
         data-surface="dark"
