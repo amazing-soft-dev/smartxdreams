@@ -5,6 +5,7 @@ import { Container } from "@/components/ui/Container";
 import { Glow } from "@/components/ui/Glow";
 import { Tag } from "@/components/ui/Tag";
 import { company } from "@/content/site";
+import { HeroWave } from "./HeroWave";
 import { SelectionHeadline, type SelectionTarget } from "./SelectionHeadline";
 
 const headline = "Six focused AI products for the work nobody wants to do.";
@@ -54,6 +55,7 @@ export function HomeHero() {
             How we build
           </Button>
         </Reveal>
+        <HeroWave />
       </Container>
     </section>
   );
