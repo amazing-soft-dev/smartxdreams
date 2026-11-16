@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "motion/react";
+import { motion, useReducedMotion } from "motion/react";
 import { Fragment } from "react";
 import { Section } from "@/components/ui/Section";
 import { homeStatement } from "@/content/home";
@@ -27,6 +27,8 @@ const STAGGER = 0.045;
  * place in the sentence, and a violet caret blinks after the last word.
  */
 export function Statement() {
+  // Reduced motion: render the final state straight away (no blur, no pops, no blinking caret).
+  const reduced = useReducedMotion();
   return (
     <Section labelledBy="statement-title" surface="canvas" className="py-24 md:py-32">
       <h2 id="statement-title" className="sr-only">
@@ -34,7 +36,7 @@ export function Statement() {
       </h2>
       <motion.p
         className="mx-auto max-w-4xl text-center text-h3"
-        initial="hidden"
+        initial={reduced ? "visible" : "hidden"}
         whileInView="visible"
         viewport={{ once: true, amount: 0.4 }}
         transition={{ staggerChildren: STAGGER }}
@@ -82,7 +84,11 @@ export function Statement() {
         {/* Caret after the last word: appears with it, then blinks. Decorative. */}
         <motion.span
           aria-hidden="true"
-          className="ml-1 inline-block h-[0.9em] w-[3px] translate-y-[0.1em] animate-[caret-blink_1s_step-end_infinite] rounded-full bg-violet-500"
+          className={
+            reduced
+              ? "hidden"
+              : "ml-1 inline-block h-[0.9em] w-[3px] translate-y-[0.1em] animate-[caret-blink_1s_step-end_infinite] rounded-full bg-violet-500"
+          }
           variants={{ hidden: { opacity: 0 }, visible: { opacity: 1 } }}
         />
       </motion.p>
