@@ -2,6 +2,7 @@ import { Glow } from "@/components/ui/Glow";
 import { Section } from "@/components/ui/Section";
 import { Tag } from "@/components/ui/Tag";
 import { products } from "@/content/products";
+import { WaitlistInline } from "@/components/forms/WaitlistInline";
 import { TypedWord } from "./TypedWord";
 
 const names = products.map((p) => p.name);
@@ -27,6 +28,7 @@ export function CtaSection() {
           Every product starts with a short waitlist. Join the ones you care about and we will email you when early
           access opens.
         </p>
+        <WaitlistInline />
       </div>
     </Section>
   );
