@@ -15,20 +15,21 @@ Two long-lived branches. `dev` is where work lands. `main` is the release branch
 |---|---|---|
 | Open pull request | `.github/workflows/open-pull-request.yml` | Branch push → PR into `dev`. A push to `dev` → opens or updates `dev` → `main` and writes `Closes #N` lines (from branch names and `Closes/Fixes/Resolves` lines since `main`). A keyword on the PR into `dev` does **not** close issues; only the PR into `main` does |
 | CI | `.github/workflows/ci.yml` | Runs on every PR, on pushes to `dev` and `main`, and on manual dispatch. A newer push cancels the older run. Jobs: detect app, actionlint, lint and type check, build (server and static), and **CI passed** (the single required check) |
-| Merge passing pull request | `.github/workflows/merge-passing-pr.yml` | After CI succeeds on a PR, merge-commits it if the head is still the commit CI validated (`--match-head-commit`). Eligible pairs: a prefix branch into `dev`, `dev` into `main`, and a Dependabot update into `dev` (see below). Anything else is left alone |
+| Merge passing pull request | `.github/workflows/merge-passing-pr.yml` | After CI succeeds on a PR, merge-commits it if the head is still the commit CI validated (`--match-head-commit`). Eligible pairs: a prefix branch into `dev`, a Dependabot branch into `dev` (see below), and `dev` into `main`. Anything else is left alone |
 
 The merge into `dev` pushes `dev`, which opens or updates `dev` → `main`; CI runs again and a green run merges into `main`; GitHub then closes the issues listed in that PR body. A merge to `main` only re-runs CI: **Actions never deploys.** Vercel deploys from its Git connection with Production tracking `main`.
 
 ### Dependabot
 
-Dependabot (`.github/dependabot.yml`) opens weekly PRs into `dev` for npm (minor and patch grouped; majors one per PR) and GitHub Actions (grouped). CI runs on them like any PR. When CI passes, the merge workflow merges one into `dev` only if:
+Dependabot (`.github/dependabot.yml`) opens weekly PRs into `dev` for npm (minor and patch grouped; majors one per PR) and GitHub Actions (grouped). CI runs on them like any PR, major updates included: lint, type check, unit tests, both builds and the end-to-end and axe checks are the gate. When CI passes, the merge workflow merges the PR into `dev`. That push to `dev` opens or updates `dev` → `main`, which merges after its own CI, so a passing update reaches `main` and Vercel without a person.
 
-- the PR is opened by `dependabot[bot]`, and so is its head commit. If anyone pushes to the branch, it waits for a person.
-- it is a GitHub Actions update, or an npm update whose commit metadata has no `update-type: version-update:semver-major`.
+The one exception: the PR must be opened by `dependabot[bot]` and the head commit CI validated must be `dependabot[bot]`'s too. If anyone else pushes to a Dependabot branch, that PR waits for a person. When one update merges and another now conflicts, Dependabot rebases the other itself, and CI and the merge run again.
 
-npm major updates stay open for a person to review and merge. After a merge, the usual `dev` → `main` promotion follows.
+No extra secret: the merge workflow runs on `workflow_run`, which reads the normal Actions secrets even when the CI run before it was Dependabot's. The one `GH_TOKEN` repository secret covers every PR. (Only workflows that Dependabot starts directly, such as CI on its `pull_request`, are limited to Dependabot secrets, and CI needs none.)
 
-Runs started by Dependabot can only read **Dependabot secrets**, not Actions secrets. So `GH_TOKEN` must also be saved under Settings → Secrets and variables → **Dependabot**, with the same name and value. Without it, the merge job fails with "GH_TOKEN is not set as a Dependabot secret".
+### Two CI runs on a `dev` commit
+
+A `dev` commit gets two CI runs: one for the push to `dev` and one for the `dev` → `main` PR. Both report **CI passed**, and GitHub counts the check as pending until both finish. The merge workflow therefore runs after either one. It treats a merge refused while the other run is still in progress as a skip, and the later run's completion does the merge.
 
 ### Why `GH_TOKEN`, not `GITHUB_TOKEN`
 
@@ -37,7 +38,7 @@ Pull requests and merges made with the default `GITHUB_TOKEN` do not start furth
 ## Owner setup (once)
 
 1. **Create a fine-grained personal access token** for this repository only: Contents, Pull requests, Issues and Workflows = **Read and write**; Metadata = Read. Set an expiry and note it below.
-2. Save it as the repository secret **`GH_TOKEN`** (Settings → Secrets and variables → Actions), and again with the same name as a **Dependabot** secret (Settings → Secrets and variables → Dependabot). Update both when the token is rotated.
+2. Save it as the repository secret **`GH_TOKEN`** (Settings → Secrets and variables → Actions). It is the only secret the pipeline uses, Dependabot's PRs included.
 3. Settings → Actions → General: turn on **Allow GitHub Actions to create and approve pull requests**; keep default workflow permissions **read-only**.
 4. Leave the rulesets **unimported** until the first pipeline probes pass (see below).
 
@@ -86,8 +87,7 @@ The gate before any site code is the 15-point checklist in `SMARTXDREAMS-PLAN.md
 | Symptom | Likely cause |
 |---|---|
 | Open-PR or merge workflow fails with "GH_TOKEN … not set" | Secret missing or expired |
-| Merge workflow fails on a Dependabot PR with "not set as a Dependabot secret" | `GH_TOKEN` is saved as an Actions secret only; add it as a Dependabot secret too |
-| A Dependabot PR stays open after CI passes | npm semver-major update, or someone pushed to the branch: the merge run's notice says which. Review and merge by hand |
+| A Dependabot PR stays open after CI passes | Someone other than Dependabot pushed to its branch (the merge run's notice says so). Review and merge by hand, or close it and let Dependabot recreate it |
 | PR opened but merge never happens, right after setup | `merge-passing-pr.yml` is not on `main` yet (see the two manual merges) |
 | No PR for a branch | Name is not `<prefix>/<number>-<slug>`; non-prefix branches (`wip/…`) do not trigger the workflow at all |
 | CI red with "package.json is missing" | The app was deleted without the bootstrap flag; restore `package.json` |

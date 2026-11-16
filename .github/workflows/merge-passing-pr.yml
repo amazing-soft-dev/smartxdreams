@@ -2,12 +2,21 @@ name: Merge passing pull request
 
 # Starts only after the CI workflow finishes. If CI succeeded for a pull request, merge-commit it,
 # but only when its head is still the commit CI validated. Eligible pairs:
-#   <feat|fix|docs|ci|build>/<n>-<slug> -> dev, dev -> main, and Dependabot updates -> dev.
-# A Dependabot update is eligible only when the pull request and its head commit are both
-# dependabot[bot]'s (nobody pushed on top), and it is a GitHub Actions update or an npm update that
-# is not a semver-major bump. npm majors, forks and other bases are left for a person.
-# Runs started by Dependabot read Dependabot secrets, so GH_TOKEN must also exist as a Dependabot
-# secret. See docs/pipeline.md.
+#   <feat|fix|docs|ci|build>/<n>-<slug> -> dev, dependabot/* -> dev, and dev -> main.
+# A Dependabot pull request is eligible when both the pull request and the head commit CI validated
+# are dependabot[bot]'s: a branch someone else has pushed to is left for a person. Its merge into dev
+# pushes dev, which opens or updates dev -> main, so a passing update reaches main like any change.
+# Forks and other bases are left alone.
+#
+# Secrets: a workflow_run run is not a Dependabot-triggered run, even when the CI run before it was.
+# It reads the normal Actions secrets, so the one GH_TOKEN repository secret serves every pull
+# request, Dependabot's included. No Dependabot secret is needed.
+#
+# A dev commit is checked by two CI runs (the push to dev and the dev -> main pull request), and both
+# report "CI passed". The merge waits for both, so whichever finishes last does the merge: a
+# successful push run on dev is accepted too, and a merge refused while the other run is still in
+# progress is a skip, not a failure.
+#
 # NOTE: workflow_run workflows are read from the default branch (main), so this file has no effect
 # until it has been merged to main. See docs/pipeline.md.
 
@@ -24,8 +33,9 @@ jobs:
     name: Merge if eligible
     if: >-
       github.event.workflow_run.conclusion == 'success' &&
-      github.event.workflow_run.event == 'pull_request' &&
-      github.event.workflow_run.head_repository.full_name == github.repository
+      github.event.workflow_run.head_repository.full_name == github.repository &&
+      (github.event.workflow_run.event == 'pull_request' ||
+       (github.event.workflow_run.event == 'push' && github.event.workflow_run.head_branch == 'dev'))
     runs-on: ubuntu-latest
     concurrency:
       group: merge-${{ github.event.workflow_run.head_branch }}
@@ -35,16 +45,11 @@ jobs:
       REPO: ${{ github.repository }}
       HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
       RUN_SHA: ${{ github.event.workflow_run.head_sha }}
-      RUN_ACTOR: ${{ github.event.workflow_run.actor.login }}
     steps:
       - name: Require the GH_TOKEN secret
         run: |
           if [ -z "$GH_TOKEN" ]; then
-            if [ "$RUN_ACTOR" = "dependabot[bot]" ]; then
-              echo "::error::GH_TOKEN is not set as a Dependabot secret (Settings > Secrets and variables > Dependabot). See docs/pipeline.md."
-            else
-              echo "::error::The GH_TOKEN repository secret is not set. See docs/pipeline.md."
-            fi
+            echo "::error::The GH_TOKEN repository secret is not set. See docs/pipeline.md."
             exit 1
           fi
 
@@ -52,11 +57,10 @@ jobs:
         run: |
           set -euo pipefail
 
-          # A Dependabot update into dev: the PR and its head commit are dependabot[bot]'s, and it is
-          # not an npm semver-major bump (read from the update metadata Dependabot writes into the
-          # commit message). Prints the reason when it is not eligible.
+          # A Dependabot pull request: opened by dependabot[bot], and the head commit CI validated is
+          # dependabot[bot]'s too, so nobody else has pushed to the branch. Prints the reason when not.
           dependabot_eligible() {
-            local author="$1" message commit_author
+            local author="$1" commit_author
             if [ "$author" != "app/dependabot" ] && [ "$author" != "dependabot[bot]" ]; then
               echo "opened by $author, not dependabot[bot]"; return 1
             fi
@@ -64,19 +68,12 @@ jobs:
             if [ "$commit_author" != "dependabot[bot]" ]; then
               echo "head commit $RUN_SHA is by '$commit_author', not dependabot[bot]"; return 1
             fi
-            case "$HEAD_BRANCH" in
-              dependabot/github_actions/*) return 0 ;;
-              dependabot/npm_and_yarn/*)
-                message=$(gh api "repos/$REPO/commits/$RUN_SHA" --jq .commit.message)
-                if grep -q 'update-type: version-update:semver-major' <<< "$message"; then
-                  echo "it includes a semver-major npm update"; return 1
-                fi
-                if ! grep -q 'update-type: version-update:semver-' <<< "$message"; then
-                  echo "its commit has no update-type metadata"; return 1
-                fi
-                return 0 ;;
-              *) echo "unknown ecosystem branch $HEAD_BRANCH"; return 1 ;;
-            esac
+          }
+
+          # "CI passed" check runs on the validated commit that have not finished yet.
+          pending_ci() {
+            gh api "repos/$REPO/commits/$RUN_SHA/check-runs?check_name=CI%20passed" \
+              --jq '[.check_runs[] | select(.status != "completed")] | length'
           }
 
           prs=$(gh pr list --repo "$REPO" --head "$HEAD_BRANCH" --state open \
@@ -101,7 +98,7 @@ jobs:
               if reason=$(dependabot_eligible "$author"); then
                 eligible=true
               else
-                echo "::notice::#$number ($HEAD_BRANCH -> dev) is a Dependabot branch left for a person: $reason."
+                echo "::notice::#$number ($HEAD_BRANCH -> dev) is left for a person: $reason."
                 continue
               fi
             fi
@@ -122,6 +119,12 @@ jobs:
               current=$(gh pr view "$number" --repo "$REPO" --json headRefOid --jq .headRefOid)
               if [ "$current" != "$RUN_SHA" ]; then
                 echo "::notice::#$number head moved to $current after CI validated $RUN_SHA. Not merging; the newer CI run will."
+                continue
+              fi
+              # The other CI run on this commit may still be going; the required check is then not
+              # yet green. That run's completion starts this workflow again and merges.
+              if [ "$(pending_ci)" -gt 0 ]; then
+                echo "::notice::#$number has another CI run in progress on $RUN_SHA. Its completion will merge."
                 continue
               fi
               echo "::error::Merging #$number failed at the validated head $RUN_SHA."

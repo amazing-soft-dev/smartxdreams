@@ -1,8 +1,8 @@
 version: 2
 
 # Weekly update pull requests into dev. Dependabot opens them itself. After CI passes,
-# merge-passing-pr.yml merges GitHub Actions updates and npm minor and patch updates. A person reviews
-# npm major updates and any Dependabot branch someone else has pushed to. See docs/pipeline.md.
+# merge-passing-pr.yml merges each one into dev, and the dev -> main promotion carries it to main.
+# A Dependabot branch someone else has pushed to is left for a person. See docs/pipeline.md.
 updates:
   - package-ecosystem: npm
     directory: /
