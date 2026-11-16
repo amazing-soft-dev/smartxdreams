@@ -1,3 +1,76 @@
 {
-  "photos": []
+  "photos": [
+    {
+      "slot": "home-step-1",
+      "src": "/images/home/step-1.jpg",
+      "width": 2400,
+      "height": 1600,
+      "alt": "",
+      "decorative": true,
+      "tint": "#c8d8c8",
+      "blurDataURL": "data:image/webp;base64,UklGRlYAAABXRUJQVlA4IEoAAAAwAgCdASoQAAsAA4BaJYwC7AELz+pCPPztgAD+8+boDkklbyBZfGebULy5+67zIddJgOxSYzS/RL88V42rbb/CUPZKymXMaoAAAA==",
+      "credit": {
+        "photographer": "Beatriz Cattel",
+        "profileUrl": "https://unsplash.com/@bicattel",
+        "photoUrl": "https://unsplash.com/photos/ajTN690FnUg",
+        "source": "unsplash",
+        "license": "Unsplash License"
+      },
+      "pending": true
+    },
+    {
+      "slot": "home-step-2",
+      "src": "/images/home/step-2.jpg",
+      "width": 2400,
+      "height": 1800,
+      "alt": "",
+      "decorative": true,
+      "tint": "#c8c8b8",
+      "blurDataURL": "data:image/webp;base64,UklGRloAAABXRUJQVlA4IE4AAADQAQCdASoQAAwAA4BaJQBOgBj43ubTAAD+1Ld3+oKwC8mtKjsSxio2dQfLvwveIMSwU7ZuxopwBnG7KouswcdYbznlU7kEoCwiwHIAAAA=",
+      "credit": {
+        "photographer": "Kvalifik",
+        "profileUrl": "https://unsplash.com/@kvalifik",
+        "photoUrl": "https://unsplash.com/photos/5Q07sS54D0Q",
+        "source": "unsplash",
+        "license": "Unsplash License"
+      },
+      "pending": true
+    },
+    {
+      "slot": "home-step-3",
+      "src": "/images/home/step-3.jpg",
+      "width": 2400,
+      "height": 1602,
+      "alt": "",
+      "decorative": true,
+      "tint": "#181818",
+      "blurDataURL": "data:image/webp;base64,UklGRkwAAABXRUJQVlA4IEAAAACwAQCdASoQAAsAA4BaJZwC7ADcxysAAP70o5AxUk6opRZxPeGTHp0sx7JbAbxGu8F7hGEAGosbiayQy2kMAAAA",
+      "credit": {
+        "photographer": "Chris Ried",
+        "profileUrl": "https://unsplash.com/@cdr6934",
+        "photoUrl": "https://unsplash.com/photos/ieic5Tq8YMk",
+        "source": "unsplash",
+        "license": "Unsplash License"
+      },
+      "pending": true
+    },
+    {
+      "slot": "home-step-4",
+      "src": "/images/home/step-4.jpg",
+      "width": 2400,
+      "height": 1600,
+      "alt": "",
+      "decorative": true,
+      "tint": "#282828",
+      "blurDataURL": "data:image/webp;base64,UklGRngAAABXRUJQVlA4IGwAAACQAgCdASoQAAsAA4BaJYwCdAYuvwn/abYPdSVfYADOD9p8eW759ScPaUGcrETgtwvhJz6IVeakBxoWXaAcG2tCeNr5p25GAFUZlGFEYXqlERQdT1OnFnOKrZibjS6pfsZNew31ASSUgAB5cAA=",
+      "credit": {
+        "photographer": "Mina Rad",
+        "profileUrl": "https://unsplash.com/@miinrad",
+        "photoUrl": "https://unsplash.com/photos/jdS1UfbbIA8",
+        "source": "unsplash",
+        "license": "Unsplash License"
+      },
+      "pending": true
+    }
+  ]
 }
