@@ -96,13 +96,13 @@ export function ProcessStepper() {
                     <span className="mr-3 font-mono text-micro text-ink/70">{String(i + 1).padStart(2, "0")}</span>
                     {step.title}
                   </h3>
-                  {/* On desktop only the active step shows its detail; it opens with a height transition. */}
+                  {/* On desktop only the active step shows its detail (opacity only, no height change). */}
                   <p
                     className={cx(
-                      "max-w-md overflow-hidden text-body text-ink/70 transition-[max-height,opacity,margin] duration-700 ease-[var(--ease-out-quint)]",
-                      "mt-2",
-                      desktop("lg:mt-0 lg:max-h-0 lg:opacity-0"),
-                      scrub && i === active && "lg:mt-2 lg:max-h-40 lg:opacity-100",
+                      "mt-2 max-w-md text-body text-ink/70 transition-opacity duration-700 ease-[var(--ease-out-quint)]",
+                      // Inactive details fade out but keep their space, so scrolling never moves the steps.
+                      desktop("lg:opacity-0"),
+                      scrub && i === active && "lg:opacity-100",
                     )}
                   >
                     {step.body}
