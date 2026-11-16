@@ -45,12 +45,30 @@ function createLenis() {
   });
 }
 
+/** Smooth scrolling is off for touch screens (native momentum is better) and for reduced motion. */
+const DISABLE_QUERY = "(prefers-reduced-motion: reduce), (pointer: coarse)";
+
 export function SmoothScroll({ children }: { children: ReactNode }) {
   useEffect(() => {
-    const lenis = createLenis();
-    setInstance(lenis);
+    const query = window.matchMedia(DISABLE_QUERY);
+    let lenis: Lenis | null = null;
+
+    const apply = () => {
+      if (query.matches && lenis) {
+        lenis.destroy();
+        lenis = null;
+        setInstance(null);
+      } else if (!query.matches && !lenis) {
+        lenis = createLenis();
+        setInstance(lenis);
+      }
+    };
+
+    apply();
+    query.addEventListener("change", apply);
     return () => {
-      lenis.destroy();
+      query.removeEventListener("change", apply);
+      lenis?.destroy();
       setInstance(null);
     };
   }, []);
