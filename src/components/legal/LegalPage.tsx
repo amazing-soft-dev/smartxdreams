@@ -52,7 +52,7 @@ export function LegalPage({ doc }: { doc: LegalDocument }) {
                 <li key={section.id}>
                   <a
                     href={`#${section.id}`}
-                    className="-ml-px inline-flex min-h-10 items-center border-l border-transparent pl-4 text-label text-ink/70 transition-colors hover:border-ink hover:text-ink"
+                    className="-ml-px inline-flex min-h-11 items-center border-l border-transparent pl-4 text-label text-ink/70 transition-colors hover:border-ink hover:text-ink"
                   >
                     {section.title}
                   </a>
