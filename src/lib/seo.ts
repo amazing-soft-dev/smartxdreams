@@ -56,6 +56,12 @@ export function pageMetadata({ title, description, path }: PageMetadataInput): M
   };
 }
 
+/**
+ * Site path of the logo in the Organization structured data: the light-background symbol (1024 px
+ * square PNG), because search engines show it on white.
+ */
+export const organizationLogoPath = "/brand/smartxdreams-symbol-light-bg.png";
+
 /** schema.org Organization for SmartxDreams. */
 export function organizationJsonLd(): Record<string, unknown> {
   return {
@@ -64,7 +70,7 @@ export function organizationJsonLd(): Record<string, unknown> {
     "@id": `${siteUrl}/#organization`,
     name: company.name,
     url: absoluteUrl("/"),
-    logo: absoluteUrl("/brand/logo-mark.png"),
+    logo: absoluteUrl(organizationLogoPath),
     description: company.description,
   };
 }
