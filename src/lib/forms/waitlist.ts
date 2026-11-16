@@ -11,7 +11,7 @@ import { z } from "zod";
  */
 export const waitlistConsent = {
   version: "2026-11-15",
-  text: "Email me when early access opens, plus occasional updates about this product. I can leave the list at any time.",
+  text: "Email me about early access to this product. I can leave the list at any time.",
 } as const;
 
 export const waitlistSchema = z.object({
