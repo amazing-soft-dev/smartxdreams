@@ -18,6 +18,10 @@ export const applypilot: Product = {
       body: "Every filled field is highlighted for you to check and change. Nothing is sent until you press submit yourself.",
     },
   ],
+  promise: {
+    title: "Nothing is sent until you press submit.",
+    body: "ApplyPilot fills, highlights and stops. Reviewing every answer is the core step of the product, not an option you can skip.",
+  },
   features: [
     {
       title: "Fills from your real history",

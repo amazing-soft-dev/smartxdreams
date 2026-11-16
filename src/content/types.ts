@@ -58,6 +58,8 @@ export type Product = {
   faq: Faq[];
   /** Legal or safety note shown near the call to action, when the product needs one. */
   disclaimer?: string;
+  /** The product's core promise, shown as a band after the steps (for example the review step). */
+  promise?: { title: string; body: string };
   /** How the product handles personal data, as short plain statements. Shown as "Your data". */
   dataHandling?: string[];
   /** Small print under the limits, such as the third-party trademark note. */

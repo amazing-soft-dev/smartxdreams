@@ -197,3 +197,19 @@ export function ProductFaq({ product }: ProductProps) {
   if (product.faq.length === 0) return null;
   return <FaqSection id="product-faq" items={product.faq} title={`${product.name} *questions.*`} />;
 }
+
+/** The product's core promise as a full-width band. Renders nothing for products without one. */
+export function ProductPromise({ product }: ProductProps) {
+  if (!product.promise) return null;
+  return (
+    <Section labelledBy="promise-title" surface="dark" className="text-center">
+      <div className="mx-auto max-w-3xl">
+        <Tag tone="dark">Our promise</Tag>
+        <h2 id="promise-title" className="mt-6 text-h2">
+          {product.promise.title}
+        </h2>
+        <p className="mt-5 text-body-l text-white/70">{product.promise.body}</p>
+      </div>
+    </Section>
+  );
+}
