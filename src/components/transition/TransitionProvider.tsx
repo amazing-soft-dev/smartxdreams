@@ -6,9 +6,9 @@ import { Logo } from "@/components/ui/Logo";
 import { cssEase } from "@/styles/motion";
 import { routeLabel } from "./route-label";
 
-/** Panel timing: 450 ms per panel, 40 ms stagger, so the cover is closed after 610 ms. */
-const PANEL_MS = 450;
-const STAGGER_MS = 40;
+/** Panel timing: 400 ms per panel, 35 ms stagger, so the cover is closed after 540 ms. */
+const PANEL_MS = 400;
+const STAGGER_MS = 35;
 const PANELS = 5;
 /** Longest we wait for the new route to render before revealing anyway. */
 const ROUTE_TIMEOUT_MS = 1500;
@@ -124,7 +124,9 @@ export function TransitionProvider({ children }: { children: ReactNode }) {
         easing: cssEase("inOutCubic"),
         fill: "forwards",
       });
-      await layer?.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 200, delay: 60, fill: "forwards" }).finished;
+      // The panels start moving 100 ms into the fade, so the two overlap.
+      layer?.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 200, fill: "forwards" });
+      await new Promise((resolve) => window.setTimeout(resolve, 100));
       await animatePanels("out");
       for (const node of [...panels(), word, layer]) node?.getAnimations().forEach((a) => a.cancel());
       delete el.dataset.state;
