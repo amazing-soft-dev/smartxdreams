@@ -9,6 +9,7 @@ import {
   ProductLimits,
   ProductProblem,
   ProductPromise,
+  ProductRelated,
   ProductSteps,
   ProductWaitlist,
 } from "@/components/product/ProductSections";
@@ -73,6 +74,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
       <ProductLimits product={product} />
       <ProductFaq product={product} />
       <ProductWaitlist product={product} />
+      <ProductRelated product={product} />
     </main>
   );
 }

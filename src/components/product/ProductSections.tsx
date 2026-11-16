@@ -10,7 +10,8 @@ import { Glow } from "@/components/ui/Glow";
 import { Section } from "@/components/ui/Section";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { Tag } from "@/components/ui/Tag";
-import { audienceLabel } from "@/content/selectors";
+import { ProductCard } from "@/components/products/ProductCard";
+import { audienceLabel, relatedProducts } from "@/content/selectors";
 import type { Product } from "@/content/types";
 
 type ProductProps = { product: Product };
@@ -231,6 +232,24 @@ export function ProductPromise({ product }: ProductProps) {
         </h2>
         <p className="mt-5 text-body-l text-white/70">{product.promise.body}</p>
       </div>
+    </Section>
+  );
+}
+
+/** Other products worth a look: the product's related list, never the product itself. */
+export function ProductRelated({ product }: ProductProps) {
+  const related = relatedProducts(product).filter((p) => p.slug !== product.slug);
+  if (related.length === 0) return null;
+  return (
+    <Section labelledBy="related-title" surface="canvas">
+      <SectionHeader id="related-title" tag="Related" title="You might also *like*." align="left" />
+      <ul className="mt-10 grid gap-3 md:grid-cols-2">
+        {related.map((p) => (
+          <li key={p.slug}>
+            <ProductCard product={p} />
+          </li>
+        ))}
+      </ul>
     </Section>
   );
 }
