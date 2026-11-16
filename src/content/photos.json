@@ -88,8 +88,7 @@
         "photoUrl": "https://unsplash.com/photos/VXpeQ3GetDU",
         "source": "unsplash",
         "license": "Unsplash License"
-      },
-      "pending": true
+      }
     },
     {
       "slot": "about-values",
@@ -107,8 +106,7 @@
         "photoUrl": "https://unsplash.com/photos/qWwpHwip31M",
         "source": "unsplash",
         "license": "Unsplash License"
-      },
-      "pending": true
+      }
     },
     {
       "slot": "about-team",
@@ -126,8 +124,7 @@
         "photoUrl": "https://unsplash.com/photos/26MJGnCM0Wc",
         "source": "unsplash",
         "license": "Unsplash License"
-      },
-      "pending": true
+      }
     },
     {
       "slot": "product-jobatlas",
