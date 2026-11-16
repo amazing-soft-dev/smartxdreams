@@ -1,6 +1,7 @@
 "use client";
 
-import { useRef } from "react";
+import { useMotionValueEvent, useScroll } from "motion/react";
+import { useRef, useState } from "react";
 import { Container } from "@/components/ui/Container";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { processSteps } from "@/content/process";
@@ -12,7 +13,13 @@ import { cx } from "@/lib/cx";
  */
 export function ProcessStepper() {
   const section = useRef<HTMLElement>(null);
-  const active = 0;
+  // Progress through the tall section, 0 at its top and 1 when its bottom reaches the viewport bottom.
+  const { scrollYProgress } = useScroll({ target: section, offset: ["start start", "end end"] });
+  const [active, setActive] = useState(0);
+  useMotionValueEvent(scrollYProgress, "change", (p) => {
+    const next = Math.min(processSteps.length - 1, Math.floor(p * processSteps.length));
+    setActive((current) => (current === next ? current : next));
+  });
 
   return (
     <section
@@ -33,12 +40,25 @@ export function ProcessStepper() {
           <div className="mt-12 grid gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] lg:gap-16">
             <ol className="relative flex flex-col gap-1">
               {processSteps.map((step, i) => (
-                <li key={step.title} className={cx("py-4 transition-opacity duration-500", i === active ? "opacity-100" : "opacity-55")}>
+                <li
+                  key={step.title}
+                  aria-current={i === active ? "step" : undefined}
+                  className={cx("py-4 transition-opacity duration-500 lg:opacity-55 lg:aria-[current=step]:opacity-100")}
+                >
                   <h3 className="text-h5">
                     <span className="mr-3 font-mono text-micro text-ink/60">{String(i + 1).padStart(2, "0")}</span>
                     {step.title}
                   </h3>
-                  <p className="mt-2 max-w-md text-body text-ink/70">{step.body}</p>
+                  {/* On desktop only the active step shows its detail; it opens with a height transition. */}
+                  <p
+                    className={cx(
+                      "max-w-md overflow-hidden text-body text-ink/70 transition-[max-height,opacity,margin] duration-700 ease-[var(--ease-out-quint)]",
+                      "mt-2 lg:max-h-0 lg:opacity-0 lg:mt-0",
+                      i === active && "lg:mt-2 lg:max-h-40 lg:opacity-100",
+                    )}
+                  >
+                    {step.body}
+                  </p>
                 </li>
               ))}
             </ol>
