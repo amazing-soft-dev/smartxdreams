@@ -124,8 +124,7 @@
         "photoUrl": "https://unsplash.com/photos/26MJGnCM0Wc",
         "source": "unsplash",
         "license": "Unsplash License"
-      },
-      "pending": true
+      }
     },
     {
       "slot": "product-jobatlas",
