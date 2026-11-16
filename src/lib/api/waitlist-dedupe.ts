@@ -51,3 +51,8 @@ export function firstConfirmation(token: string, expiresAt: number, now = Date.n
   recorded.set(key, expiresAt);
   return true;
 }
+
+/** Undoes firstConfirmation() when recording failed, so the person can press Confirm again. */
+export function forgetConfirmation(token: string): void {
+  recorded.delete(hash(token));
+}

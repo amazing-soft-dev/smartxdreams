@@ -2,7 +2,8 @@ import { z } from "zod";
 import { emailUnavailable, fail, ok, rateLimited, readJson } from "@/lib/api/respond";
 import { clientIp, rateLimit } from "@/lib/api/rate-limit";
 import { waitlistConfig } from "@/lib/api/waitlist-config";
-import { firstConfirmation } from "@/lib/api/waitlist-dedupe";
+import { firstConfirmation, forgetConfirmation } from "@/lib/api/waitlist-dedupe";
+import { recordConfirmation } from "@/lib/api/waitlist-record";
 import { verifyToken } from "@/lib/api/waitlist-token";
 
 export const runtime = "nodejs";
@@ -14,7 +15,7 @@ const bodySchema = z.object({ token: z.string().min(10).max(2_000) });
 /**
  * POST /api/waitlist/confirm: the second step of double opt-in. The confirm page posts the token from the
  * email link when the person presses Confirm. A POST, not the link itself, so mail scanners that open links
- * cannot confirm on someone's behalf.
+ * cannot confirm on someone's behalf. A confirmation is recorded with its consent details (waitlist-record.ts).
  */
 export async function POST(request: Request): Promise<Response> {
   const limit = rateLimit(`waitlist-confirm:${clientIp(request)}`, LIMIT);
@@ -35,6 +36,13 @@ export async function POST(request: Request): Promise<Response> {
 
   // Confirming the same link again (double click, reopened email) is still a success, recorded only once.
   if (!firstConfirmation(parsed.data.token, check.payload.exp)) return ok();
+
+  // The consent record must exist before anyone counts as confirmed; if it fails, they can press Confirm again.
+  const recorded = await recordConfirmation(check.payload);
+  if (!recorded.ok) {
+    forgetConfirmation(parsed.data.token);
+    return emailUnavailable();
+  }
 
   return ok();
 }
