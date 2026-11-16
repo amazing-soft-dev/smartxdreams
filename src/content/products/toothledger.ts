@@ -58,7 +58,7 @@ export const toothledger: Product = {
     },
   ],
   disclaimer:
-    "ToothLedger gives estimates, not insurance, financial or dental advice. Confirm coverage with your insurer before treatment.",
+    "ToothLedger gives estimates from the documents you upload. It is not insurance, financial or dental advice. Confirm coverage with your insurer before treatment.",
   dataHandling: [
     "Your quote and plan document are used only to make your estimate.",
     "They stay in your account until you delete them.",
