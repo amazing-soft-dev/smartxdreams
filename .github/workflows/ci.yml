@@ -67,6 +67,8 @@ jobs:
       - run: npm ci
       - run: npm run lint
       - run: npm run typecheck
+      # Unit tests (Vitest). They run here so the required "CI passed" check set does not change.
+      - run: npm test
       # Each photo in public/images must be used exactly once.
       - run: npm run check:images
 
