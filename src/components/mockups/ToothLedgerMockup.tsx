@@ -10,7 +10,7 @@ const lines = [
 
 /** Yearly maximum benefit and what has already been used this year. */
 const YEARLY_MAX = 1500;
-const USED = 350;
+const USED = 900;
 
 const money = (n: number) => `$${n.toLocaleString("en-US")}`;
 
@@ -20,8 +20,16 @@ const money = (n: number) => `$${n.toLocaleString("en-US")}`;
  */
 export function ToothLedgerMockup({ className }: { className?: string }) {
   const total = lines.reduce((s, l) => s + l.fee, 0);
-  const plan = lines.reduce((s, l) => s + l.plan, 0);
+  // The plan share is capped by what is left of this year's maximum.
+  const planShare = lines.reduce((s, l) => s + l.plan, 0);
+  const plan = Math.min(planShare, YEARLY_MAX - USED);
   const you = total - plan;
+  // Split: everything except the crown now, the crown next calendar year with a fresh maximum.
+  const crown = lines[lines.length - 1] ?? { fee: 0, plan: 0 };
+  const nowPart = lines.slice(0, -1);
+  const youNow = nowPart.reduce((s, l) => s + l.fee - l.plan, 0);
+  const youNextYear = crown.fee - crown.plan;
+  const youSplit = youNow + youNextYear;
   return (
     <div aria-hidden="true" className={cx("relative", className)}>
       <MockupFrame title="ToothLedger" caption="Estimate from your documents">
@@ -48,7 +56,7 @@ export function ToothLedgerMockup({ className }: { className?: string }) {
                 ) : null}
               </span>
               <span className="text-ink/70">
-                you <span className="font-medium text-ink">{money(l.fee - l.plan)}</span>
+                plan share <span className="font-medium text-ink">{money(l.plan)}</span>
               </span>
             </li>
           ))}
@@ -66,6 +74,17 @@ export function ToothLedgerMockup({ className }: { className?: string }) {
           </span>
           <p className="mt-1 text-[0.6875rem] text-ink/60">Grey: used earlier this year · Violet: this work</p>
         </div>
+      </MockupFrame>
+      <MockupFrame title="Two-year option" caption="Compare" tone="dark" className="mt-3 sm:absolute sm:-right-4 sm:-bottom-16 sm:mt-0 sm:w-64">
+        <p className="flex justify-between">
+          All this year <span className="font-medium">{money(you)}</span>
+        </p>
+        <p className="flex justify-between">
+          Crown next year <span className="font-medium">{money(youSplit)}</span>
+        </p>
+        <p className="rounded-lg bg-white/[0.08] px-2.5 py-1.5 text-white/80">
+          Possible difference: about {money(you - youSplit)}. Not a guarantee. Ask your dentist whether the crown can wait.
+        </p>
       </MockupFrame>
     </div>
   );
