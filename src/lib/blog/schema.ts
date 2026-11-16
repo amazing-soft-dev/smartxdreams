@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { blogCategoryIds } from "@/content/blog/categories";
 import { photos } from "@/content/photos";
 import { productSlugs } from "@/content/selectors";
 
@@ -17,7 +18,7 @@ export const frontmatterSchema = z.strictObject({
     .max(160, "Keep the description to 160 characters or fewer: search results cut it off after that."),
   date: isoDate("date"),
   updated: isoDate("updated").optional(),
-  category: z.string().trim().min(1, "Choose a category."),
+  category: z.enum(blogCategoryIds, { error: `Use one of these categories: ${blogCategoryIds.join(", ")}.` }),
   /** Products the post is about, by slug. Drives the product links at the end of a post. */
   products: z
     .array(

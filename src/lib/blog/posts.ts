@@ -2,6 +2,7 @@ import { readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import type { MDXContent } from "mdx/types";
 import { parse as parseYaml } from "yaml";
+import { type BlogCategory, type BlogCategoryId, blogCategoryById } from "@/content/blog/categories";
 import { compileMdx } from "./mdx";
 import { type Frontmatter, frontmatterSchema } from "./schema";
 
@@ -17,7 +18,27 @@ export type Post = Frontmatter & {
   file: string;
   /** The MDX body without frontmatter. */
   body: string;
+  /** Estimated reading time in whole minutes, at least 1. */
+  readingMinutes: number;
 };
+
+/** Average adult reading speed for web copy, in words per minute. */
+const WORDS_PER_MINUTE = 220;
+
+/**
+ * Reading time from the prose only: code blocks, JSX and HTML tags, link targets and Markdown symbols are
+ * removed before counting words.
+ */
+export function readingMinutes(body: string): number {
+  const prose = body
+    .replace(/```[\s\S]*?```/g, " ")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/\]\([^)]*\)/g, "]")
+    .replace(/^(import|export) .*$/gm, " ")
+    .replace(/[#>*_`~|[\]-]+/g, " ");
+  const words = prose.split(/\s+/).filter((w) => /[\p{L}\p{N}]/u.test(w)).length;
+  return Math.max(1, Math.ceil(words / WORDS_PER_MINUTE));
+}
 
 /** Reads and validates one post. Any problem throws, which fails the build with the file and the reason. */
 function readPost(fileName: string): Post {
@@ -41,7 +62,8 @@ function readPost(fileName: string): Post {
     const problems = result.error.issues.map((i) => `  - ${i.path.join(".") || "frontmatter"}: ${i.message}`).join("\n");
     throw new Error(`Invalid frontmatter in ${file}:\n${problems}`);
   }
-  return { ...result.data, slug, file, body: source.slice(match[0].length) };
+  const body = source.slice(match[0].length);
+  return { ...result.data, slug, file, body, readingMinutes: readingMinutes(body) };
 }
 
 let cache: Post[] | undefined;
@@ -69,6 +91,18 @@ export function allPosts(): Post[] {
 /** Posts that are not drafts: the ones in the sitemap and the RSS feed. */
 export function publishedPosts(): Post[] {
   return allPosts().filter((p) => !p.draft);
+}
+
+/** Posts in one category, drafts included, newest first. */
+export function postsInCategory(id: BlogCategoryId): Post[] {
+  return allPosts().filter((p) => p.category === id);
+}
+
+/** The category record for a post. Always defined: the schema only accepts known categories. */
+export function postCategory(post: Post): BlogCategory {
+  const category = blogCategoryById(post.category);
+  if (!category) throw new Error(`${post.file}: unknown category "${post.category}".`);
+  return category;
 }
 
 export function postBySlug(slug: string): Post | undefined {

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { mdxComponents } from "@/components/blog/mdx-components";
 import { Container } from "@/components/ui/Container";
-import { allPosts, postBySlug, postContent } from "@/lib/blog/posts";
+import { allPosts, postBySlug, postCategory, postContent } from "@/lib/blog/posts";
 import { pageMetadata } from "@/lib/seo";
 
 type PostPageProps = { params: Promise<{ slug: string }> };
@@ -33,7 +33,13 @@ export default async function PostPage({ params }: PostPageProps) {
     <main className="bg-white pt-36 pb-24 md:pt-44">
       <Container>
         <article className="mx-auto max-w-[68ch]">
-          <h1 className="text-h2">{post.title}</h1>
+          <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-label text-ink/65">
+            {post.draft ? <span className="rounded-full bg-coral-50 px-2.5 py-0.5 font-medium text-coral-900">Draft</span> : null}
+            <span>{postCategory(post).label}</span>
+            <span aria-hidden="true">·</span>
+            <span>{post.readingMinutes} min read</span>
+          </p>
+          <h1 className="mt-4 text-h2">{post.title}</h1>
           <p className="mt-4 text-body-l text-ink/70">{post.description}</p>
           <Content components={mdxComponents} />
         </article>
