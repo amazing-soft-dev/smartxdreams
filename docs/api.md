@@ -67,6 +67,24 @@ addresses or message text.
 | `CONTACT_FROM_EMAIL` | Sender on the verified Resend domain, e.g. `SmartxDreams <hello@example.com>` |
 | `CONTACT_TO_EMAIL` | Team inbox for contact-form messages |
 
+## `POST /api/contact`
+
+`src/app/api/contact/route.api.ts`. Body: the contact form fields (`name`, `email`, `topic`, `product`
+optional, `message`) plus the spam-guard fields.
+
+1. Rate limit: 5 per IP per 10 minutes, then 429.
+2. Validation, then 400 with field errors, including an unknown product.
+3. Honeypot or time trap: `200 { ok: true }`, nothing sent.
+4. Email not configured (no `RESEND_API_KEY`, `CONTACT_FROM_EMAIL` or `CONTACT_TO_EMAIL`): 503, and one
+   log line naming the missing settings.
+5. Notification to `CONTACT_TO_EMAIL`: subject `[Contact] <topic>: <name>`, Reply-To set to the sender, and a
+   plain-text body with every field and the time received. If Resend rejects it: 503, so the sender retries.
+6. Acknowledgement to the sender. It is best effort and contains nothing the sender typed (only fixed
+   wording, topic and product), so the form cannot be used to send someone else a message from our domain.
+7. `200 { ok: true }`.
+
+Logs never include names, addresses or message text. `GET` answers 405.
+
 Checked against a temporary route on `next start`: 400 with field errors, 400/415 for bad bodies, a silent
 200 for honeypot and too-fast submits, 503 without Resend, and 429 with `Retry-After: 60` on the fourth
 request in a minute.
