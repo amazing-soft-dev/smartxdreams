@@ -24,7 +24,7 @@ Photos come from **Unsplash** and **Pexels** only. Product hero visuals are code
 ## What `npm run check:images` enforces
 
 - Every file in `public/images` has exactly one registry entry with a credit, and every entry points to a file that exists.
-- Every registered slot is used exactly once (`slot="<id>"`) in `src/`.
+- Every registered slot is used exactly once (`slot="<id>"`) in `src/`. A photo can be registered ahead of its page with `"pending": true`; it may stay unused until the page issue removes the flag, and using a pending slot fails the check.
 - Nothing in `src/` points at `/images/...` directly; photos go through `<Photo slot />`.
 
 ## Credits

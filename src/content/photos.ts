@@ -30,6 +30,8 @@ export const photoSchema = z
     /** Tiny base64 preview for the blur-up placeholder (scripts/photo-meta.mjs). */
     blurDataURL: z.string().startsWith("data:image/"),
     credit: creditSchema,
+    /** Registered ahead of the page that will use it. The page issue removes this flag. */
+    pending: z.boolean().optional(),
   })
   .refine((p) => p.decorative || p.alt.trim().length > 0, { message: "Content photos need alt text", path: ["alt"] });
 
