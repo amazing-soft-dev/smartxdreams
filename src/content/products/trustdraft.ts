@@ -15,14 +15,58 @@ export const trustdraft: Product = {
     { title: "Review the drafts", body: "Each answer cites the policy passage it came from; unsupported answers are flagged, not guessed." },
     { title: "Approve and export", body: "A person approves every answer, then exports the questionnaire in its original format." },
   ],
-  features: [],
+  promise: {
+    title: "A person approves every answer before it goes out.",
+    body: "TrustDraft drafts from your own documents and shows its sources. Your team reviews, edits and approves each answer; nothing is sent to a customer automatically.",
+  },
+  features: [
+    {
+      title: "Answers with their source",
+      body: "Every drafted answer links to the policy passage it came from, so a reviewer can check it in seconds.",
+    },
+    {
+      title: "Flags instead of guesses",
+      body: "When your documents do not support an answer, TrustDraft says so and leaves it for a person, rather than writing something plausible.",
+    },
+    {
+      title: "Review and approval",
+      body: "Assign questions to the right person, track what is approved and what still needs work, and keep a record of who approved each answer.",
+    },
+    {
+      title: "Keeps the original format",
+      body: "Import the questionnaire as it arrived and export the answers back into the same format.",
+    },
+    {
+      title: "Reuses approved answers",
+      body: "Approved answers are saved, with their sources, for the next questionnaire that asks the same thing.",
+    },
+  ],
   whoFor: ["Small software companies selling to larger customers", "Founders and engineers who own security reviews"],
   limits: [
     "TrustDraft only answers from your documents; it flags questions it cannot support instead of inventing answers.",
     "A person must review and approve every answer before it is sent.",
     "It does not certify compliance or replace an audit.",
   ],
-  faq: [],
+  faq: [
+    {
+      question: "Does TrustDraft make us compliant or certified?",
+      answer: "No. It helps you answer questionnaires from the policies you already have. It does not certify anything or replace an audit.",
+    },
+    {
+      question: "What happens when our policies do not cover a question?",
+      answer: "The question is flagged as unsupported and left for a person. TrustDraft does not invent answers.",
+    },
+    {
+      question: "Who sees our policy documents?",
+      answer: "Only your team. Documents stay in your workspace, are never used to answer another company's questionnaires, and can be deleted at any time.",
+    },
+  ],
+  dataHandling: [
+    "Your policies and questionnaires stay in your workspace.",
+    "They are never used for another company's answers.",
+    "Delete documents or the whole workspace at any time.",
+  ],
+  photo: { slot: "product-trustdraft" },
   related: ["sitelog"],
   seo: {
     title: "TrustDraft: answer security questionnaires from your own policies",
