@@ -10,6 +10,7 @@ import { headerCta } from "@/content/site";
 import { cx } from "@/lib/cx";
 import { ease } from "@/styles/motion";
 import { useHideOnScroll } from "./useHideOnScroll";
+import { useNavTheme } from "./useNavTheme";
 
 /**
  * The fixed site header: logo, navigation and the call to action, on a frosted bar. It slides in once on
@@ -19,6 +20,9 @@ export function Header() {
   const [focusInside, setFocusInside] = useState(false);
   // Never tuck the header away while keyboard focus is inside it.
   const hidden = useHideOnScroll(focusInside);
+  // Match the section behind the header: dark glass on dark heroes, light glass on light sections.
+  const theme = useNavTheme();
+  const onDark = theme === "dark";
   return (
     <motion.header
       initial={{ y: -120, opacity: 0.001 }}
@@ -40,9 +44,11 @@ export function Header() {
         )}
       >
         <div
+          data-surface={onDark ? "dark" : "light"}
           className={cx(
-            "flex h-15 items-center justify-between gap-4 rounded-[18px] pr-2 pl-4 md:pl-5",
-            "bg-ink/70 text-white ring-1 ring-white/10 backdrop-blur-xl",
+            "flex h-15 items-center justify-between gap-4 rounded-[18px] pr-2 pl-4 backdrop-blur-xl md:pl-5",
+            "transition-[background-color,color,box-shadow] duration-400 ease-[var(--ease-standard)]",
+            onDark ? "bg-ink/70 text-white ring-1 ring-white/10" : "bg-white/75 text-ink shadow-tag ring-1 ring-ink/5",
           )}
         >
           <Link href="/" aria-label="SmartxDreams home" className="inline-flex shrink-0 items-center rounded-md">
