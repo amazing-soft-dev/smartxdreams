@@ -151,3 +151,6 @@ vite.config.ts.timestamp-*
 # Next.js generated types and Vercel local state
 next-env.d.ts
 .vercel
+
+# Generated responsive WebP variants (npm run images)
+public/_img/
