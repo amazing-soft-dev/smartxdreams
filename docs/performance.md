@@ -26,7 +26,8 @@ statically generated page (gzipped) and fails when any budget is exceeded:
 - **AstraField (three.js):** only on capable devices, when the hero is near the viewport and the browser is
   idle. Until then, and on other devices, a server-rendered static star field.
 - **Footer smoke (WebGL):** requested only when the footer is within 600 px of the viewport, and paused
-  off-screen.
+  off-screen. If the browser drops its WebGL context, it pauses and the static gradient shows; when the
+  context comes back it rebuilds its shader program and carries on.
 - **Photos:** responsive AVIF/WebP with intrinsic sizes and blur placeholders. Only the largest image
   above the fold uses `priority`.
 

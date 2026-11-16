@@ -7,7 +7,7 @@ export type SceneSupport =
   | { status: "pending" }
   /** Safe to load and run a WebGL scene. */
   | { status: "ok" }
-  /** Use the static fallback, and why. */
+  /** Use the static fallback, and why ("no-webgl": no usable WebGL 2 context). */
   | { status: "fallback"; reason: "reduced-motion" | "save-data" | "low-power" | "no-webgl" };
 
 type NavigatorHints = Navigator & {
@@ -15,13 +15,20 @@ type NavigatorHints = Navigator & {
   deviceMemory?: number;
 };
 
-function hasWebGL(): boolean {
+/**
+ * True when the browser can give a usable WebGL 2 context. The scenes behind this check run on three.js,
+ * which supports WebGL 2 only (r163+), so a WebGL 1 fallback here would download the three.js chunk just
+ * for WebGLRenderer to throw.
+ */
+export function hasWebGL2(doc: Document = document): boolean {
   try {
-    const canvas = document.createElement("canvas");
-    const gl = canvas.getContext("webgl2") ?? canvas.getContext("webgl");
+    const canvas = doc.createElement("canvas");
+    const gl = canvas.getContext("webgl2");
+    if (!gl) return false;
+    const usable = !gl.isContextLost();
     // Free the probe context straight away; browsers cap the number of live contexts.
-    gl?.getExtension("WEBGL_lose_context")?.loseContext();
-    return gl !== null;
+    gl.getExtension("WEBGL_lose_context")?.loseContext();
+    return usable;
   } catch {
     return false;
   }
@@ -34,7 +41,7 @@ export function detectSceneSupport(): SceneSupport {
   if (nav.connection?.saveData) return { status: "fallback", reason: "save-data" };
   // Two or fewer cores, or 2 GB of memory or less: keep the battery and the main thread free.
   if ((nav.hardwareConcurrency ?? 8) <= 2 || (nav.deviceMemory ?? 8) <= 2) return { status: "fallback", reason: "low-power" };
-  if (!hasWebGL()) return { status: "fallback", reason: "no-webgl" };
+  if (!hasWebGL2()) return { status: "fallback", reason: "no-webgl" };
   return { status: "ok" };
 }
 
