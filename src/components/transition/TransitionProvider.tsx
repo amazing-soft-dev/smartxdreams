@@ -45,6 +45,7 @@ export function TransitionProvider({ children }: { children: ReactNode }) {
   const overlay = useRef<HTMLDivElement>(null);
   const content = useRef<HTMLDivElement>(null);
   const label = useRef<HTMLSpanElement>(null);
+  const announcer = useRef<HTMLDivElement>(null);
   const busy = useRef(false);
   // Resolves when the pathname changes, so the reveal waits for the new page.
   const routeWaiter = useRef<(() => void) | null>(null);
@@ -69,6 +70,19 @@ export function TransitionProvider({ children }: { children: ReactNode }) {
       ),
     );
   }, []);
+
+  /**
+   * After a client-side navigation, move keyboard and screen-reader focus to the new page's h1 (instead of
+   * leaving it on a link that no longer exists) and announce the page through a polite live region.
+   */
+  const arrive = (pathname: string) => {
+    const heading = document.querySelector<HTMLElement>("main h1, h1");
+    if (heading) {
+      if (!heading.hasAttribute("tabindex")) heading.setAttribute("tabindex", "-1");
+      heading.focus({ preventScroll: true });
+    }
+    if (announcer.current) announcer.current.textContent = `${routeLabel(pathname)} page`;
+  };
 
   const navigate = useCallback(
     async (href: string) => {
@@ -115,6 +129,7 @@ export function TransitionProvider({ children }: { children: ReactNode }) {
       for (const node of [...panels(), word, layer]) node?.getAnimations().forEach((a) => a.cancel());
       delete el.dataset.state;
       busy.current = false;
+      arrive(url.pathname);
     },
     [animatePanels, router],
   );
@@ -124,6 +139,7 @@ export function TransitionProvider({ children }: { children: ReactNode }) {
   return (
     <TransitionContext.Provider value={api}>
       {children}
+      <div ref={announcer} role="status" aria-live="polite" aria-atomic="true" className="sr-only" />
       <div
         ref={overlay}
         aria-hidden="true"
