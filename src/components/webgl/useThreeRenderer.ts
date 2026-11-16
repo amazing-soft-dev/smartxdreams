@@ -4,6 +4,7 @@ import { type RefObject, useEffect } from "react";
 import { type Camera, type Scene, WebGLRenderer } from "three";
 import { isTopScene, setSceneVisible } from "./scene-budget";
 import { mountSceneCanvas } from "./scene-canvas";
+import { getLiveWebGL2Context, SCENE_CONTEXT_ATTRIBUTES } from "./webgl-context";
 
 /** Highest device pixel ratio we render at; above this the extra pixels are not worth the GPU time. */
 export const MAX_SCENE_DPR = 1.75;
@@ -40,12 +41,19 @@ export function useThreeRenderer(
     if (!host) return;
     const { canvas, remove: removeCanvas } = mountSceneCanvas(host);
 
+    // No WebGL 2, or a context that is already lost: keep the fallback underneath, without an error.
+    const context = getLiveWebGL2Context(canvas);
+    if (!context) {
+      removeCanvas();
+      return;
+    }
+
     let renderer: WebGLRenderer;
     try {
-      renderer = new WebGLRenderer({ canvas, alpha: true, antialias: false, powerPreference: "low-power" });
+      renderer = new WebGLRenderer({ canvas, context, ...SCENE_CONTEXT_ATTRIBUTES });
     } catch {
       removeCanvas();
-      return; // No WebGL after all: the fallback underneath stays visible.
+      return; // three.js could not start on this context after all: the fallback stays visible.
     }
     renderer.setClearColor(0x000000, 0);
     const handle = setup();
