@@ -1,4 +1,5 @@
 import { Reveal } from "@/components/motion/Reveal";
+import { Button } from "@/components/ui/Button";
 import { Container } from "@/components/ui/Container";
 import { Glow } from "@/components/ui/Glow";
 import { Tag } from "@/components/ui/Tag";
@@ -40,6 +41,15 @@ export function HomeHero() {
           Job searches, applications, site reports, dental bills, paperwork and security questionnaires. Each product
           does one job, shows its sources and leaves the final call to you.
         </p>
+        </Reveal>
+        <Reveal aboveFold delay={0.6} className="mt-9 flex flex-wrap justify-center gap-3">
+          {/* Coral with ink text: 6.54:1. */}
+          <Button href="/products" variant="coral" size="lg">
+            Explore the products
+          </Button>
+          <Button href="#how-we-build" variant="ghost" size="lg" icon={false}>
+            How we build
+          </Button>
         </Reveal>
       </Container>
     </section>
