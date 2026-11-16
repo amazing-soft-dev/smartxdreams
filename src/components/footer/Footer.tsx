@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Container } from "@/components/ui/Container";
 import { Logo } from "@/components/ui/Logo";
+import { FooterSmoke } from "./FooterSmoke";
 import { SocialIcons } from "./SocialIcons";
 import { products } from "@/content/products";
 import { company, footerGroups, trademarkNote } from "@/content/site";
@@ -22,6 +23,7 @@ export function Footer() {
   const year = new Date().getFullYear();
   return (
     <footer data-surface="dark" data-nav-theme="dark" className="relative isolate overflow-hidden bg-ink text-white">
+      <FooterSmoke />
       <Container className="relative pt-20 pb-10 md:pt-24">
         <div className="grid gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)] lg:gap-16">
           <div className="max-w-sm">
