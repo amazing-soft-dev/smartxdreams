@@ -51,6 +51,13 @@ export function WaitlistInline() {
           </>
         ) : null}
       </p>
+      <p className="mt-1 text-micro text-white/60">
+        How we use your email:{" "}
+        <Link href="/privacy" className="underline underline-offset-4 transition-colors hover:text-white">
+          privacy policy
+        </Link>
+        .
+      </p>
     </form>
   );
 }

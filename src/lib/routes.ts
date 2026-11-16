@@ -17,8 +17,8 @@ const pages: SiteRoute[] = [
   { path: "/about", ready: true, changeFrequency: "monthly", priority: 0.6 },
   { path: "/blog", ready: false, changeFrequency: "weekly", priority: 0.7 },
   { path: "/contact", ready: true, changeFrequency: "yearly", priority: 0.5 },
-  { path: "/privacy", ready: false, changeFrequency: "yearly", priority: 0.2 },
-  { path: "/terms", ready: false, changeFrequency: "yearly", priority: 0.2 },
+  { path: "/privacy", ready: true, changeFrequency: "yearly", priority: 0.2 },
+  { path: "/terms", ready: true, changeFrequency: "yearly", priority: 0.2 },
 ];
 
 /** Product pages exist since the product template landed (issue #34). */
