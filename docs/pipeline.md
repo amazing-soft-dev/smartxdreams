@@ -106,8 +106,26 @@ Run by the pipeline probe issues (#68 happy path, #69 red CI, #70 rules and abus
 
 ## Probe results
 
-### Probe 2: red CI, recovery and cancel (issue #69)
+### Probe 2: red CI and recovery (issue #69)
 
 - Removing `.github/ci-bootstrap` with no `package.json` made **Detect app** fail and **CI passed** fail. The summary comment said "CI failed", and "Merge passing pull request" was skipped, so PR #78 stayed open.
-- Pushing the fix commit and, seconds later, a follow-up commit cancels the run for the fix commit; only the newest head is validated and merged.
-- Finding: the summary's `Mode` line reads "bootstrap" when detect-app fails, because the app output is empty. Cosmetic; fixed in issue #70.
+- After the fix commit, CI went green, the PR merged into `dev`, the `dev` → `main` PR opened and merged, and #69 closed with no human step.
+- The "newer push cancels the older run" check was **not** exercised here (both commits went out in one push). It is covered in probe 3 below.
+- Finding: the summary's `Mode` line read "bootstrap" when detect-app failed, because the app output is empty. Cosmetic; fixed in issue #70.
+
+### Probe 3: rules and abuse paths (issue #70)
+
+Run after the `dev` and `main` rulesets were imported. Nothing here needs a human step.
+
+| # | Check | Result | Evidence |
+|---|---|---|---|
+| 2 | Bad branches ignored | Pass | `wip/70-noneligible` triggered no workflow; `ci/guard-no-number` ran Open pull request, logged a notice and opened no PR |
+| 8 | Newer push cancels the older run | Pass | Pushing step 2 while step 1's CI was running left run 43783418908 `cancelled` |
+| 9 | Direct push rejected | Pass | Pushes to `dev` and to `main` were declined: "Required status check CI passed is expected" |
+| 10 | Force-push and deletion rejected | Pass | Force-pushes were declined: "Changes must be made through a pull request". Deletion was proved on a throwaway branch under a temporary deletion-only ruleset ("Cannot delete this branch"), and both real rulesets contain the `deletion` rule |
+| 11 | Merge before CI passed blocked | Pass | `gh pr merge` on PR #80 before CI finished: "base branch policy prohibits the merge" |
+| 12 | Squash and rebase blocked | Pass | "Squash merges are not allowed" and "Rebase merges are not allowed" on PR #80 after CI was green |
+| 13 | Non-eligible pair untouched | Pass | #80 (`wip/…` → `main`) was not merged; log: "is not an eligible pair. Leaving it." |
+| 14 | Head moved after CI passed | Pass, with a defect | Step 3 was pushed 6 s after CI passed on step 2. The merge for step 2's head was refused ("Pull Request is not mergeable"), nothing merged on the old SHA, and step 3's CI merged the PR. The refused attempt ended the run red, so `merge-passing-pr` now reports a moved head as a notice |
+
+Defects found and fixed in this issue: the summary `Mode` line when detect-app fails, and the red run after a refused merge on a moved head. The probe branches and PR #80 were closed or merged and cleaned up.
