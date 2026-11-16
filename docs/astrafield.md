@@ -30,3 +30,15 @@ Place `<AstraField />` inside a positioned, dark container. It is decorative (`a
 ## Sharing the GPU
 
 `scene-budget.ts` lets only the highest-priority visible scene draw: the stars (priority 2) outrank the footer smoke (priority 1). Hidden or off-screen scenes pause, and every scene disposes its GPU resources on unmount.
+
+## Renderer lifecycle
+
+`useThreeRenderer(hostRef, setup, budget)` creates its own `<canvas>` inside the host element on every mount and removes it on unmount, after `forceContextLoss()` has released the context. Do not hand it a React-rendered canvas: a canvas keeps its first context for life, even once lost, and React reuses the node across Strict Mode's double mount in development (and `<Activity>`), so the second mount would get a dead context and three.js would throw `Cannot read properties of null (reading 'precision')`.
+
+Before creating the renderer it asks for a WebGL 2 context itself (`getLiveWebGL2Context` in `webgl-context.ts`). No context, or one that is already lost, means the canvas is removed and the CSS fallback stays, with nothing logged. If the browser drops the context later (GPU reset, too many live contexts, a backgrounded mobile tab), the loop pauses and the fallback shows through. On restore three.js rebuilds its state and the loop picks up again. To try it, run this in devtools on Home:
+
+```js
+const ext = document.querySelector("canvas[data-engine]").getContext("webgl2").getExtension("WEBGL_lose_context");
+ext.loseContext(); // stars stop and the CSS stars show
+ext.restoreContext(); // stars come back
+```
