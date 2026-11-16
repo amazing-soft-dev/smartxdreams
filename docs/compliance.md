@@ -117,3 +117,40 @@ advice", read from the same field, so the wording cannot drift.
 | TrustDraft: unsupported answers flagged, never invented | Feature "Flags instead of guesses"; limit "flags questions it cannot support instead of inventing answers" | Pass |
 | Job sources: brand names as text only, with the trademark note | JobAtlas names sources as plain text; the trademark note is in the JobAtlas footnote and in the site footer on every page; no third-party logos anywhere | Pass (wording itself flagged for Counsel in section 1) |
 | Not-advice wording on the blog | The dental and scam posts say they are general information and point to a professional or the company involved | Pass |
+
+## 3. No-fabrication checklist
+
+Signed off for the site as of 2026-11-16 (engineering review; re-run before launch and whenever copy
+changes). Each line was checked in `src/content`, `src/components` and the blog posts.
+
+- [x] **No invented statistics.** No percentages, user counts, time saved or results. The stats section is
+  hidden until `src/content/stats.ts` has a sourced value (all null). The one figure found, JobAtlas's
+  "half the listings are stale", was removed.
+- [x] **No testimonials or quotes.** No customer, partner or press quotes anywhere, including the blog.
+- [x] **No logos of other companies.** Third-party names (LinkedIn, Indeed, Jobright, Dice, Vercel, Resend,
+  Unsplash, Pexels) appear as plain text only. The trademark note is in the footer of every page and in the
+  JobAtlas footnote. Photos were checked for visible logos (docs/images.md).
+- [x] **No invented people.** The About page names no team members; team profiles appear when real people
+  are introduced. The blog is signed "the SmartxDreams team".
+- [x] **No implied endorsements.** No "as seen in", "trusted by", partner badges or awards. Photos show no
+  identifiable faces on the sensitive pages, so nobody appears to use or endorse a product.
+- [x] **Product screens are illustrations.** Every product hero mockup is captioned "Illustrative screen.
+  <Product> is in development." Mockup data is invented and generic: round amounts, placeholder companies
+  (Northwind, Acme Labs, Bluebird, Harbor & Co) and one placeholder initial ("M. Chen"). Before launch,
+  check that none of the placeholder company names reads as a real employer in the target markets.
+- [x] **No availability claims.** Every product is "in development" with a waitlist. The roadmap gives no
+  dates, and only "Waitlists open" is marked as happening now.
+- [x] **Limits stated.** Every product page lists what the product does not do, next to what it does.
+- [x] **Seed blog posts.** Six of the seven posts are drafts (noindex, out of the sitemap and feed, hidden
+  on the production deployment) until someone reviews them.
+
+## For counsel: items to review before launch
+
+1. **JobAtlas sources.** Naming LinkedIn, Indeed, Jobright and Dice, and the company review data. Confirm
+   lawful access per source, or change the copy to "major job boards".
+2. **ApplyPilot automation.** Filling application forms on third-party job sites, with the user reviewing
+   and submitting. Confirm against those sites' terms for the target markets.
+3. **ToothLedger and Kinly disclaimers.** Health, insurance and financial-adjacent wording, with Kinly
+   aimed at older adults.
+4. **Data commitments** on the product pages ("never sold", "stored encrypted", "deleted on request") must
+   match the privacy policy and the products at launch; see docs/legal.md.
