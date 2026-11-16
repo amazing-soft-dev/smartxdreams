@@ -9,6 +9,7 @@ import { Logo } from "@/components/ui/Logo";
 import { headerCta } from "@/content/site";
 import { cx } from "@/lib/cx";
 import { ease } from "@/styles/motion";
+import { DesktopNav } from "./DesktopNav";
 import { useHideOnScroll } from "./useHideOnScroll";
 import { useNavTheme } from "./useNavTheme";
 
@@ -55,6 +56,7 @@ export function Header() {
             {/* White artwork on dark sections, ink artwork on light ones. */}
             <Logo tone={onDark ? "light" : "dark"} height={26} decorative />
           </Link>
+          <DesktopNav theme={theme} />
           <Button href={headerCta.href} variant={onDark ? "coral" : "ink"} size="sm">
             {headerCta.label}
           </Button>
