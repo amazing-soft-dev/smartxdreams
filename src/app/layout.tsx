@@ -1,3 +1,5 @@
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import type { Metadata } from "next";
 import { Inter_Tight } from "next/font/google";
 import type { ReactNode } from "react";
@@ -10,6 +12,10 @@ const interTight = Inter_Tight({
   variable: "--font-inter-tight",
 });
 
+// Vercel Web Analytics and Speed Insights run only on the production deployment, never on previews,
+// local builds or the static export.
+const isProduction = process.env.VERCEL_ENV === "production";
+
 export const metadata: Metadata = {
   title: "SmartxDreams",
   description: "SmartxDreams builds AI products for everyday work and life.",
@@ -18,7 +24,15 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" className={interTight.variable}>
-      <body>{children}</body>
+      <body>
+        {children}
+        {isProduction ? (
+          <>
+            <Analytics />
+            <SpeedInsights />
+          </>
+        ) : null}
+      </body>
     </html>
   );
 }
