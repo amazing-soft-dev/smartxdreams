@@ -3,6 +3,7 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 import type { Metadata } from "next";
 import { Inter_Tight } from "next/font/google";
 import type { ReactNode } from "react";
+import { MotionProvider } from "@/components/motion/MotionProvider";
 import { SmoothScroll } from "@/components/motion/SmoothScroll";
 import "./globals.css";
 
@@ -25,8 +26,16 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" className={interTight.variable}>
+      <head>
+        {/* Without JavaScript, reveal animations never run: show their content instead. */}
+        <noscript>
+          <style>{"[data-reveal]{opacity:1!important;transform:none!important}"}</style>
+        </noscript>
+      </head>
       <body>
-        <SmoothScroll>{children}</SmoothScroll>
+        <SmoothScroll>
+          <MotionProvider>{children}</MotionProvider>
+        </SmoothScroll>
         {isProduction ? (
           <>
             <Analytics />
