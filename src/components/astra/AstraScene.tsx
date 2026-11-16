@@ -16,6 +16,7 @@ import {
 } from "three";
 import { MAX_SCENE_DPR, useThreeRenderer } from "@/components/webgl/useThreeRenderer";
 import { starFragmentShader, starVertexShader } from "./star-shader";
+import { getActiveProduct } from "./active-product";
 import { CONSTELLATION_Z, constellations } from "./constellations";
 import { createStarField } from "./stars";
 
@@ -87,6 +88,14 @@ export default function AstraScene() {
       camera,
       update: (elapsed, delta) => {
         material.uniforms.uTime!.value = elapsed;
+        // The hovered or focused product brightens its constellation; the others dim. Opacity eases toward
+        // its target by time, so it feels the same at any frame rate.
+        const active = getActiveProduct();
+        const ease = Math.min(1, delta * 6);
+        for (const set of lineSets) {
+          const target = active === null ? 0.18 : active === set.slug ? 0.9 : 0.06;
+          set.material.opacity += (target - set.material.opacity) * ease;
+        }
         // Slow drift: a full turn would take about 26 minutes, so it reads as stillness with life in it.
         points.rotation.z = elapsed * 0.004;
         points.rotation.y = Math.sin(elapsed * 0.05) * 0.04;

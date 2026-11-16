@@ -33,7 +33,7 @@ export function ProductGrid() {
           const tone = tones[i % tones.length] ?? tones[0];
           const pill = cx("rounded-full px-3 py-1 text-micro font-medium", tone.dark ? "bg-white/15" : "bg-ink/[0.07]");
           return (
-          <li key={product.slug} className={cx(spans[i])}>
+          <li key={product.slug} data-product={product.slug} className={cx(spans[i])}>
             <Reveal delay={(i % 4) * 0.08} className="h-full">
               <article
                 className={cx(
