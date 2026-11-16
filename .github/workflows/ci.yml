@@ -1,0 +1,179 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [dev, main]
+  workflow_dispatch:
+
+# A newer push to the same branch or pull request cancels the older run.
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  detect:
+    name: Detect app
+    runs-on: ubuntu-latest
+    outputs:
+      app: ${{ steps.detect.outputs.app }}
+    steps:
+      - uses: actions/checkout@v7
+      - id: detect
+        name: Detect app or bootstrap mode
+        run: |
+          if [ -f package.json ]; then
+            echo "app=true" >> "$GITHUB_OUTPUT"
+          elif [ -f .github/ci-bootstrap ]; then
+            echo "app=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Bootstrap mode: no package.json, so lint and build jobs are skipped."
+          else
+            echo "::error::package.json is missing and .github/ci-bootstrap is absent. Restore package.json."
+            exit 1
+          fi
+
+  actionlint:
+    name: actionlint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Run actionlint (pinned and checksum-verified)
+        env:
+          ACTIONLINT_VERSION: "1.7.12"
+          ACTIONLINT_SHA256: 8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8
+        run: |
+          set -euo pipefail
+          archive="actionlint_${ACTIONLINT_VERSION}_linux_amd64.tar.gz"
+          curl -fsSL -o "$RUNNER_TEMP/$archive" \
+            "https://github.com/rhysd/actionlint/releases/download/v${ACTIONLINT_VERSION}/${archive}"
+          echo "${ACTIONLINT_SHA256}  $RUNNER_TEMP/$archive" | sha256sum --check -
+          tar -xzf "$RUNNER_TEMP/$archive" -C "$RUNNER_TEMP" actionlint
+          "$RUNNER_TEMP/actionlint" -color
+
+  lint:
+    name: Lint and type check
+    needs: detect
+    if: needs.detect.outputs.app == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: latest
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      # Each photo must be used exactly once. --if-present until the script lands in issue #2.
+      - run: npm run --if-present check:images
+
+  build:
+    name: Build (${{ matrix.target }})
+    needs: detect
+    if: needs.detect.outputs.app == 'true'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        target: [server, static]
+    env:
+      # static writes plain HTML to out/ (no /api); server is the full app Vercel runs.
+      NEXT_OUTPUT: ${{ matrix.target == 'static' && 'export' || '' }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: latest
+          cache: npm
+      - run: npm ci
+      - name: Build responsive WebP images (static only)
+        if: matrix.target == 'static'
+        run: npm run --if-present images
+      - run: npm run build
+      - name: Verify static output (static only)
+        if: matrix.target == 'static'
+        run: |
+          # --if-present until verify:out lands in issue #2. The script checks the expected HTML,
+          # sitemap, icons and image files, and that out/api does not exist.
+          npm run --if-present verify:out
+          if [ -d out/api ]; then echo "::error::out/api must not exist in the static export"; exit 1; fi
+
+  passed:
+    name: CI passed
+    if: always()
+    needs: [detect, actionlint, lint, build]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - id: evaluate
+        name: Evaluate required jobs
+        env:
+          APP: ${{ needs.detect.outputs.app }}
+          DETECT: ${{ needs.detect.result }}
+          ACTIONLINT: ${{ needs.actionlint.result }}
+          LINT: ${{ needs.lint.result }}
+          BUILD: ${{ needs.build.result }}
+        run: |
+          status=pass
+          rows=""
+          expect() { # name, actual result, expected result
+            local icon="OK"
+            if [ "$2" != "$3" ]; then icon="FAIL"; status=fail; fi
+            rows="${rows}| $1 | $2 | $3 | ${icon} |"$'\n'
+          }
+          expect "Detect app" "$DETECT" success
+          expect "actionlint" "$ACTIONLINT" success
+          mode="strict (app present)"
+          if [ "$APP" = "true" ]; then
+            expect "Lint and type check" "$LINT" success
+            expect "Build (server and static)" "$BUILD" success
+          else
+            mode="bootstrap (no app yet)"
+            expect "Lint and type check" "$LINT" skipped
+            expect "Build (server and static)" "$BUILD" skipped
+          fi
+          {
+            echo "### CI summary"
+            echo
+            echo "Mode: **${mode}** · Node: \`$(node -v)\` · Commit: \`${GITHUB_SHA::7}\`"
+            echo
+            echo "| Job | Result | Expected | |"
+            echo "|---|---|---|---|"
+            printf '%s' "$rows"
+            echo
+            if [ "$status" = pass ]; then echo "**CI passed**"; else echo "**CI failed**"; fi
+          } > "$RUNNER_TEMP/summary.md"
+          cat "$RUNNER_TEMP/summary.md" >> "$GITHUB_STEP_SUMMARY"
+          echo "status=${status}" >> "$GITHUB_OUTPUT"
+          echo "summary_file=$RUNNER_TEMP/summary.md" >> "$GITHUB_OUTPUT"
+
+      - name: Post or update the summary comment
+        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+        uses: actions/github-script@v9
+        env:
+          SUMMARY_FILE: ${{ steps.evaluate.outputs.summary_file }}
+        with:
+          script: |
+            const fs = require('fs');
+            const marker = '<!-- ci-passed-summary -->';
+            const body = marker + '\n' + fs.readFileSync(process.env.SUMMARY_FILE, 'utf8');
+            const { owner, repo } = context.repo;
+            const issue_number = context.payload.pull_request.number;
+            const comments = await github.paginate(github.rest.issues.listComments, { owner, repo, issue_number, per_page: 100 });
+            const existing = comments.find((c) => c.user.type === 'Bot' && c.body && c.body.includes(marker));
+            if (existing) {
+              await github.rest.issues.updateComment({ owner, repo, comment_id: existing.id, body });
+            } else {
+              await github.rest.issues.createComment({ owner, repo, issue_number, body });
+            }
+
+      - name: Fail unless everything passed
+        if: steps.evaluate.outputs.status != 'pass'
+        run: |
+          echo "::error::One or more required jobs did not succeed. See the summary."
+          exit 1
