@@ -16,7 +16,7 @@ export const creditSchema = z.object({
 
 export const photoSchema = z
   .object({
-    /** Stable id used by pages: <Photo slot="home-step-1" />. */
+    /** Stable kebab-case id that pages pass to the Photo component, for example home-step-1. */
     slot: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
     /** Public path of the master file, under /images. */
     src: z.string().regex(/^\/images\/[a-z0-9/_-]+\.(?:jpe?g|png|webp)$/),
