@@ -108,17 +108,45 @@ export function SmokeBackground({ className, intensity = 0.9, scale = 1.6, quali
     resizeObserver.observe(canvas);
     resize();
 
+    // Animation time only advances while running, so the smoke resumes where it paused.
     let frame = 0;
-    const start = performance.now();
+    let elapsed = 0;
+    let last = 0;
+    let onScreen = false;
     const render = (now: number) => {
-      gl.uniform1f(uniforms.time, (now - start) / 1000);
+      if (last) elapsed += now - last;
+      last = now;
+      gl.uniform1f(uniforms.time, elapsed / 1000);
       gl.drawArrays(gl.TRIANGLES, 0, 3);
       frame = requestAnimationFrame(render);
     };
-    frame = requestAnimationFrame(render);
+    const play = () => {
+      if (frame || !onScreen || document.hidden) return;
+      last = 0;
+      frame = requestAnimationFrame(render);
+    };
+    const pause = () => {
+      cancelAnimationFrame(frame);
+      frame = 0;
+    };
+
+    // Pause while the footer is off-screen and while the tab is hidden.
+    const intersection = new IntersectionObserver(
+      ([entry]) => {
+        onScreen = entry?.isIntersecting ?? false;
+        if (onScreen) play();
+        else pause();
+      },
+      { rootMargin: "100px 0px" },
+    );
+    intersection.observe(canvas);
+    const onVisibility = () => (document.hidden ? pause() : play());
+    document.addEventListener("visibilitychange", onVisibility);
 
     return () => {
-      cancelAnimationFrame(frame);
+      pause();
+      intersection.disconnect();
+      document.removeEventListener("visibilitychange", onVisibility);
       resizeObserver.disconnect();
       scene.dispose();
     };
