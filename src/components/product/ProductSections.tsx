@@ -62,6 +62,8 @@ export function ProductHero({ product, Mockup }: ProductProps & { Mockup?: Compo
         </div>
         {Mockup ? (
           <Reveal aboveFold preset="waveUp" delay={0.4} className="mx-auto w-full max-w-md">
+            {/* The product is not built yet, so the screen is labelled as an illustration, not a screenshot. */}
+            <p className="mb-4 text-center text-micro text-white/65">Illustrative screen. {product.name} is in development.</p>
             <Mockup />
           </Reveal>
         ) : null}

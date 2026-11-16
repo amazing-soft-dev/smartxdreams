@@ -10,7 +10,7 @@ export const jobatlas: Product = {
   audience: "job-seekers",
   status: "waitlist",
   problem:
-    "The same job is posted on five sites, half the listings are stale, and you lose an evening switching tabs before you even start applying.",
+    "The same job is posted on five sites, many listings are stale, and you lose an evening switching tabs before you even start applying.",
   steps: [
     { title: "Search once", body: "Tell JobAtlas the roles, places and pay you want." },
     {
