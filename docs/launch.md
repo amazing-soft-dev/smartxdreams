@@ -87,3 +87,50 @@ confirmation links, and consent records to the team. All come from `CONTACT_FROM
 that they cannot send. It also has no proxy and no redirects, and the host must add the security headers
 itself. Copy the headers from `src/lib/security-headers.ts` into the host's configuration (for example a
 `_headers` file) and add a lowercase redirect rule there too.
+
+## 4. Post-launch monitoring
+
+**First day**
+
+- [ ] Send one contact message and one waitlist sign-up from the live site, and confirm all four emails
+  (section 2).
+- [ ] Vercel → Deployments → the production deployment → **Logs**: no errors on `/api/contact`,
+  `/api/waitlist` or `/api/waitlist/confirm`. Log lines start with `[email]`, `[contact]` or `[waitlist]`
+  and never contain addresses or message text. A "not configured" line means a missing variable.
+- [ ] Vercel → **Speed Insights**: Core Web Vitals appear for `/` within a day of traffic.
+
+**Weekly**
+
+- [ ] **Speed Insights:** Home LCP under 2.5 s and CLS under 0.05 at the 75th percentile (the targets in
+  docs/performance.md). If they slip, open the page with `?vitals` to see the LCP element and any layout
+  shifts.
+- [ ] **Web Analytics:** sudden drops in page views can mean a broken route or deployment.
+- [ ] **Function logs:** a run of 5xx answers or "Resend rejected the message" means email is failing.
+  Check the Resend dashboard and the API key.
+- [ ] **Resend → Emails:** bounce and complaint rates. A rising complaint rate on waitlist confirmations
+  can mean someone is abusing the form; the per-IP and per-address limits (docs/api.md) should hold, and
+  the in-memory limits can be moved to a shared store if needed.
+- [ ] **Consent records:** waitlist "[Waitlist] Confirmed" emails are the consent record (docs/api.md).
+  Keep them, or export them to a durable store, for as long as people stay on the lists.
+- [ ] **Dependabot:** review and merge its pull requests; CI (including the end-to-end and axe checks)
+  must pass first.
+
+**Uptime:** add an external monitor (for example Better Stack, UptimeRobot or Checkly) for `/`, `/blog`
+and `/sitemap.xml`, alerting the team on two consecutive failures. Vercel has no built-in uptime alerts.
+
+**After each deployment:** CI has already run lint, types, unit tests, both builds, the bundle budget and
+the end-to-end smoke, axe and throttled-vitals checks. Spot-check the deployment URL Vercel posts on the
+pull request.
+
+## 5. Before launch: people outside engineering
+
+| Item | Owner | Where |
+|---|---|---|
+| Legal review of the privacy policy and terms, then remove the draft notes | Counsel | docs/legal.md |
+| Counsel items: JobAtlas sources, ApplyPilot automation, ToothLedger and Kinly disclaimers, data commitments | Counsel | docs/compliance.md |
+| Review the six seed blog posts and set `draft: false` on the ones to publish | Content | docs/blog.md |
+| Real domain and sender address (sections 2 and 3) | Owner | this file |
+| Social profile URLs, if any: fill `socialLinks` in `src/content/site.ts` (the footer icons appear automatically) | Owner | src/content/site.ts |
+| Trademark and domain checks for the six product names | Owner / counsel | SMARTXDREAMS-PLAN.md §3 |
+| Manual screen-reader pass (VoiceOver and NVDA) | Engineering | docs/a11y.md |
+| Lighthouse report on the deployed site | Engineering | docs/performance.md |
