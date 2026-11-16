@@ -1,0 +1,44 @@
+@import "tailwindcss";
+
+/*
+ * SmartxDreams design tokens. Brand colors are sampled from the logo:
+ * ink #0F1226 (rounded square), violet #6D4AFF (circle), coral #FF6B3D (overlap).
+ * Contrast for every pairing is in docs/design-tokens.md.
+ */
+@theme {
+  /* Ink: text, dark surfaces, page-transition panels. */
+  --color-ink: #0f1226;
+  --color-ink-900: #0f1226;
+  --color-ink-800: #1b1f3a;
+  --color-ink-700: #2a2f52;
+  --color-ink-600: #3d4370;
+
+  /* Light surfaces. */
+  --color-canvas: #f5f2ee;
+  --color-canvas-200: #ece7e1;
+  --color-white: #ffffff;
+
+  /* Violet: accents, links, focus ring, glows. */
+  --color-violet-50: #f2efff;
+  --color-violet-100: #e4deff;
+  --color-violet-200: #c9bdff;
+  --color-violet-300: #aa97ff;
+  --color-violet-400: #8b70ff;
+  --color-violet-500: #6d4aff;
+  --color-violet-600: #5a36e6;
+  --color-violet-700: #4826bf;
+  --color-violet-800: #371d93;
+  --color-violet-900: #281569;
+
+  /* Coral: primary actions and highlights. Use ink text on coral (white fails contrast). */
+  --color-coral-50: #fff2ec;
+  --color-coral-100: #ffe1d4;
+  --color-coral-200: #ffc2a9;
+  --color-coral-300: #ffa17c;
+  --color-coral-400: #ff8457;
+  --color-coral-500: #ff6b3d;
+  --color-coral-600: #e5532a;
+  --color-coral-700: #bf3f1c;
+  --color-coral-800: #932f15;
+  --color-coral-900: #6b220f;
+}
