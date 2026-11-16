@@ -52,9 +52,10 @@ export function Header() {
           )}
         >
           <Link href="/" aria-label="SmartxDreams home" className="inline-flex shrink-0 items-center rounded-md">
-            <Logo tone="light" height={26} decorative />
+            {/* White artwork on dark sections, ink artwork on light ones. */}
+            <Logo tone={onDark ? "light" : "dark"} height={26} decorative />
           </Link>
-          <Button href={headerCta.href} variant="coral" size="sm">
+          <Button href={headerCta.href} variant={onDark ? "coral" : "ink"} size="sm">
             {headerCta.label}
           </Button>
         </div>
