@@ -1,3 +1,5 @@
+import { teamNotification } from "@/lib/api/contact-emails";
+import { emailTransport, sendEmail } from "@/lib/api/email";
 import { emailUnavailable, ok, rateLimited, readJson } from "@/lib/api/respond";
 import { clientIp, rateLimit } from "@/lib/api/rate-limit";
 import { contactRequestSchema } from "@/lib/api/schemas";
@@ -11,8 +13,8 @@ export const dynamic = "force-dynamic";
 const LIMIT = { limit: 5, windowMs: 10 * 60_000 };
 
 /**
- * POST /api/contact: the contact form. Validates the message, filters bots, and (next commits) emails the
- * team and sends the sender an acknowledgement. Response format: docs/api.md.
+ * POST /api/contact: the contact form. Validates the message, filters bots and emails it to the team inbox
+ * (CONTACT_TO_EMAIL) with the sender as Reply-To. Response format: docs/api.md.
  */
 export async function POST(request: Request): Promise<Response> {
   const limit = rateLimit(`contact:${clientIp(request)}`, LIMIT);
@@ -24,6 +26,12 @@ export async function POST(request: Request): Promise<Response> {
   // Bots get the same answer as people, and nothing is sent.
   if (spamVerdict(parsed.data)) return ok();
 
-  // Sending lands in the next commit; until then nothing is delivered, so say so.
-  return emailUnavailable();
+  const teamInbox = emailTransport()?.teamInbox;
+  if (!teamInbox) return emailUnavailable();
+
+  // The message counts as delivered once it reaches the team inbox; if that fails, the sender is told to retry.
+  const notified = await sendEmail({ to: teamInbox, purpose: "contact-notification", ...teamNotification(parsed.data, new Date()) });
+  if (!notified.ok) return emailUnavailable();
+
+  return ok();
 }
