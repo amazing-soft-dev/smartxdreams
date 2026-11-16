@@ -61,20 +61,38 @@ export function TransitionProvider({ children }: { children: ReactNode }) {
   // short View Transitions cross-fade instead, where the browser supports it. The old page is captured when
   // popstate fires; the new one once Next.js has rendered the new path.
   useEffect(() => {
-    const doc = document as Document & { startViewTransition?: (update: () => Promise<void>) => unknown };
-    if (typeof doc.startViewTransition !== "function") return;
+    type ViewTransitionLike = { ready: Promise<void>; finished: Promise<void>; updateCallbackDone: Promise<void> };
+    const doc = document as Document & {
+      startViewTransition?: (update: () => Promise<void>) => ViewTransitionLike;
+    };
+    // A view transition rejects its promises when the browser skips it (for example when the page is
+    // already showing the new state, or the tab is hidden). That is harmless; mark them handled so it does
+    // not surface as an unhandled rejection.
+    const quiet = (vt: ViewTransitionLike | undefined | null) => {
+      for (const p of [vt?.ready, vt?.finished, vt?.updateCallbackDone]) p?.catch(() => undefined);
+    };
+    // Cross-document navigations (@view-transition in globals.css) hand their transition to pagereveal.
+    const onPageReveal = (event: Event) => quiet((event as Event & { viewTransition?: ViewTransitionLike }).viewTransition);
+    window.addEventListener("pagereveal", onPageReveal);
+
     const onPopState = () => {
+      if (typeof doc.startViewTransition !== "function") return;
       if (busy.current || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-      doc.startViewTransition?.(
-        () =>
-          new Promise<void>((resolve) => {
-            routeWaiter.current = resolve;
-            window.setTimeout(resolve, 600);
-          }),
+      quiet(
+        doc.startViewTransition(
+          () =>
+            new Promise<void>((resolve) => {
+              routeWaiter.current = resolve;
+              window.setTimeout(resolve, 600);
+            }),
+        ),
       );
     };
     window.addEventListener("popstate", onPopState);
-    return () => window.removeEventListener("popstate", onPopState);
+    return () => {
+      window.removeEventListener("popstate", onPopState);
+      window.removeEventListener("pagereveal", onPageReveal);
+    };
   }, []);
 
   const panels = () => Array.from(overlay.current?.querySelectorAll<HTMLElement>("[data-panel]") ?? []);
