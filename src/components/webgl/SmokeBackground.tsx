@@ -72,6 +72,8 @@ function setup(gl: WebGLRenderingContext) {
   };
 }
 
+type SmokeProgram = NonNullable<ReturnType<typeof setup>>;
+
 /**
  * Animated WebGL smoke behind the footer. Decorative: aria-hidden and pointer-events none.
  * The canvas renders at `quality` x device pixel ratio (capped at 2) and follows its box with a ResizeObserver.
@@ -89,12 +91,16 @@ export function SmokeBackground({ className, intensity = 0.9, scale = 1.6, quali
     const scene = setup(gl);
     if (!scene) return;
 
-    const { uniforms } = scene;
-    gl.uniform3fv(uniforms.colorA, VIOLET);
-    gl.uniform3fv(uniforms.colorB, CORAL);
-    gl.uniform1f(uniforms.intensity, intensity);
-    gl.uniform1f(uniforms.scale, scale);
-    gl.uniform1f(uniforms.fade, 0.25);
+    /** Sets every uniform that does not change per frame on a freshly set-up program. */
+    const applyUniforms = ({ uniforms }: SmokeProgram) => {
+      gl.uniform3fv(uniforms.colorA, VIOLET);
+      gl.uniform3fv(uniforms.colorB, CORAL);
+      gl.uniform1f(uniforms.intensity, intensity);
+      gl.uniform1f(uniforms.scale, scale);
+      gl.uniform1f(uniforms.fade, 0.25);
+      gl.uniform2f(uniforms.resolution, canvas.width, canvas.height);
+    };
+    applyUniforms(scene);
 
     const resize = () => {
       const ratio = Math.min(window.devicePixelRatio || 1, MAX_DPR) * quality;
@@ -105,7 +111,7 @@ export function SmokeBackground({ className, intensity = 0.9, scale = 1.6, quali
         canvas.height = height;
         gl.viewport(0, 0, width, height);
       }
-      gl.uniform2f(uniforms.resolution, width, height);
+      gl.uniform2f(scene.uniforms.resolution, width, height);
     };
     const resizeObserver = new ResizeObserver(resize);
     resizeObserver.observe(canvas);
@@ -121,7 +127,7 @@ export function SmokeBackground({ className, intensity = 0.9, scale = 1.6, quali
       last = now;
       // Yield to a higher-priority visible scene (the hero stars): keep the last frame.
       if (isTopScene("smoke")) {
-        gl.uniform1f(uniforms.time, elapsed / 1000);
+        gl.uniform1f(scene.uniforms.time, elapsed / 1000);
         gl.drawArrays(gl.TRIANGLES, 0, 3);
       }
       frame = requestAnimationFrame(render);
