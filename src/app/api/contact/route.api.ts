@@ -1,4 +1,4 @@
-import { teamNotification } from "@/lib/api/contact-emails";
+import { senderAcknowledgement, teamNotification } from "@/lib/api/contact-emails";
 import { emailTransport, sendEmail } from "@/lib/api/email";
 import { emailUnavailable, ok, rateLimited, readJson } from "@/lib/api/respond";
 import { clientIp, rateLimit } from "@/lib/api/rate-limit";
@@ -14,7 +14,8 @@ const LIMIT = { limit: 5, windowMs: 10 * 60_000 };
 
 /**
  * POST /api/contact: the contact form. Validates the message, filters bots and emails it to the team inbox
- * (CONTACT_TO_EMAIL) with the sender as Reply-To. Response format: docs/api.md.
+ * (CONTACT_TO_EMAIL) with the sender as Reply-To, then sends the sender an acknowledgement with a copy.
+ * Response format: docs/api.md.
  */
 export async function POST(request: Request): Promise<Response> {
   const limit = rateLimit(`contact:${clientIp(request)}`, LIMIT);
@@ -32,6 +33,9 @@ export async function POST(request: Request): Promise<Response> {
   // The message counts as delivered once it reaches the team inbox; if that fails, the sender is told to retry.
   const notified = await sendEmail({ to: teamInbox, purpose: "contact-notification", ...teamNotification(parsed.data, new Date()) });
   if (!notified.ok) return emailUnavailable();
+
+  // Best effort: the team already has the message, so a failed acknowledgement does not fail the request.
+  await sendEmail({ to: parsed.data.email, purpose: "contact-acknowledgement", ...senderAcknowledgement(parsed.data) });
 
   return ok();
 }

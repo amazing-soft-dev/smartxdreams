@@ -35,3 +35,29 @@ export function teamNotification(message: ContactRequest, receivedAt: Date) {
     ].join("\n"),
   };
 }
+
+/**
+ * The acknowledgement to the sender: confirms the message arrived and promises no reply time (only that a
+ * person reads it).
+ *
+ * It goes to whatever address was typed into the form, so it contains nothing the sender wrote: no name, no
+ * message, only fixed wording plus the topic and product chosen from fixed lists. That way the form cannot be
+ * used to send someone else a message from our domain.
+ */
+export function senderAcknowledgement(message: ContactRequest) {
+  return {
+    subject: `We got your message: ${company.name}`,
+    text: [
+      "Hello,",
+      "",
+      `Thanks for writing to ${company.name}. Your message has reached our team, and a person will read it and reply to this address.`,
+      "",
+      `Topic:   ${topicLabel(message.topic)}`,
+      `Product: ${productName(message.product)}`,
+      "",
+      "If you did not send a message through our contact form, you can ignore this email. Nothing else will be sent.",
+      "",
+      `The ${company.name} team`,
+    ].join("\n"),
+  };
+}
