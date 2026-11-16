@@ -163,6 +163,21 @@ export function ProductLimits({ product }: ProductProps) {
               {product.disclaimer}
             </p>
           ) : null}
+          {product.dataHandling && product.dataHandling.length > 0 ? (
+            <div className="mt-8 rounded-[22px] bg-canvas p-6">
+              <h3 className="text-h6">Your data</h3>
+              <ul className="mt-4 flex flex-col gap-2.5">
+                {product.dataHandling.map((line) => (
+                  <li key={line} className="flex gap-3 text-label text-ink/75">
+                    <svg aria-hidden="true" viewBox="0 0 16 16" width="16" height="16" className="mt-0.5 shrink-0 text-violet-600" fill="none">
+                      <path d="M4.5 7V5a3.5 3.5 0 0 1 7 0v2M3.5 7h9v7h-9V7Z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
+                    </svg>
+                    {line}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
           {product.footnote ? <p className="mt-6 text-micro text-ink/65">{product.footnote}</p> : null}
         </div>
       </div>
@@ -196,4 +211,20 @@ export function ProductWaitlist({ product }: ProductProps) {
 export function ProductFaq({ product }: ProductProps) {
   if (product.faq.length === 0) return null;
   return <FaqSection id="product-faq" items={product.faq} title={`${product.name} *questions.*`} />;
+}
+
+/** The product's core promise as a full-width band. Renders nothing for products without one. */
+export function ProductPromise({ product }: ProductProps) {
+  if (!product.promise) return null;
+  return (
+    <Section labelledBy="promise-title" surface="dark" className="text-center">
+      <div className="mx-auto max-w-3xl">
+        <Tag tone="dark">Our promise</Tag>
+        <h2 id="promise-title" className="mt-6 text-h2">
+          {product.promise.title}
+        </h2>
+        <p className="mt-5 text-body-l text-white/70">{product.promise.body}</p>
+      </div>
+    </Section>
+  );
 }
