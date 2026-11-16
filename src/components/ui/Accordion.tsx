@@ -59,14 +59,49 @@ export function Accordion({ items, defaultOpen = 0, multiple = false, tone = "li
                 className="flex w-full items-center justify-between gap-6 px-5 py-4 text-left text-body-l md:px-6"
               >
                 {item.question}
+                <PlusIcon open={isOpen} tone={tone} />
               </button>
             </h3>
-            <div id={panelId} role="region" aria-labelledby={buttonId} hidden={!isOpen}>
-              <p className={cx("px-5 pb-5 md:px-6", tone === "light" ? "text-ink/65" : "text-white/65")}>{item.answer}</p>
+            {/* grid-template-rows 0fr -> 1fr animates to the content's natural height without measuring it.
+                Closed answers are inert, so they are hidden from keyboard and screen readers. */}
+            <div
+              id={panelId}
+              role="region"
+              aria-labelledby={buttonId}
+              inert={!isOpen}
+              className={cx(
+                "grid transition-[grid-template-rows,opacity] duration-400 ease-[var(--ease-out-quint)]",
+                isOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0",
+              )}
+            >
+              <div className="overflow-hidden">
+                <p className={cx("px-5 pb-5 md:px-6", tone === "light" ? "text-ink/65" : "text-white/65")}>{item.answer}</p>
+              </div>
             </div>
           </div>
         );
       })}
     </div>
+  );
+}
+
+/** Plus that turns into a minus: the vertical bar rotates flat with a slight overshoot. */
+function PlusIcon({ open, tone }: { open: boolean; tone: "light" | "dark" }) {
+  return (
+    <span
+      aria-hidden="true"
+      className={cx(
+        "relative inline-flex size-8 shrink-0 items-center justify-center rounded-full transition-transform duration-300 ease-[var(--ease-back)] hover:scale-108",
+        tone === "light" ? "bg-ink text-white" : "bg-white text-ink",
+      )}
+    >
+      <span className="absolute h-0.5 w-3 rounded-full bg-current" />
+      <span
+        className={cx(
+          "absolute h-3 w-0.5 rounded-full bg-current transition-transform duration-400 ease-[var(--ease-back)]",
+          open && "rotate-90",
+        )}
+      />
+    </span>
   );
 }
