@@ -2,6 +2,7 @@
 
 import { motion } from "motion/react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useId, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Container } from "@/components/ui/Container";
@@ -21,7 +22,12 @@ import { useNavTheme } from "./useNavTheme";
  */
 export function Header() {
   const [focusInside, setFocusInside] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
+  // The menu remembers the page it was opened on, so it closes by itself after any navigation
+  // (a link inside it, or the browser back button).
+  const pathname = usePathname();
+  const [menuOpenOn, setMenuOpenOn] = useState<string | null>(null);
+  const menuOpen = menuOpenOn === pathname;
+  const setMenuOpen = (next: boolean) => setMenuOpenOn(next ? pathname : null);
   const menuId = useId();
   // Never tuck the header away while keyboard focus is inside it.
   const hidden = useHideOnScroll(focusInside);
@@ -66,7 +72,7 @@ export function Header() {
             <Button href={headerCta.href} variant={onDark ? "coral" : "ink"} size="sm" className="max-sm:hidden">
               {headerCta.label}
             </Button>
-            <MenuButton open={menuOpen} onToggle={() => setMenuOpen((o) => !o)} controls={menuId} theme={theme} />
+            <MenuButton open={menuOpen} onToggle={() => setMenuOpen(!menuOpen)} controls={menuId} theme={theme} />
           </div>
         </div>
       </Container>

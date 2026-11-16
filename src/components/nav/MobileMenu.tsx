@@ -3,11 +3,12 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
+import { useLenis } from "@/components/motion/SmoothScroll";
+import { Button } from "@/components/ui/Button";
 import { Logo } from "@/components/ui/Logo";
 import { products } from "@/content/products";
 import { headerCta, mainNav } from "@/content/site";
 import { cx } from "@/lib/cx";
-import { Button } from "@/components/ui/Button";
 
 type MobileMenuProps = {
   id: string;
@@ -35,6 +36,21 @@ export function MobileMenu({ id, open, onOpenChange }: MobileMenuProps) {
     if (!open && el.open) el.close();
   }, [open]);
 
+  // Lock page scrolling while the menu is open: stop Lenis and hide the root overflow. The dialog itself
+  // scrolls natively (SmoothScroll leaves dialogs alone).
+  const lenis = useLenis();
+  useEffect(() => {
+    if (!open) return;
+    const root = document.documentElement;
+    const previous = root.style.overflow;
+    root.style.overflow = "hidden";
+    lenis?.stop();
+    return () => {
+      root.style.overflow = previous;
+      lenis?.start();
+    };
+  }, [open, lenis]);
+
   const isCurrent = (href: string) => (href === "/" ? pathname === "/" : pathname.startsWith(href));
 
   return (
@@ -43,6 +59,7 @@ export function MobileMenu({ id, open, onOpenChange }: MobileMenuProps) {
       id={id}
       aria-label="Site menu"
       data-surface="dark"
+      // Esc fires "cancel" and then "close"; both paths sync React state through onClose.
       onClose={() => onOpenChange(false)}
       className={cx(
         "fixed inset-0 m-0 h-dvh max-h-none w-full max-w-none overflow-y-auto bg-ink p-0 text-white lg:hidden",
