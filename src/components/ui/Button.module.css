@@ -46,3 +46,35 @@
   mix-blend-mode: soft-light;
   transform: translateX(-120%) skewX(-18deg);
 }
+
+/*
+ * Hover effects run only for a fine pointer with hover, and never under reduced motion.
+ * Touch screens and reduced-motion visitors get the plain colour change only.
+ */
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  /* Letter roll: each letter moves up one line; the stagger runs left to right on enter. */
+  .letter {
+    transition: transform 520ms var(--ease-panel) calc(var(--i) * 18ms);
+  }
+
+  .button:hover .letter,
+  .button:focus-visible .letter {
+    transform: translateY(-100%);
+  }
+
+  /* Shine: one skewed soft-light highlight sweeps across on every hover. */
+  .button:hover .shine {
+    animation: shine 900ms var(--ease-standard);
+  }
+}
+
+@keyframes shine {
+  0% {
+    opacity: 1;
+    transform: translateX(-120%) skewX(-18deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(320%) skewX(-18deg);
+  }
+}
