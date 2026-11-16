@@ -5,6 +5,7 @@ import { Container } from "@/components/ui/Container";
 import { Glow } from "@/components/ui/Glow";
 import { Tag } from "@/components/ui/Tag";
 import { company } from "@/content/site";
+import { HeroWave } from "./HeroWave";
 import { SelectionHeadline, type SelectionTarget } from "./SelectionHeadline";
 
 const headline = "Six focused AI products for the work nobody wants to do.";
@@ -26,7 +27,7 @@ export function HomeHero() {
       aria-labelledby="home-hero-title"
       data-surface="dark"
       data-nav-theme="dark"
-      className="relative isolate flex min-h-[100svh] items-center overflow-hidden bg-ink pt-32 pb-20 text-white md:pt-40"
+      className="relative isolate flex items-center overflow-hidden bg-ink pt-24 pb-10 text-white md:min-h-[100svh] md:pt-40 md:pb-20"
     >
       {/* Static CSS stars first; the three.js sky loads on top when the device allows it. */}
       <AstraField />
@@ -37,23 +38,24 @@ export function HomeHero() {
           <Tag tone="dark">{company.tagline}</Tag>
         </Reveal>
         <Reveal aboveFold delay={0.4} className="w-full">
-          <SelectionHeadline id="home-hero-title" text={headline} targets={targets} className="mx-auto mt-10 max-w-4xl text-display" />
+          <SelectionHeadline id="home-hero-title" text={headline} targets={targets} className="mx-auto mt-8 max-w-4xl text-display md:mt-10" />
         </Reveal>
         <Reveal aboveFold delay={0.5}>
-        <p className="mt-6 max-w-2xl text-body-l text-white/65">
+        <p className="mt-5 max-w-2xl text-body-l text-white/65 md:mt-6">
           Job searches, applications, site reports, dental bills, paperwork and security questionnaires. Each product
           does one job, shows its sources and leaves the final call to you.
         </p>
         </Reveal>
-        <Reveal aboveFold delay={0.6} className="mt-9 flex flex-wrap justify-center gap-3">
+        <Reveal aboveFold delay={0.6} className="mt-7 flex flex-wrap justify-center gap-3 md:mt-9">
           {/* Coral with ink text: 6.54:1. */}
           <Button href="/products" variant="coral" size="lg">
             Explore the products
           </Button>
-          <Button href="#how-we-build" variant="ghost" size="lg" icon={false}>
+          <Button href="#how-we-build" variant="ghost" size="lg" icon={false} className="max-sm:hidden">
             How we build
           </Button>
         </Reveal>
+        <HeroWave />
       </Container>
     </section>
   );
