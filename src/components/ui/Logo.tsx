@@ -1,5 +1,5 @@
-import Image from "next/image";
 import { useId } from "react";
+import { cx } from "@/lib/cx";
 
 type LogoProps = {
   /** "full" is the mark with the wordmark; "mark" is the symbol alone. */
@@ -15,8 +15,6 @@ type LogoProps = {
   label?: string;
   decorative?: boolean;
   className?: string;
-  /** Load eagerly (above the fold). */
-  priority?: boolean;
 };
 
 type Tone = NonNullable<LogoProps["tone"]>;
@@ -96,11 +94,21 @@ function SymbolMark({ tone, height, label, decorative, className }: SymbolMarkPr
   );
 }
 
-const FULL_RATIO = 2400 / 480;
+/** Wordmark colours: the text takes the S stroke's role, the "x" the D stroke's accent. */
+const WORDMARK_COLORS: Record<Tone, { text: string; accent: string }> = {
+  dark: { text: "#2B2170", accent: "#6E56F0" },
+  light: { text: "#E6E1FF", accent: "#A99BFF" },
+};
+
+/** Wordmark size and spacing as fractions of the logo height. */
+const WORDMARK = { fontSize: 0.6, gap: 0.3 } as const;
 
 /**
- * SmartxDreams logo. The mark is inline SVG (sharp at every size, no request); the full logo uses the
- * brand PNGs, with a white-artwork variant for dark surfaces (public/brand/logo-full-light.png).
+ * SmartxDreams logo, all inline: no request, sharp at every size.
+ * - "mark": the symbol alone.
+ * - "full": the symbol next to the wordmark "SmartxDreams", set as live text in Inter Tight (the site
+ *   font) with the "x" in the accent colour. The text is hidden from assistive technology; the whole
+ *   logo is one image named by `label`.
  */
 export function Logo({
   variant = "full",
@@ -109,20 +117,28 @@ export function Logo({
   label = "SmartxDreams",
   decorative = false,
   className,
-  priority = false,
 }: LogoProps) {
   if (variant === "mark") {
     return <SymbolMark tone={tone} height={height} label={label} decorative={decorative} className={className} />;
   }
 
+  const colors = WORDMARK_COLORS[tone];
   return (
-    <Image
-      src={tone === "light" ? "/brand/logo-full-light.png" : "/brand/logo-full.png"}
-      alt={decorative ? "" : label}
-      height={height}
-      width={Math.round(height * FULL_RATIO)}
-      className={className}
-      priority={priority}
-    />
+    <span
+      className={cx("inline-flex shrink-0 items-center", className)}
+      style={{ height, gap: Math.round(height * WORDMARK.gap) }}
+      role={decorative ? undefined : "img"}
+      aria-label={decorative ? undefined : label}
+      aria-hidden={decorative ? true : undefined}
+    >
+      <SymbolMark tone={tone} height={height} label={label} decorative />
+      <span
+        aria-hidden="true"
+        className="font-sans leading-none font-semibold tracking-[-0.03em] whitespace-nowrap"
+        style={{ fontSize: Math.round(height * WORDMARK.fontSize), color: colors.text }}
+      >
+        Smart<span style={{ color: colors.accent }}>x</span>Dreams
+      </span>
+    </span>
   );
 }
