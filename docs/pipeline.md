@@ -103,3 +103,11 @@ Run by the pipeline probe issues (#68 happy path, #69 red CI, #70 rules and abus
 | 13 | Non-eligible pairs untouched | A feature → `main` PR is not auto-merged |
 | 14 | Head-moved race | No merge on the old SHA |
 | 15 | A bot merge starts the next workflow | The `dev` push run exists after step 4 |
+
+## Probe results
+
+### Probe 2: red CI, recovery and cancel (issue #69)
+
+- Removing `.github/ci-bootstrap` with no `package.json` made **Detect app** fail and **CI passed** fail. The summary comment said "CI failed", and "Merge passing pull request" was skipped, so PR #78 stayed open.
+- Pushing the fix commit and, seconds later, a follow-up commit cancels the run for the fix commit; only the newest head is validated and merged.
+- Finding: the summary's `Mode` line reads "bootstrap" when detect-app fails, because the app output is empty. Cosmetic; fixed in issue #70.
