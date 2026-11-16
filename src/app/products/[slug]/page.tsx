@@ -2,7 +2,10 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { productMockups } from "@/components/product/mockups";
-import { ProductFeatures, ProductHero, ProductLimits, ProductProblem, ProductSteps, ProductWaitlist } from "@/components/product/ProductSections";
+import {
+  ProductFaq,
+  ProductFeatures,
+  ProductHero, ProductLimits, ProductProblem, ProductSteps, ProductWaitlist } from "@/components/product/ProductSections";
 import { productBySlug, productSlugs } from "@/content/selectors";
 import { company } from "@/content/site";
 import type { Product } from "@/content/types";
@@ -60,6 +63,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
       <ProductSteps product={product} />
       <ProductFeatures product={product} />
       <ProductLimits product={product} />
+      <ProductFaq product={product} />
       <ProductWaitlist product={product} />
     </main>
   );

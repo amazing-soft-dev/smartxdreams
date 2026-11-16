@@ -144,8 +144,7 @@
         "photoUrl": "https://unsplash.com/photos/Hcfwew744z4",
         "source": "unsplash",
         "license": "Unsplash License"
-      },
-      "pending": true
+      }
     },
     {
       "slot": "product-applypilot",
