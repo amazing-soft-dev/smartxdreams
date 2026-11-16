@@ -161,8 +161,7 @@
         "photoUrl": "https://unsplash.com/photos/vZJdYl5JVXY",
         "source": "unsplash",
         "license": "Unsplash License"
-      },
-      "pending": true
+      }
     },
     {
       "slot": "product-sitelog",
