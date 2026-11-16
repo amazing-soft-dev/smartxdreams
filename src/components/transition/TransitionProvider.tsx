@@ -12,6 +12,8 @@ const STAGGER_MS = 35;
 const PANELS = 5;
 /** Longest we wait for the new route to render before revealing anyway. */
 const ROUTE_TIMEOUT_MS = 1500;
+/** Extra time before a stalled panel animation is forced to finish. */
+const SAFETY_MARGIN_MS = 600;
 
 type TransitionApi = {
   /** Navigate to an internal href behind the panel transition. */
@@ -79,15 +81,22 @@ export function TransitionProvider({ children }: { children: ReactNode }) {
 
   const animatePanels = useCallback((phase: "in" | "out") => {
     const ease = cssEase("panel");
-    return Promise.all(
-      panels().map((panel, i) =>
-        panel.animate(
-          phase === "in"
-            ? [{ transform: offscreen(i, "in") }, { transform: "translateY(0)" }]
-            : [{ transform: "translateY(0)" }, { transform: offscreen(i, "out") }],
-          { duration: PANEL_MS, delay: i * STAGGER_MS, easing: ease, fill: "forwards" },
-        ).finished,
+    const animations = panels().map((panel, i) =>
+      panel.animate(
+        phase === "in"
+          ? [{ transform: offscreen(i, "in") }, { transform: "translateY(0)" }]
+          : [{ transform: "translateY(0)" }, { transform: offscreen(i, "out") }],
+        { duration: PANEL_MS, delay: i * STAGGER_MS, easing: ease, fill: "forwards" },
       ),
+    );
+    // Safety net: if the browser stops advancing animations (a hidden or throttled tab), jump them to
+    // their end instead of leaving the overlay blocking the page.
+    const safety = window.setTimeout(
+      () => animations.forEach((a) => a.finish()),
+      PANEL_MS + STAGGER_MS * PANELS + SAFETY_MARGIN_MS,
+    );
+    return Promise.all(animations.map((a) => a.finished.catch(() => undefined))).finally(() =>
+      window.clearTimeout(safety),
     );
   }, []);
 
@@ -146,8 +155,9 @@ export function TransitionProvider({ children }: { children: ReactNode }) {
       });
       router.push(href);
       await routeChanged;
-      // One frame for the new page to paint under the cover.
-      await new Promise((resolve) => requestAnimationFrame(() => resolve(null)));
+      // A moment for the new page to paint under the cover. A timer, not requestAnimationFrame, which
+      // never fires in a hidden tab.
+      await new Promise((resolve) => window.setTimeout(resolve, 32));
 
       // Label leaves upward and the layer fades, then the panels reveal the page.
       word?.animate([{ transform: "translateY(0)" }, { transform: "translateY(-110%)" }], {
@@ -189,7 +199,7 @@ export function TransitionProvider({ children }: { children: ReactNode }) {
         {/* Destination label over a soft brand glow, shown while the panels cover the page. */}
         <div ref={content} className="absolute inset-0 flex flex-col items-center justify-center gap-5 opacity-0">
           <div
-            className="absolute top-1/2 left-1/2 size-[60vmin] -translate-1/2 rounded-full opacity-60 blur-[48px]"
+            className="absolute top-1/2 left-1/2 size-[60vmin] -translate-1/2 rounded-full opacity-60"
             style={{ background: "radial-gradient(closest-side, rgb(109 74 255 / 0.85), rgb(255 107 61 / 0.35) 60%, rgb(255 107 61 / 0))" }}
           />
           <Logo variant="mark" tone="light" height={36} decorative className="relative" />
