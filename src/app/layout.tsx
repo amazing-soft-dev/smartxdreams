@@ -3,8 +3,6 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 import type { Metadata } from "next";
 import { Inter_Tight } from "next/font/google";
 import type { ReactNode } from "react";
-import { MotionProvider } from "@/components/motion/MotionProvider";
-import { SmoothScroll } from "@/components/motion/SmoothScroll";
 import "./globals.css";
 
 // Variable font: one file covers every weight. Exposed as a CSS variable for the @theme font stack.
@@ -33,9 +31,13 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         </noscript>
       </head>
       <body>
+<<<<<<< HEAD
         <SmoothScroll>
           <MotionProvider>{children}</MotionProvider>
         </SmoothScroll>
+=======
+        {children}
+>>>>>>> 1986a2f (refactor: remove architecture documentation and unused components)
         {isProduction ? (
           <>
             <Analytics />
