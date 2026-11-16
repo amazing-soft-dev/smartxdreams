@@ -12,7 +12,8 @@
     "typecheck": "next typegen && tsc --noEmit",
     "images": "node scripts/build-images.mjs",
     "check:images": "node scripts/check-images.mjs",
-    "verify:out": "node scripts/verify-out.mjs"
+    "verify:out": "node scripts/verify-out.mjs",
+    "check:bundle": "node scripts/check-bundle.mjs"
   },
   "dependencies": {
     "@vercel/analytics": "2.0.1",
@@ -20,6 +21,7 @@
     "next": "16.4.6",
     "react": "19.3.1",
     "react-dom": "19.3.1",
+    "three": "0.187.0",
     "zod": "4.6.7"
   },
   "devDependencies": {
@@ -27,6 +29,7 @@
     "@types/node": "26.6.6",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
+    "@types/three": "0.187.0",
     "eslint": "10.15.0",
     "eslint-config-next": "16.4.6",
     "sharp": "0.35.5",

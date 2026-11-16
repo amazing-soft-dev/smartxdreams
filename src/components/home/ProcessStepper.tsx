@@ -1,0 +1,141 @@
+"use client";
+
+import { motion, useMotionValueEvent, useReducedMotion, useScroll, useSpring } from "motion/react";
+import { useRef, useState } from "react";
+import { Container } from "@/components/ui/Container";
+import { Photo } from "@/components/ui/Photo";
+import { SectionHeader } from "@/components/ui/SectionHeader";
+import { processSteps } from "@/content/process";
+import { cx } from "@/lib/cx";
+
+/** Number of ticks in the progress bar above the steps. */
+const TICKS = 40;
+
+/**
+ * "How we build": four steps. On desktop the section is three viewports tall and its content sticks under
+ * the header while the visitor scrolls, so scrolling moves through the steps.
+ */
+export function ProcessStepper() {
+  const section = useRef<HTMLElement>(null);
+  // Scroll scrubbing is a desktop enhancement. With reduced motion the section is a plain stacked list at
+  // every width: all steps open, each with its photo, nothing sticky.
+  const reduced = useReducedMotion();
+  const scrub = !reduced;
+  const desktop = (classes: string) => (scrub ? classes : "");
+  // Progress through the tall section, 0 at its top and 1 when its bottom reaches the viewport bottom.
+  const { scrollYProgress } = useScroll({ target: section, offset: ["start start", "end end"] });
+  // The rail follows progress through a spring, which smooths wheel steps into a continuous fill.
+  const rail = useSpring(scrollYProgress, { stiffness: 140, damping: 30, mass: 0.4 });
+  const [active, setActive] = useState(0);
+  // Tick bar: each tick is 8 px tall plus a Gaussian bump (up to 22 px) centred on the current progress,
+  // so a wave travels along the bar as you scroll. Heights are written directly to the DOM, not to state,
+  // so scrolling does not re-render the section 60 times a second.
+  const ticks = useRef<Array<HTMLSpanElement | null>>([]);
+  useMotionValueEvent(scrollYProgress, "change", (p) => {
+    const centre = p * (TICKS - 1);
+    ticks.current.forEach((tick, i) => {
+      if (!tick) return;
+      const d = i - centre;
+      tick.style.height = `${8 + 22 * Math.exp(-(d * d) / 18)}px`;
+      tick.style.backgroundColor = i <= centre ? "var(--color-coral-500)" : "rgb(15 18 38 / 0.18)";
+    });
+  });
+  useMotionValueEvent(scrollYProgress, "change", (p) => {
+    const next = Math.min(processSteps.length - 1, Math.floor(p * processSteps.length));
+    setActive((current) => (current === next ? current : next));
+  });
+
+  return (
+    <section
+      ref={section}
+      id="how-we-build"
+      aria-labelledby="how-we-build-title"
+      data-nav-theme="light"
+      className={cx("relative bg-canvas-200 text-ink", desktop("lg:h-[300vh]"))}
+    >
+      <div className={desktop("lg:sticky lg:top-0 lg:flex lg:h-svh lg:items-center")}>
+        <Container className={cx("py-20 md:py-28", desktop("lg:py-0"))}>
+          <SectionHeader
+            id="how-we-build-title"
+            tag="How we build"
+            title="From friction to *a product you trust.*"
+            align="left"
+          />
+          {/* Tick bar and step counter (desktop, decorative). */}
+          {scrub ? (
+          <div aria-hidden="true" className="mt-10 hidden h-8 items-end gap-[5px] lg:flex">
+            {Array.from({ length: TICKS }, (_, i) => (
+              <span
+                key={i}
+                ref={(el) => {
+                  ticks.current[i] = el;
+                }}
+                className="block h-2 w-[2px] rounded-full bg-ink/20"
+              />
+            ))}
+            <span className="ml-auto font-mono text-micro tracking-[0.06em] text-ink">
+              {String(active + 1).padStart(2, "0")} / {String(processSteps.length).padStart(2, "0")}
+            </span>
+          </div>
+          ) : null}
+          <div className={cx("mt-12 grid gap-10", desktop("lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] lg:gap-16"))}>
+            <ol className={cx("relative flex flex-col gap-1", desktop("lg:pl-8"))}>
+              {/* Coral progress rail (desktop): a faint track with a fill that grows from the top. */}
+              {scrub ? (
+                <span aria-hidden="true" className="absolute top-0 bottom-0 left-0 hidden w-[1.5px] rounded-full bg-ink/10 lg:block">
+                  <motion.span className="block h-full w-full origin-top rounded-full bg-coral-500" style={{ scaleY: rail }} />
+                </span>
+              ) : null}
+              {processSteps.map((step, i) => (
+                <li
+                  key={step.title}
+                  aria-current={scrub && i === active ? "step" : undefined}
+                  className={cx("py-4 transition-opacity duration-500", desktop("lg:opacity-55 lg:aria-[current=step]:opacity-100"))}
+                >
+                  <h3 className="text-h5">
+                    <span className="mr-3 font-mono text-micro text-ink/70">{String(i + 1).padStart(2, "0")}</span>
+                    {step.title}
+                  </h3>
+                  {/* On desktop only the active step shows its detail (opacity only, no height change). */}
+                  <p
+                    className={cx(
+                      "mt-2 max-w-md text-body text-ink/70 transition-opacity duration-700 ease-[var(--ease-out-quint)]",
+                      // Inactive details fade out but keep their space, so scrolling never moves the steps.
+                      desktop("lg:opacity-0"),
+                      scrub && i === active && "lg:opacity-100",
+                    )}
+                  >
+                    {step.body}
+                  </p>
+                  {/* Stacked layout (phones, tablets, and reduced motion): each step shows its own photo. */}
+                  <div className={cx("relative mt-5 aspect-[16/10] overflow-hidden rounded-[22px]", desktop("lg:hidden"))}>
+                    <Photo slot={step.slot} fill sizes="(min-width: 810px) 80vw, 100vw" />
+                  </div>
+                </li>
+              ))}
+            </ol>
+            {/* Media panel (desktop): the photos are stacked, and each one is revealed by a circle that grows from
+                the left edge when its step becomes active, settling from a slight zoom and blur. Decorative. */}
+            {scrub ? (
+            <div className="relative hidden aspect-[4/3] overflow-hidden rounded-[30px] bg-ink lg:block">
+              {processSteps.map((step, i) => (
+                <div
+                  key={step.slot}
+                  className="absolute inset-0 transition-[clip-path,scale,filter] duration-[1100ms] ease-[var(--ease-out-quint)]"
+                  style={{
+                    clipPath: i <= active ? "circle(150% at 0% 50%)" : "circle(0% at 0% 50%)",
+                    scale: i === active ? "1" : i < active ? "1" : "1.12",
+                    filter: i <= active ? "blur(0px)" : "blur(6px)",
+                  }}
+                >
+                  <Photo slot={step.slot} fill sizes="(min-width: 1024px) 50vw, 100vw" />
+                </div>
+              ))}
+            </div>
+            ) : null}
+          </div>
+        </Container>
+      </div>
+    </section>
+  );
+}
