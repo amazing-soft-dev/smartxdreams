@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { mainNav } from "@/content/site";
 import { cx } from "@/lib/cx";
+import { ProductsMenu } from "./ProductsMenu";
 import type { NavTheme } from "./useNavTheme";
 
 type DesktopNavProps = {
@@ -18,6 +19,13 @@ export function DesktopNav({ theme }: DesktopNavProps) {
     <nav aria-label="Main" className="hidden lg:block">
       <ul className="flex items-center gap-1">
         {mainNav.map((item) => {
+          if (item.href === "/products") {
+            return (
+              <li key={item.href}>
+                <ProductsMenu theme={theme} />
+              </li>
+            );
+          }
           const current = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
           return (
             <li key={item.href}>
