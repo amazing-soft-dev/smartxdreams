@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import { ContactForm } from "@/components/forms/ContactForm";
 import { ContactFormFromUrl } from "@/components/forms/ContactFormFromUrl";
 import { Reveal } from "@/components/motion/Reveal";
+import { FaqSection } from "@/components/sections/FaqSection";
 import { Accent } from "@/components/ui/Accent";
 import { Card } from "@/components/ui/Card";
 import { Container } from "@/components/ui/Container";
@@ -11,7 +12,7 @@ import { Glow } from "@/components/ui/Glow";
 import { Section } from "@/components/ui/Section";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { Tag } from "@/components/ui/Tag";
-import { contact } from "@/content/contact";
+import { contact, contactFaq } from "@/content/contact";
 import { products } from "@/content/products";
 import { pageMetadata } from "@/lib/seo";
 
@@ -78,6 +79,8 @@ export default function ContactPage() {
           </Card>
         </div>
       </Section>
+
+      <FaqSection id="contact-faq" items={contactFaq} title="Before you *write*." />
     </main>
   );
 }
