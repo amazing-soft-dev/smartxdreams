@@ -16,8 +16,7 @@
         "photoUrl": "https://unsplash.com/photos/ajTN690FnUg",
         "source": "unsplash",
         "license": "Unsplash License"
-      },
-      "pending": true
+      }
     },
     {
       "slot": "home-step-2",
@@ -35,8 +34,7 @@
         "photoUrl": "https://unsplash.com/photos/5Q07sS54D0Q",
         "source": "unsplash",
         "license": "Unsplash License"
-      },
-      "pending": true
+      }
     },
     {
       "slot": "home-step-3",
@@ -54,8 +52,7 @@
         "photoUrl": "https://unsplash.com/photos/ieic5Tq8YMk",
         "source": "unsplash",
         "license": "Unsplash License"
-      },
-      "pending": true
+      }
     },
     {
       "slot": "home-step-4",
@@ -73,8 +70,7 @@
         "photoUrl": "https://unsplash.com/photos/jdS1UfbbIA8",
         "source": "unsplash",
         "license": "Unsplash License"
-      },
-      "pending": true
+      }
     },
     {
       "slot": "about-story",

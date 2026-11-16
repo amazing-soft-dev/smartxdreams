@@ -61,7 +61,8 @@ const uses = new Map(entries.map((e) => [e.slot, []]));
 const pending = new Set(entries.filter((e) => e.pending === true).map((e) => e.slot));
 const escaped = config.sourcePublicPath.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 const direct = new RegExp(`${escaped}/[A-Za-z0-9._/-]+\\.(?:jpe?g|png|webp)`, "gi");
-const slotUse = /\bslot=["']([a-z0-9-]+)["']/g;
+// A use is the Photo prop (slot="id") or a content field that feeds it (slot: "id").
+const slotUse = /\bslot(?:=|:\s*)["']([a-z0-9-]+)["']/g;
 
 for (const file of sources) {
   const text = await readFile(file, "utf8");
