@@ -22,14 +22,39 @@ export function ProductsBrowser() {
     "all",
   );
   const shown = audience === "all" ? products : products.filter((p) => p.audience === audience);
+  const label = options.find((o) => o.id === audience)?.label ?? "All products";
+  // Announced politely after each change, for screen-reader users who cannot see the grid re-flow.
+  const liveMessage =
+    audience === "all"
+      ? `Showing all ${shown.length} products`
+      : `Showing ${shown.length} ${shown.length === 1 ? "product" : "products"} for ${label}`;
   return (
     <>
-      <FilterChips options={options} value={audience} onChange={setAudience} label="Filter products by audience" />
+      <FilterChips
+        options={options}
+        value={audience}
+        onChange={setAudience}
+        label="Filter products by audience"
+        liveMessage={liveMessage}
+      />
       <FilterList
         items={[...shown]}
         getKey={(p) => p.slug}
         renderItem={(p) => <ProductCard product={p} />}
         className="mt-10 gap-3 md:grid-cols-2 lg:grid-cols-3"
+        empty={
+          <div className="mt-10 rounded-[30px] bg-white px-7 py-12 text-center">
+            <p className="text-h5">No products for {label} yet.</p>
+            <p className="mt-2 text-body text-ink/70">Tell us what you need on the contact page, or see everything we are building.</p>
+            <button
+              type="button"
+              onClick={() => setAudience("all")}
+              className="mt-6 rounded-[16px] bg-ink px-5 py-3 text-label font-medium text-white"
+            >
+              Show all products
+            </button>
+          </div>
+        }
       />
     </>
   );
