@@ -68,9 +68,12 @@ function readPost(fileName: string): Post {
 
 let cache: Post[] | undefined;
 
-/** Every post, drafts included, newest first. Read once per build. */
+/** Builds read the posts once. The dev server re-reads them on every request, so edits show on reload. */
+const useCache = process.env.NODE_ENV === "production";
+
+/** Every post, drafts included, newest first. */
 export function allPosts(): Post[] {
-  if (cache) return cache;
+  if (useCache && cache) return cache;
   let files: string[];
   try {
     files = readdirSync(POSTS_DIR).filter((f) => f.endsWith(".mdx"));
