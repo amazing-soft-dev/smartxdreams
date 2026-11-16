@@ -40,6 +40,8 @@ The server build resizes photos on request with the Next.js optimizer. The stati
 
 `<PhotoCredits />` lists every registered photo with its photographer and source. It is shown on the About page.
 
+Each credit shows a 64 × 48 px thumbnail of the photo it credits, so readers can match a credit to a picture even when the photo lives on another page. The thumbnail is rendered by `<Photo slot={photo.slot} />` from the registry entry, so it gets the blur preview and lazy loading like any other photo. It does not count as a use for `npm run check:images` (only a literal `slot="<id>"` does), and it is hidden from screen readers: the photo's alt text belongs where the photo is used, and here the credit text is what matters.
+
 ## License log
 
 Each photo page was opened on the date shown and checked for: the plain Unsplash License (not Unsplash+), no editorial-only note, no visible brand names or logos, and no identifiable faces where the page is sensitive. Masters are 2400 px on the long side.
