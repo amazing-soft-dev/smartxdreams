@@ -23,7 +23,7 @@ export type SceneHandle = {
 /**
  * Owns a three.js WebGLRenderer for its whole life: creates a canvas inside `hostRef` and the renderer on it,
  * keeps it sized to the canvas box (pixel ratio capped at 1.75), runs the render loop only while the canvas
- * is on screen and the tab is visible, and on unmount disposes everything, releases the WebGL context and
+ * is on screen, the tab is visible and the WebGL context is live, and on unmount disposes everything, releases the WebGL context and
  * removes the canvas. The canvas is new on every mount (see scene-canvas.ts), so a remount never picks up
  * the context the previous mount released.
  *
@@ -74,6 +74,7 @@ export function useThreeRenderer(
     let last = 0;
     let elapsed = 0;
     let onScreen = false;
+    let contextLost = false;
     const tick = (now: number) => {
       const delta = last ? Math.min((now - last) / 1000, 0.1) : 0;
       last = now;
@@ -86,7 +87,7 @@ export function useThreeRenderer(
       frame = requestAnimationFrame(tick);
     };
     const play = () => {
-      if (frame || !onScreen || document.hidden) return;
+      if (frame || !onScreen || document.hidden || contextLost) return;
       last = 0;
       frame = requestAnimationFrame(tick);
     };
@@ -105,8 +106,26 @@ export function useThreeRenderer(
     const onVisibility = () => (document.hidden ? pause() : play());
     document.addEventListener("visibilitychange", onVisibility);
 
+    // The browser can drop the context at any time: a GPU reset, too many live contexts, a backgrounded
+    // mobile tab. The canvas then goes blank over the fallback. three.js calls preventDefault() on the loss
+    // so the context can come back, and on restore rebuilds its GL state and re-uploads geometry and
+    // shaders on the next render, so the loop only has to stop and start.
+    const onContextLost = () => {
+      contextLost = true;
+      pause();
+    };
+    const onContextRestored = () => {
+      contextLost = false;
+      play();
+    };
+    canvas.addEventListener("webglcontextlost", onContextLost);
+    canvas.addEventListener("webglcontextrestored", onContextRestored);
+
     return () => {
       pause();
+      // Before forceContextLoss() below, so the deliberate loss is not handled as an accident.
+      canvas.removeEventListener("webglcontextlost", onContextLost);
+      canvas.removeEventListener("webglcontextrestored", onContextRestored);
       setSceneVisible(budget.id, budget.priority, false);
       intersection.disconnect();
       resizeObserver.disconnect();
