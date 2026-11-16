@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { PostTeaser } from "@/components/blog/PostTeaser";
 import { ProductMiniCard } from "@/components/products/ProductMiniCard";
@@ -10,7 +11,8 @@ import { blogCategories, blogCategoryById } from "@/content/blog/categories";
 import { productBySlug } from "@/content/selectors";
 import type { Product } from "@/content/types";
 import { cx } from "@/lib/cx";
-import { listedPosts } from "@/lib/blog/posts";
+import { listedPosts, publishedPosts } from "@/lib/blog/posts";
+import { pageMetadata } from "@/lib/seo";
 
 type CategoryPageProps = { params: Promise<{ cat: string }> };
 
@@ -19,6 +21,24 @@ export const dynamicParams = false;
 
 export function generateStaticParams() {
   return blogCategories.map((c) => ({ cat: c.id }));
+}
+
+export async function generateMetadata({ params }: CategoryPageProps): Promise<Metadata> {
+  const { cat } = await params;
+  const category = blogCategoryById(cat);
+  if (!category) return {};
+  const base = pageMetadata({
+    title: `${category.label} articles`,
+    description: `${category.description} Plain-language notes from SmartxDreams.`,
+    path: `/blog/category/${category.id}`,
+  });
+  const metadata: Metadata = {
+    ...base,
+    alternates: { ...base.alternates, types: { "application/rss+xml": [{ url: "/blog/rss.xml", title: "SmartxDreams blog" }] } },
+  };
+  // A category with no published posts is a thin page: keep it out of search results until it has one.
+  const hasPublished = publishedPosts().some((p) => p.category === category.id);
+  return hasPublished ? metadata : { ...metadata, robots: { index: false, follow: true } };
 }
 
 /** /blog/category/<id>: every listed post in one category, and the products it covers. */
