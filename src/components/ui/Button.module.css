@@ -78,3 +78,49 @@
     transform: translateX(320%) skewX(-18deg);
   }
 }
+
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  /* On leave the letters roll back right to left, a little faster. */
+  .letter {
+    transition-duration: 480ms;
+    transition-delay: calc((var(--n) - var(--i)) * 12ms);
+  }
+
+  .button:hover .letter,
+  .button:focus-visible .letter {
+    transition-duration: 520ms;
+    transition-delay: calc(var(--i) * 18ms);
+  }
+
+  /* Icon tile tilts; the arrow exits top-right and re-enters from bottom-left. */
+  .tile {
+    transition: transform 500ms var(--ease-out-quint);
+  }
+
+  .button:hover .tile,
+  .button:focus-visible .tile {
+    transform: rotate(-8deg) scale(1.06);
+  }
+
+  .button:hover .arrow,
+  .button:focus-visible .arrow {
+    animation: arrow-hop 820ms linear;
+  }
+}
+
+@keyframes arrow-hop {
+  0% {
+    transform: translate(0, 0);
+    animation-timing-function: cubic-bezier(0.55, 0, 0.1, 1);
+  }
+  42% {
+    transform: translate(160%, -160%);
+  }
+  43% {
+    transform: translate(-160%, 160%);
+    animation-timing-function: var(--ease-out-quint);
+  }
+  100% {
+    transform: translate(0, 0);
+  }
+}
