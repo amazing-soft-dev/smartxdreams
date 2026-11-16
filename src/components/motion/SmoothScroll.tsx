@@ -45,6 +45,9 @@ function createLenis() {
     autoRaf: true,
     // In-page links (#section) scroll smoothly through Lenis instead of jumping.
     anchors: true,
+    // Let dialogs and any element marked data-lenis-prevent scroll natively (menus, long panels,
+    // code blocks). Without this, wheel events inside them would scroll the page instead.
+    prevent: (node: HTMLElement) => node.closest("dialog, [data-lenis-prevent]") !== null,
   });
 }
 
