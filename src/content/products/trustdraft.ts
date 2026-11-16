@@ -22,7 +22,7 @@ export const trustdraft: Product = {
   features: [
     {
       title: "Answers with their source",
-      body: "Every drafted answer links to the policy passage it came from, so a reviewer can check it in seconds.",
+      body: "Every drafted answer links to the policy passage it came from, so a reviewer can check it without hunting through the policy.",
     },
     {
       title: "Flags instead of guesses",
