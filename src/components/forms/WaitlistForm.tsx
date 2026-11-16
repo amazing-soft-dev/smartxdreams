@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { type FormEvent, type ReactNode, useEffect, useId, useRef, useState } from "react";
+import { formsCanSend } from "@/lib/forms/availability";
 import { fieldErrors } from "@/lib/forms/contact";
 import type { FormResponse } from "@/lib/forms/response";
 import { type WaitlistField, waitlistConsent, waitlistSchema } from "@/lib/forms/waitlist";
@@ -51,6 +52,8 @@ function FieldError({ id, children }: { id: string; children: ReactNode }) {
  * Errors: the form checks with the same schema as the API, shows each error under its field (aria-invalid
  * plus aria-describedby), moves focus to the first invalid field, and clears an error as soon as the field is
  * fixed. A polite live region announces every state change; the "check your inbox" panel takes focus.
+ *
+ * In the static export (no server) it shows a short note instead of a form that could only fail.
  */
 export function WaitlistForm({ product, products = [] }: WaitlistFormProps) {
   const id = useId();
@@ -137,6 +140,19 @@ export function WaitlistForm({ product, products = [] }: WaitlistFormProps) {
       setStatus({ kind: "failed", message: "We could not reach the server. Check your connection and try again." });
     }
   };
+
+  // The static export has no server, so there is nothing to send to: say so plainly instead of a form that fails.
+  if (!formsCanSend) {
+    return (
+      <div role="note" className="mt-8 w-full max-w-md rounded-[22px] bg-white/10 px-6 py-5 text-left ring-1 ring-white/15">
+        <p className="text-body-l font-medium text-white">Sign-up is off on this copy of the site</p>
+        <p className="mt-2 text-body text-white/75">
+          This is a static copy without a server, so it cannot add anyone to a waitlist. Join{" "}
+          {product ? `the ${product.name} waitlist` : "a waitlist"} on the live SmartxDreams site.
+        </p>
+      </div>
+    );
+  }
 
   if (status.kind === "sent") {
     return (
