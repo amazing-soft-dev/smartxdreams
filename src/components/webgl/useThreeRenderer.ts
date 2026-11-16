@@ -3,6 +3,7 @@
 import { type RefObject, useEffect } from "react";
 import { type Camera, type Scene, WebGLRenderer } from "three";
 import { isTopScene, setSceneVisible } from "./scene-budget";
+import { mountSceneCanvas } from "./scene-canvas";
 
 /** Highest device pixel ratio we render at; above this the extra pixels are not worth the GPU time. */
 export const MAX_SCENE_DPR = 1.75;
@@ -19,26 +20,31 @@ export type SceneHandle = {
 };
 
 /**
- * Owns a three.js WebGLRenderer on a canvas for its whole life: creates it, keeps it sized to the canvas
- * box (pixel ratio capped at 1.75), runs the render loop only while the canvas is on screen and the tab
- * is visible, and on unmount disposes everything and releases the WebGL context.
+ * Owns a three.js WebGLRenderer for its whole life: creates a canvas inside `hostRef` and the renderer on it,
+ * keeps it sized to the canvas box (pixel ratio capped at 1.75), runs the render loop only while the canvas
+ * is on screen and the tab is visible, and on unmount disposes everything, releases the WebGL context and
+ * removes the canvas. The canvas is new on every mount (see scene-canvas.ts), so a remount never picks up
+ * the context the previous mount released.
  *
  * Only scene modules import this file, so three.js stays out of the main bundle.
  */
 export function useThreeRenderer(
-  canvasRef: RefObject<HTMLCanvasElement | null>,
+  /** Element the canvas is created in; the scene component positions and sizes it. */
+  hostRef: RefObject<HTMLElement | null>,
   setup: () => SceneHandle,
   /** Identity and priority in the shared scene budget (see scene-budget.ts). */
   budget: { id: string; priority: number },
 ) {
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
+    const host = hostRef.current;
+    if (!host) return;
+    const { canvas, remove: removeCanvas } = mountSceneCanvas(host);
 
     let renderer: WebGLRenderer;
     try {
       renderer = new WebGLRenderer({ canvas, alpha: true, antialias: false, powerPreference: "low-power" });
     } catch {
+      removeCanvas();
       return; // No WebGL after all: the fallback underneath stays visible.
     }
     renderer.setClearColor(0x000000, 0);
@@ -100,8 +106,9 @@ export function useThreeRenderer(
       handle.dispose?.();
       renderer.dispose();
       renderer.forceContextLoss();
+      removeCanvas();
     };
     // setup is a plain function from the scene module; the renderer is created once per mount.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [canvasRef]);
+  }, [hostRef]);
 }
