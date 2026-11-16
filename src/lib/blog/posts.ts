@@ -68,9 +68,12 @@ function readPost(fileName: string): Post {
 
 let cache: Post[] | undefined;
 
-/** Every post, drafts included, newest first. Read once per build. */
+/** Builds read the posts once. The dev server re-reads them on every request, so edits show on reload. */
+const useCache = process.env.NODE_ENV === "production";
+
+/** Every post, drafts included, newest first. */
 export function allPosts(): Post[] {
-  if (cache) return cache;
+  if (useCache && cache) return cache;
   let files: string[];
   try {
     files = readdirSync(POSTS_DIR).filter((f) => f.endsWith(".mdx"));
@@ -91,6 +94,20 @@ export function allPosts(): Post[] {
 /** Posts that are not drafts: the ones in the sitemap and the RSS feed. */
 export function publishedPosts(): Post[] {
   return allPosts().filter((p) => !p.draft);
+}
+
+/**
+ * Posts listed on the blog index and category pages. Drafts are listed everywhere except the production
+ * deployment (local, CI and Vercel previews show them with a "Draft" label), so they can be reviewed before
+ * anyone flips `draft: false`. Draft pages still build, are marked noindex and stay out of the sitemap and feed.
+ */
+export function listedPosts(): Post[] {
+  return process.env.VERCEL_ENV === "production" ? publishedPosts() : allPosts();
+}
+
+/** The newest featured post among these posts, or the newest post when none is featured. */
+export function featuredPost(posts: Post[]): Post | undefined {
+  return posts.find((p) => p.featured) ?? posts[0];
 }
 
 /** Posts in one category, drafts included, newest first. */
