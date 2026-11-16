@@ -1,4 +1,6 @@
+import type { Metadata } from "next";
 import Link from "next/link";
+import { Button } from "@/components/ui/Button";
 import { Glow } from "@/components/ui/Glow";
 import { Section } from "@/components/ui/Section";
 import { Tag } from "@/components/ui/Tag";
@@ -13,6 +15,14 @@ const suggestions: NavItem[] = [
   ...mainNav.filter((item) => item.href !== "/"),
   ...products.map((p) => ({ label: p.name, href: `/products/${p.slug}`, description: p.tagline })),
 ];
+
+// Next.js serves this page with HTTP 404 (and writes out/404.html in the static export). It should
+// never be indexed.
+export const metadata: Metadata = {
+  title: "Page not found",
+  description: "The page you were looking for does not exist or has moved.",
+  robots: { index: false, follow: true },
+};
 
 /** The three glass tiles, tilted alternately; the middle "0" glows coral. Decorative. */
 const tiles = [
@@ -52,6 +62,15 @@ export default function NotFound() {
         <p className="mt-4 max-w-md text-body-l text-white/65">
           The link may be old, or the page may have moved. Here are the places people usually look for.
         </p>
+
+        <div className="mt-8 flex flex-wrap justify-center gap-3">
+          <Button href="/" variant="coral">
+            Back to home
+          </Button>
+          <Button href="/contact" variant="ghost">
+            Contact us
+          </Button>
+        </div>
 
         <nav aria-label="Suggested pages" className="mt-12 w-full max-w-3xl">
           <ul className="grid gap-2 text-left sm:grid-cols-2">
