@@ -45,7 +45,11 @@ statically generated page (gzipped) and fails when any budget is exceeded:
 `VitalsReporter` logs LCP with its element, CLS with the elements behind each shift, and INP. It is always
 on in `npm run dev`.
 
-**Throttled run (the launch check):**
+**Throttled run in CI:** `e2e/vitals.spec.ts` loads Home on the phone profile with Lighthouse's mobile
+throttling applied through the DevTools Protocol (150 ms latency, 1.6 Mbps down, 4× CPU slowdown). It fails
+if LCP reaches 2.5 s or CLS reaches 0.05, and runs in the "End-to-end (smoke and axe)" job.
+
+**Lighthouse (before launch, for the full report):**
 
 ```bash
 npm run build
@@ -58,4 +62,5 @@ for `/products/kinly` and a blog post.
 
 | Date | Page | LCP | CLS | Notes |
 |---|---|---|---|---|
-| _pending_ | `/` | | | Needs a run on a machine with a visible browser; the automated audit could not run Lighthouse |
+| 2026-11-16 | `/` | 1.21–1.24 s | 0.000 | `e2e/vitals.spec.ts`, three runs on a local production build; LCP element: the hero paragraph |
+| _pending_ | `/` | | | Lighthouse report on the deployed site |
