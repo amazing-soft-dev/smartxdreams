@@ -116,3 +116,47 @@ export function ProductFeatures({ product }: ProductProps) {
     </Section>
   );
 }
+
+/**
+ * Honest limits: who the product is for, what it does not do, and the product's disclaimer when it has one.
+ * Shown on every product page, so nobody signs up for something the product will not do.
+ */
+export function ProductLimits({ product }: ProductProps) {
+  return (
+    <Section labelledBy="limits-title" surface="white">
+      <div className="grid gap-12 lg:grid-cols-2">
+        <div>
+          <Tag>Who it is for</Tag>
+          <ul className="mt-6 flex flex-col gap-3">
+            {product.whoFor.map((who) => (
+              <li key={who} className="flex gap-3 text-body-l">
+                <span aria-hidden="true" className="mt-2.5 size-2 shrink-0 rounded-full bg-violet-500" />
+                {who}
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div>
+          <Tag>What it does not do</Tag>
+          <h2 id="limits-title" className="sr-only">
+            Limits of {product.name}
+          </h2>
+          <ul className="mt-6 flex flex-col gap-3">
+            {product.limits.map((limit) => (
+              <li key={limit} className="flex gap-3 text-body text-ink/75">
+                <span aria-hidden="true" className="mt-2 size-2 shrink-0 rounded-full border border-ink/40" />
+                {limit}
+              </li>
+            ))}
+          </ul>
+          {product.disclaimer ? (
+            <p className="mt-8 rounded-[18px] bg-coral-50 px-5 py-4 text-label text-coral-900">
+              <strong className="font-medium">Please note: </strong>
+              {product.disclaimer}
+            </p>
+          ) : null}
+        </div>
+      </div>
+    </Section>
+  );
+}

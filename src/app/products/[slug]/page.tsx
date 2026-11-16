@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { productMockups } from "@/components/product/mockups";
-import { ProductFeatures, ProductHero, ProductProblem, ProductSteps } from "@/components/product/ProductSections";
+import { ProductFeatures, ProductHero, ProductLimits, ProductProblem, ProductSteps } from "@/components/product/ProductSections";
 import { productBySlug, productSlugs } from "@/content/selectors";
 
 type ProductPageProps = { params: Promise<{ slug: string }> };
@@ -23,6 +23,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
       <ProductProblem product={product} />
       <ProductSteps product={product} />
       <ProductFeatures product={product} />
+      <ProductLimits product={product} />
     </main>
   );
 }
