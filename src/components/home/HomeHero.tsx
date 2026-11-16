@@ -1,3 +1,4 @@
+import { AstraField } from "@/components/astra/AstraField";
 import { Reveal } from "@/components/motion/Reveal";
 import { Button } from "@/components/ui/Button";
 import { Container } from "@/components/ui/Container";
@@ -27,6 +28,8 @@ export function HomeHero() {
       data-nav-theme="dark"
       className="relative isolate flex min-h-[100svh] items-center overflow-hidden bg-ink pt-32 pb-20 text-white md:pt-40"
     >
+      {/* Static CSS stars first; the three.js sky loads on top when the device allows it. */}
+      <AstraField />
       <Glow color="violet" size={1100} opacity={0.45} className="-top-1/3 left-1/2 -translate-x-1/2" />
       <Glow color="coral" size={700} opacity={0.3} className="-bottom-1/3 left-[15%]" />
       <Container className="flex flex-col items-center text-center">
