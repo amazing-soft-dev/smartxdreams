@@ -190,7 +190,7 @@ export function TransitionProvider({ children }: { children: ReactNode }) {
         <div ref={content} className="absolute inset-0 flex flex-col items-center justify-center gap-5 opacity-0">
           <div
             className="absolute top-1/2 left-1/2 size-[60vmin] -translate-1/2 rounded-full opacity-60 blur-[48px]"
-            style={{ background: "radial-gradient(closest-side, rgb(109 74 255 / 0.85), rgb(255 107 61 / 0.35) 60%, transparent)" }}
+            style={{ background: "radial-gradient(closest-side, rgb(109 74 255 / 0.85), rgb(255 107 61 / 0.35) 60%, rgb(255 107 61 / 0))" }}
           />
           <Logo variant="mark" tone="light" height={36} decorative className="relative" />
           <div className="relative overflow-hidden px-1">

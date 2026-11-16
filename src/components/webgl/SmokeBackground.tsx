@@ -162,7 +162,7 @@ export function SmokeBackground({ className, intensity = 0.9, scale = 1.6, quali
         className="absolute inset-0 opacity-60"
         style={{
           background:
-            "radial-gradient(60% 50% at 20% 70%, rgb(109 74 255 / 0.28), transparent 70%), radial-gradient(45% 40% at 80% 40%, rgb(255 107 61 / 0.16), transparent 70%)",
+            "radial-gradient(ellipse at 20% 70%, rgb(109 74 255 / 0.28), rgb(109 74 255 / 0) 60%), radial-gradient(ellipse at 80% 40%, rgb(255 107 61 / 0.16), rgb(255 107 61 / 0) 60%)",
         }}
       />
       <canvas ref={canvasRef} className="absolute inset-0 size-full" />
