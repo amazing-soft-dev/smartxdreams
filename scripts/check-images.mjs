@@ -57,7 +57,9 @@ for (const entry of entries) {
 }
 
 // 2 and 3. Scan src/ (except the registry) for slot uses and direct /images references.
-const sources = (await walk(srcDir, (n) => scanExtensions.has(path.extname(n)))).filter((f) => f !== registryFile);
+// Test files mention slots (including deliberately missing ones) without using them on the site.
+const isTest = (f) => /\.test\.[cm]?[jt]sx?$/.test(f);
+const sources = (await walk(srcDir, (n) => scanExtensions.has(path.extname(n)))).filter((f) => f !== registryFile && !isTest(f));
 const uses = new Map(entries.map((e) => [e.slot, []]));
 const pending = new Set(entries.filter((e) => e.pending === true).map((e) => e.slot));
 const escaped = config.sourcePublicPath.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
