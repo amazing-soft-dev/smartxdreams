@@ -20,6 +20,8 @@
   display: flex;
   flex-direction: column;
   transform: translateY(calc(var(--digit) * -1em));
+  /* Left digits start a little earlier, so the number settles from left to right. */
+  transition: transform 900ms var(--ease-out-quint) calc(var(--order) * 60ms);
 }
 
 .column > span {
