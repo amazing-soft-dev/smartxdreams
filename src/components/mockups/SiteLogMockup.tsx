@@ -26,11 +26,17 @@ function CaptureCard({ className }: { className?: string }) {
   );
 }
 
-/** A labelled block of the generated report. */
-function Block({ title, children }: { title: string; children: ReactNode }) {
+/**
+ * A labelled block of the generated report. Full-strength ink on white with a slightly larger size, because
+ * the real report is read on a phone outdoors: every pairing here is at least 7:1.
+ */
+function Block({ title, icon, children }: { title: string; icon: string; children: ReactNode }) {
   return (
-    <div className="rounded-xl bg-canvas px-3 py-2.5">
-      <p className="font-mono text-[0.625rem] font-semibold tracking-[0.06em] text-ink/60 uppercase">{title}</p>
+    <div className="rounded-xl border border-ink/10 bg-white px-3 py-2.5 text-[0.8125rem] text-ink">
+      <p className="flex items-center gap-1.5 font-mono text-[0.6875rem] font-semibold tracking-[0.06em] text-ink uppercase">
+        <span aria-hidden="true">{icon}</span>
+        {title}
+      </p>
       <div className="mt-1.5">{children}</div>
     </div>
   );
@@ -45,20 +51,20 @@ export function SiteLogMockup({ className }: { className?: string }) {
     <div aria-hidden="true" className={cx("relative", className)}>
       <CaptureCard className="sm:mr-24" />
       <MockupFrame title="SiteLog" caption="Draft report" className="mt-3 sm:absolute sm:-right-3 sm:top-24 sm:mt-0 sm:w-72">
-        <Block title="Weather">12°C, light rain until 11:00. Pour delayed 1 h.</Block>
-        <Block title="Crew">
+        <Block title="Weather" icon="☂">12°C, light rain until 11:00. Pour delayed 1 h.</Block>
+        <Block title="Crew" icon="◎">
           6 on site: 3 framers, 2 electricians, 1 labourer
         </Block>
-        <Block title="Progress">
+        <Block title="Progress" icon="▲">
           <p className="flex justify-between">
-            Framing, level 2 <span className="text-ink/55">70%</span>
+            Framing, level 2 <span className="font-medium">70%</span>
           </p>
           <span className="mt-1 block h-1.5 overflow-hidden rounded-full bg-ink/[0.08]">
             <span className="block h-full w-[70%] rounded-full bg-violet-500" />
           </span>
         </Block>
-        <Block title="Delays">
-          <span className="text-coral-800">Window delivery moved to Thursday (supplier).</span>
+        <Block title="Delays" icon="!">
+          <span className="font-medium text-coral-900">Window delivery moved to Thursday (supplier).</span>
         </Block>
         <p className="rounded-xl bg-ink px-3 py-2 text-center font-medium text-white">Review and edit before sharing</p>
       </MockupFrame>
