@@ -2,7 +2,9 @@
 
 import { usePathname, useRouter } from "next/navigation";
 import { createContext, type ReactNode, useCallback, useContext, useEffect, useMemo, useRef } from "react";
+import { Logo } from "@/components/ui/Logo";
 import { cssEase } from "@/styles/motion";
+import { routeLabel } from "./route-label";
 
 /** Panel timing: 450 ms per panel, 40 ms stagger, so the cover is closed after 610 ms. */
 const PANEL_MS = 450;
@@ -41,6 +43,8 @@ export function TransitionProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const overlay = useRef<HTMLDivElement>(null);
+  const content = useRef<HTMLDivElement>(null);
+  const label = useRef<HTMLSpanElement>(null);
   const busy = useRef(false);
   // Resolves when the pathname changes, so the reveal waits for the new page.
   const routeWaiter = useRef<(() => void) | null>(null);
@@ -77,7 +81,18 @@ export function TransitionProvider({ children }: { children: ReactNode }) {
       busy.current = true;
       router.prefetch(href);
       el.dataset.state = "active";
+      const word = label.current;
+      const layer = content.current;
+      if (word) word.textContent = routeLabel(url.pathname);
 
+      // The label rises out of its mask while the panels are still closing.
+      layer?.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 260, delay: 220, fill: "forwards" });
+      word?.animate([{ transform: "translateY(110%)" }, { transform: "translateY(0)" }], {
+        duration: 380,
+        delay: 240,
+        easing: cssEase("outQuint"),
+        fill: "forwards",
+      });
       await animatePanels("in");
 
       const routeChanged = new Promise<void>((resolve) => {
@@ -89,8 +104,15 @@ export function TransitionProvider({ children }: { children: ReactNode }) {
       // One frame for the new page to paint under the cover.
       await new Promise((resolve) => requestAnimationFrame(() => resolve(null)));
 
+      // Label leaves upward and the layer fades, then the panels reveal the page.
+      word?.animate([{ transform: "translateY(0)" }, { transform: "translateY(-110%)" }], {
+        duration: 260,
+        easing: cssEase("inOutCubic"),
+        fill: "forwards",
+      });
+      await layer?.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 200, delay: 60, fill: "forwards" }).finished;
       await animatePanels("out");
-      for (const panel of panels()) panel.getAnimations().forEach((a) => a.cancel());
+      for (const node of [...panels(), word, layer]) node?.getAnimations().forEach((a) => a.cancel());
       delete el.dataset.state;
       busy.current = false;
     },
@@ -115,6 +137,20 @@ export function TransitionProvider({ children }: { children: ReactNode }) {
             style={{ transform: offscreen(i, "in") }}
           />
         ))}
+        {/* Destination label over a soft brand glow, shown while the panels cover the page. */}
+        <div ref={content} className="absolute inset-0 flex flex-col items-center justify-center gap-5 opacity-0">
+          <div
+            className="absolute top-1/2 left-1/2 size-[60vmin] -translate-1/2 rounded-full opacity-60 blur-[48px]"
+            style={{ background: "radial-gradient(closest-side, rgb(109 74 255 / 0.85), rgb(255 107 61 / 0.35) 60%, transparent)" }}
+          />
+          <Logo variant="mark" height={36} decorative className="relative" />
+          <div className="relative overflow-hidden px-1">
+            <span
+              ref={label}
+              className="block translate-y-[110%] text-[clamp(2.5rem,6vw,5.5rem)] leading-[1.1] tracking-[-0.02em] text-white"
+            />
+          </div>
+        </div>
       </div>
     </TransitionContext.Provider>
   );

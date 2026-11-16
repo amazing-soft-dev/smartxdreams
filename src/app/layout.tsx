@@ -39,9 +39,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <SmoothScroll>
           <MotionProvider>
             <TransitionProvider>
-            <Header />
-            {children}
-            <Footer />
+              <Header />
+              {children}
+              <Footer />
             </TransitionProvider>
           </MotionProvider>
         </SmoothScroll>
