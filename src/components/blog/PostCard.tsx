@@ -1,8 +1,9 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { type PointerEvent, type ReactNode, useRef } from "react";
 import { TransitionLink } from "@/components/transition/TransitionLink";
 import { cx } from "@/lib/cx";
+import styles from "./PostCard.module.css";
 
 type PostCardProps = {
   href: string;
@@ -22,6 +23,10 @@ type PostCardProps = {
 /**
  * A blog post card. The title is the card's only link, stretched over the whole card, so screen readers
  * hear one link per post and keyboard users get one tab stop with a visible focus ring.
+ *
+ * With a mouse (hover and a fine pointer, motion allowed), the card lifts, the cover drifts against the
+ * pointer, a light sweep crosses it and a "Read" badge follows the pointer. PostCard.module.css holds
+ * the effects; this component only tracks the pointer position in CSS variables.
  */
 export function PostCard({
   href,
@@ -34,22 +39,46 @@ export function PostCard({
   description,
   headingLevel: Heading = "h3",
 }: PostCardProps) {
+  const mediaRef = useRef<HTMLDivElement>(null);
+
+  const onPointerMove = (event: PointerEvent<HTMLElement>) => {
+    const media = mediaRef.current;
+    if (event.pointerType !== "mouse" || !media) return;
+    const rect = media.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+    media.style.setProperty("--bx", `${x}px`);
+    media.style.setProperty("--by", `${y}px`);
+    media.style.setProperty("--px", `${-(x / rect.width - 0.5) * 14}px`);
+    media.style.setProperty("--py", `${-(y / rect.height - 0.5) * 10}px`);
+  };
+
   return (
     <article
+      onPointerMove={onPointerMove}
       className={cx(
-        "relative h-full outline-offset-4 has-[a:focus-visible]:outline-2 has-[a:focus-visible]:outline-violet-500 rounded-[30px] bg-white p-2",
+        styles.card,
+        "relative h-full rounded-[30px] bg-white p-2",
         featured ? "grid gap-2 md:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]" : "flex flex-col",
       )}
     >
       <div
+        ref={mediaRef}
         className={cx(
           "relative isolate overflow-hidden rounded-[24px] bg-ink",
           featured ? "aspect-[16/10] md:aspect-auto md:min-h-96" : "aspect-[16/10]",
         )}
       >
-        <div className="absolute inset-0">{cover}</div>
+        <div className={styles.image}>{cover}</div>
+        <span aria-hidden="true" className={styles.sweep} />
+        <span aria-hidden="true" className={styles.badge}>
+          Read
+          <svg viewBox="0 0 16 16" width="14" height="14" fill="none">
+            <path d="M5 11 11 5M6 5h5v5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </span>
       </div>
-      <div className={cx("flex flex-1 flex-col", featured ? "justify-center p-5 md:p-8" : "px-4 pt-5 pb-4")}>
+      <div className={cx(styles.meta, "flex flex-1 flex-col", featured ? "justify-center p-5 md:p-8" : "px-4 pt-5 pb-4")}>
         <p className="flex flex-wrap items-center gap-2 text-label font-medium text-coral-700">
           {category}
           {draft ? <span className="rounded-full bg-ink/[0.07] px-2 py-0.5 text-micro text-ink/75">Draft</span> : null}

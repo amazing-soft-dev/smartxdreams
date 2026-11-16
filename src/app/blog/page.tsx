@@ -19,6 +19,7 @@ export const metadata: Metadata = pageMetadata({
 export default function BlogPage() {
   const posts = listedPosts();
   const featured = featuredPost(posts);
+  const rest = posts.filter((p) => p !== featured);
   return (
     <main>
       <section
@@ -51,6 +52,21 @@ export default function BlogPage() {
           <p className="text-center text-body-l text-ink/70">The first posts are on their way.</p>
         </Section>
       )}
+
+      {rest.length > 0 ? (
+        <Section labelledBy="articles-title" surface="canvas">
+          <h2 id="articles-title" className="text-h4">
+            All articles
+          </h2>
+          <ul className="mt-8 grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+            {rest.map((post) => (
+              <li key={post.slug}>
+                <PostTeaser post={post} />
+              </li>
+            ))}
+          </ul>
+        </Section>
+      ) : null}
     </main>
   );
 }
