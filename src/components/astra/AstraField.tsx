@@ -2,6 +2,7 @@
 
 import { LazyScene } from "@/components/webgl/LazyScene";
 import { StarFallback } from "@/components/webgl/StarFallback";
+import { useProductHighlight } from "./useProductHighlight";
 
 const loadScene = () => import("./AstraScene");
 
@@ -13,5 +14,7 @@ const loadScene = () => import("./AstraScene");
  * Place it inside a positioned, dark container; it is decorative and never takes pointer events.
  */
 export function AstraField({ className }: { className?: string }) {
+  // Hovering or focusing any element with data-product lights up that product's constellation.
+  useProductHighlight();
   return <LazyScene load={loadScene} sceneProps={{}} fallback={<StarFallback />} className={className} />;
 }
