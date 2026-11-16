@@ -4,6 +4,8 @@ import { ProcessStepper } from "@/components/home/ProcessStepper";
 import { ProductGrid } from "@/components/home/ProductGrid";
 import { Statement } from "@/components/home/Statement";
 import { CtaSection } from "@/components/sections/CtaSection";
+import { FaqSection } from "@/components/sections/FaqSection";
+import { companyFaq } from "@/content/site";
 
 /**
  * Home. Section order: hero (dark), products, statement, how we build, principles, FAQ, closing call to
@@ -18,6 +20,7 @@ export default function HomePage() {
       <Statement />
       <ProcessStepper />
       <Principles />
+      <FaqSection items={companyFaq} />
       <CtaSection />
     </main>
   );
