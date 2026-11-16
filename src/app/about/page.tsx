@@ -92,7 +92,7 @@ export default function AboutPage() {
               <li key={value.title}>
                 <Reveal delay={i * 0.08} className="h-full">
                   <Card tone="canvas" padding="lg" className="h-full">
-                    <span aria-hidden="true" className="font-mono text-label text-ink/50">
+                    <span aria-hidden="true" className="font-mono text-label text-ink/70">
                       {String(i + 1).padStart(2, "0")}
                     </span>
                     <h3 className="mt-6 text-h5">{value.title}</h3>

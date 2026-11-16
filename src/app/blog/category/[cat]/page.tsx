@@ -86,7 +86,7 @@ export default async function BlogCategoryPage({ params }: CategoryPageProps) {
                     aria-current={current ? "page" : undefined}
                     className={cx(
                       "inline-flex min-h-11 items-center rounded-tag px-4 text-label font-medium",
-                      current ? "bg-coral-500/12 text-coral-700" : "bg-white text-ink/80 shadow-tag hover:text-ink",
+                      current ? "bg-coral-500/12 text-coral-800" : "bg-white text-ink/80 shadow-tag hover:text-ink",
                     )}
                   >
                     {c.label}

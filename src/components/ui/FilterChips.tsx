@@ -18,7 +18,7 @@ type FilterChipsProps = {
 
 /**
  * A row of toggle chips. Each chip is a real button with aria-pressed, inside a labelled group.
- * The active chip is coral-tinted with coral-700 text (4.77:1 on canvas).
+ * The active chip is coral-tinted with coral-800 text (6.3:1 on its tint; coral-700 was 4.26:1).
  */
 export function FilterChips({ options, value, onChange, label, liveMessage, className }: FilterChipsProps) {
   return (
@@ -44,7 +44,7 @@ export function FilterChips({ options, value, onChange, label, liveMessage, clas
             onClick={() => onChange(option.id)}
             className={cx(
               "min-h-11 shrink-0 snap-start rounded-tag px-4 text-label font-medium transition-[background-color,color,box-shadow] duration-250",
-              active ? "bg-coral-500/12 text-coral-700" : "bg-white text-ink/80 shadow-tag hover:text-ink",
+              active ? "bg-coral-500/12 text-coral-800" : "bg-white text-ink/80 shadow-tag hover:text-ink",
             )}
           >
             {option.label}
