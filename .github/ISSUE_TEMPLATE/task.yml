@@ -1,0 +1,50 @@
+name: Task
+description: A unit of work that becomes one branch and one pull request.
+title: "<short imperative title>"
+body:
+  - type: textarea
+    id: goal
+    attributes:
+      label: Goal
+      description: What this issue delivers and why, in two or three sentences.
+    validations:
+      required: true
+  - type: textarea
+    id: commits
+    attributes:
+      label: Planned commits
+      description: One Conventional Commit subject per line. The last commit ends with "Closes #<this issue>".
+      placeholder: |
+        - [ ] `feat(scope): first step`
+        - [ ] `feat(scope): second step`
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: Checks that prove the work is done.
+      value: |
+        - [ ] CI passed is green on the pull request
+        - [ ] Layout verified at 390, 1024 and 1475 px where UI is touched
+        - [ ] Animations respect prefers-reduced-motion where applicable
+    validations:
+      required: true
+  - type: textarea
+    id: depends
+    attributes:
+      label: Depends on
+      description: Issues that must be merged into dev first, as "- #12". Write "none" if there are none.
+    validations:
+      required: true
+  - type: input
+    id: branch
+    attributes:
+      label: Branch
+      description: "<feat|fix|docs|ci|build>/<issue-number>-<slug>, branched from origin/dev."
+      placeholder: feat/12-short-description
+  - type: textarea
+    id: out-of-scope
+    attributes:
+      label: Out of scope
+      value: Anything not listed under Planned commits. Open a new issue for extra work.
