@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useState } from "react";
+import { type KeyboardEvent, useId, useRef, useState } from "react";
 import { cx } from "@/lib/cx";
 import type { Faq } from "@/content/types";
 
@@ -22,6 +22,28 @@ export function Accordion({ items, defaultOpen = 0, multiple = false, tone = "li
   const baseId = useId();
   const [open, setOpen] = useState<number[]>(defaultOpen >= 0 ? [defaultOpen] : []);
 
+  const root = useRef<HTMLDivElement>(null);
+
+  // Arrow keys move between questions; Home and End jump to the first and last.
+  const onKeyDown = (event: KeyboardEvent<HTMLButtonElement>) => {
+    const triggers = Array.from(root.current?.querySelectorAll<HTMLButtonElement>("[data-accordion-trigger]") ?? []);
+    const current = triggers.indexOf(event.currentTarget);
+    const last = triggers.length - 1;
+    const target =
+      event.key === "ArrowDown"
+        ? current === last ? 0 : current + 1
+        : event.key === "ArrowUp"
+          ? current === 0 ? last : current - 1
+          : event.key === "Home"
+            ? 0
+            : event.key === "End"
+              ? last
+              : -1;
+    if (target < 0) return;
+    event.preventDefault();
+    triggers[target]?.focus();
+  };
+
   const toggle = (index: number) => {
     setOpen((current) => {
       if (current.includes(index)) return current.filter((i) => i !== index);
@@ -30,7 +52,7 @@ export function Accordion({ items, defaultOpen = 0, multiple = false, tone = "li
   };
 
   return (
-    <div className={cx("flex flex-col gap-2", className)}>
+    <div ref={root} className={cx("flex flex-col gap-2", className)}>
       {items.map((item, index) => {
         const isOpen = open.includes(index);
         const buttonId = `${baseId}-q${index}`;
@@ -55,7 +77,9 @@ export function Accordion({ items, defaultOpen = 0, multiple = false, tone = "li
                 id={buttonId}
                 aria-expanded={isOpen}
                 aria-controls={panelId}
+                data-accordion-trigger=""
                 onClick={() => toggle(index)}
+                onKeyDown={onKeyDown}
                 className="flex w-full items-center justify-between gap-6 px-5 py-4 text-left text-body-l md:px-6"
               >
                 {item.question}
