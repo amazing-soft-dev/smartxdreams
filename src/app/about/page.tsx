@@ -1,5 +1,7 @@
+import type { Metadata } from "next";
 import { RoadmapStrip } from "@/components/home/RoadmapStrip";
 import { Reveal } from "@/components/motion/Reveal";
+import { JsonLd } from "@/components/seo/JsonLd";
 import { TransitionLink } from "@/components/transition/TransitionLink";
 import { Accent } from "@/components/ui/Accent";
 import { Card } from "@/components/ui/Card";
@@ -11,11 +13,31 @@ import { Section } from "@/components/ui/Section";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { Tag } from "@/components/ui/Tag";
 import { about } from "@/content/about";
+import { company } from "@/content/site";
+import { absoluteUrl, pageMetadata, siteUrl } from "@/lib/seo";
+
+export const metadata: Metadata = pageMetadata({
+  title: "About",
+  description:
+    "Why SmartxDreams builds one focused AI product per everyday problem, the rules we work by, where we are headed and who is behind it.",
+  path: "/about",
+});
+
+/** schema.org AboutPage pointing at the Organization from the root layout. */
+const aboutJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "AboutPage",
+  name: `About ${company.name}`,
+  url: absoluteUrl("/about"),
+  about: { "@id": `${siteUrl}/#organization` },
+  isPartOf: { "@id": `${siteUrl}/#website` },
+};
 
 /** /about: the studio's story, how it works, where it is headed and who is behind it. */
 export default function AboutPage() {
   return (
     <main>
+      <JsonLd data={aboutJsonLd} />
       <section
         aria-labelledby="about-title"
         data-surface="dark"
