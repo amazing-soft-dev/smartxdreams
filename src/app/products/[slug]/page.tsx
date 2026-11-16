@@ -5,7 +5,13 @@ import { productMockups } from "@/components/product/mockups";
 import {
   ProductFaq,
   ProductFeatures,
-  ProductHero, ProductLimits, ProductProblem, ProductSteps, ProductWaitlist } from "@/components/product/ProductSections";
+  ProductHero,
+  ProductLimits,
+  ProductProblem,
+  ProductPromise,
+  ProductSteps,
+  ProductWaitlist,
+} from "@/components/product/ProductSections";
 import { productBySlug, productSlugs } from "@/content/selectors";
 import { company } from "@/content/site";
 import type { Product } from "@/content/types";
@@ -61,6 +67,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
       <ProductHero product={product} Mockup={productMockups[product.slug]} />
       <ProductProblem product={product} />
       <ProductSteps product={product} />
+      <ProductPromise product={product} />
       <ProductFeatures product={product} />
       <ProductLimits product={product} />
       <ProductFaq product={product} />
