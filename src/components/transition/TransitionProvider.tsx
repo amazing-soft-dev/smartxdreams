@@ -55,6 +55,26 @@ export function TransitionProvider({ children }: { children: ReactNode }) {
     routeWaiter.current = null;
   }, [pathname]);
 
+  // Back and forward buttons skip the panels (the visitor already knows where they are going) and use a
+  // short View Transitions cross-fade instead, where the browser supports it. The old page is captured when
+  // popstate fires; the new one once Next.js has rendered the new path.
+  useEffect(() => {
+    const doc = document as Document & { startViewTransition?: (update: () => Promise<void>) => unknown };
+    if (typeof doc.startViewTransition !== "function") return;
+    const onPopState = () => {
+      if (busy.current || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+      doc.startViewTransition?.(
+        () =>
+          new Promise<void>((resolve) => {
+            routeWaiter.current = resolve;
+            window.setTimeout(resolve, 600);
+          }),
+      );
+    };
+    window.addEventListener("popstate", onPopState);
+    return () => window.removeEventListener("popstate", onPopState);
+  }, []);
+
   const panels = () => Array.from(overlay.current?.querySelectorAll<HTMLElement>("[data-panel]") ?? []);
 
   const animatePanels = useCallback((phase: "in" | "out") => {
