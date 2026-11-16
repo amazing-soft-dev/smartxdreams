@@ -6,6 +6,17 @@ import { Statement } from "@/components/home/Statement";
 import { CtaSection } from "@/components/sections/CtaSection";
 import { FaqSection } from "@/components/sections/FaqSection";
 import { companyFaq } from "@/content/site";
+import { pageMetadata } from "@/lib/seo";
+import type { Metadata } from "next";
+
+const description =
+  "SmartxDreams builds six focused AI products: JobAtlas, ApplyPilot, SiteLog, ToothLedger, Kinly and TrustDraft. Each does one job, shows its sources and leaves the final call to you.";
+
+export const metadata: Metadata = {
+  ...pageMetadata({ title: "AI products for everyday work and life", description, path: "/" }),
+  // Home keeps the brand first in the tab and in search results.
+  title: { absolute: "SmartxDreams: AI products for everyday work and life" },
+};
 
 /**
  * Home. Section order: hero (dark), products, statement, how we build, principles, FAQ, closing call to
