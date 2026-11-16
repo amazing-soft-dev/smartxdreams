@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Container } from "@/components/ui/Container";
 import { Logo } from "@/components/ui/Logo";
+import { SocialIcons } from "./SocialIcons";
 import { products } from "@/content/products";
 import { company, footerGroups, trademarkNote } from "@/content/site";
 import type { NavGroup } from "@/content/types";
@@ -28,6 +29,7 @@ export function Footer() {
               <Logo tone="light" height={30} decorative />
             </Link>
             <p className="mt-5 text-body text-white/65">{company.tagline}</p>
+            <SocialIcons />
           </div>
 
           <nav aria-label="Footer" className="grid gap-10">
