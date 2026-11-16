@@ -1,0 +1,156 @@
+@import "tailwindcss";
+
+/*
+ * SmartxDreams design tokens. Brand colors are sampled from the logo:
+ * ink #0F1226 (rounded square), violet #6D4AFF (circle), coral #FF6B3D (overlap).
+ * Contrast for every pairing is in docs/design-tokens.md.
+ */
+@theme {
+  /* Ink: text, dark surfaces, page-transition panels. */
+  --color-ink: #0f1226;
+  --color-ink-900: #0f1226;
+  --color-ink-800: #1b1f3a;
+  --color-ink-700: #2a2f52;
+  --color-ink-600: #3d4370;
+
+  /* Light surfaces. */
+  --color-canvas: #f5f2ee;
+  --color-canvas-200: #ece7e1;
+  --color-white: #ffffff;
+
+  /* Violet: accents, links, focus ring, glows. */
+  --color-violet-50: #f2efff;
+  --color-violet-100: #e4deff;
+  --color-violet-200: #c9bdff;
+  --color-violet-300: #aa97ff;
+  --color-violet-400: #8b70ff;
+  --color-violet-500: #6d4aff;
+  --color-violet-600: #5a36e6;
+  --color-violet-700: #4826bf;
+  --color-violet-800: #371d93;
+  --color-violet-900: #281569;
+
+  /* Coral: primary actions and highlights. Use ink text on coral (white fails contrast). */
+  --color-coral-50: #fff2ec;
+  --color-coral-100: #ffe1d4;
+  --color-coral-200: #ffc2a9;
+  --color-coral-300: #ffa17c;
+  --color-coral-400: #ff8457;
+  --color-coral-500: #ff6b3d;
+  --color-coral-600: #e5532a;
+  --color-coral-700: #bf3f1c;
+  --color-coral-800: #932f15;
+  --color-coral-900: #6b220f;
+
+  /* Type: Inter Tight (variable) via next/font. Headings use weight 400 with tight tracking. */
+  --font-sans: var(--font-inter-tight), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  /* Fluid scale between 390 px and 1440 px viewports. One h1 per page at every width. */
+  --text-display: clamp(2.75rem, 1.6rem + 3.2vw, 4.25rem); /* 44 -> 68 */
+  --text-display--line-height: 1.1;
+  --text-display--letter-spacing: -0.02em;
+  --text-h2: clamp(2.125rem, 1.5rem + 1.9vw, 3.25rem); /* 34 -> 52 */
+  --text-h2--line-height: 1.2;
+  --text-h2--letter-spacing: -0.015em;
+  --text-h3: clamp(1.75rem, 1.4rem + 1vw, 2.5rem); /* 28 -> 40 */
+  --text-h3--line-height: 1.2;
+  --text-h4: clamp(1.5rem, 1.3rem + 0.6vw, 2rem); /* 24 -> 32 */
+  --text-h4--line-height: 1.25;
+  --text-h5: 1.5rem; /* 24 */
+  --text-h5--line-height: 1.4;
+  --text-h6: 1.25rem; /* 20 */
+  --text-h6--line-height: 1.5;
+  --text-body-l: 1.125rem; /* 18 */
+  --text-body-l--line-height: 1.5;
+  --text-body: 1rem; /* 16 */
+  --text-body--line-height: 1.5;
+  --text-label: 0.875rem; /* 14 */
+  --text-label--line-height: 1.43;
+  --text-micro: 0.75rem; /* 12, mono labels */
+  --text-micro--line-height: 1.5;
+
+  /* Breakpoints: phone < 810, tablet 810-1439, desktop >= 1440. Desktop nav from lg (1024). */
+  --breakpoint-md: 50.625rem; /* 810 */
+  --breakpoint-xl: 90rem; /* 1440 */
+  --container-content: 80rem; /* 1280 content width */
+
+  /* Shape */
+  --radius-field: 12px;
+  --radius-tag: 12px;
+  --radius-btn: 16px;
+  --radius-menu: 20px;
+  --radius-card: 30px;
+
+  /* Elevation */
+  --shadow-tag: 0 1px 3px rgb(0 0 0 / 0.12), 0 5px 5px rgb(0 0 0 / 0.08), 0 11px 7px rgb(0 0 0 / 0.08),
+    0 20px 8px rgb(0 0 0 / 0.03), 0 31px 9px rgb(0 0 0 / 0.01);
+  --shadow-card-hover: 0 24px 50px rgb(15 18 38 / 0.12);
+  --shadow-menu: 0 24px 60px rgb(0 0 0 / 0.35);
+
+  /* Motion easings (springs are in src/styles/motion.ts for Motion). */
+  --ease-panel: cubic-bezier(0.76, 0, 0.24, 1);
+  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out-cubic: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-back: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@layer base {
+  html {
+    color-scheme: light;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    background-color: var(--color-canvas);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-size: var(--text-body);
+    line-height: var(--text-body--line-height);
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-weight: 400;
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  /* Focus ring: violet-500 passes 3:1 on light surfaces; dark surfaces switch to violet-300. */
+  :focus-visible {
+    outline: 2px solid var(--color-violet-500);
+    outline-offset: 3px;
+  }
+
+  [data-surface="dark"] :focus-visible {
+    outline-color: var(--color-violet-300);
+  }
+
+  ::selection {
+    background-color: var(--color-violet-200);
+    color: var(--color-ink);
+  }
+
+  /* Reduced motion: stop CSS animation and transitions everywhere. JS effects check the same query. */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
