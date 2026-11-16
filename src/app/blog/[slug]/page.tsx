@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { mdxComponents } from "@/components/blog/mdx-components";
 import { PostCover } from "@/components/blog/PostCover";
+import { ReadingProgress } from "@/components/blog/ReadingProgress";
 import { TableOfContents } from "@/components/blog/TableOfContents";
 import { TransitionLink } from "@/components/transition/TransitionLink";
 import { Container } from "@/components/ui/Container";
@@ -48,6 +49,7 @@ export default async function PostPage({ params }: PostPageProps) {
   const toc = headings.length >= 3 ? headings : [];
   return (
     <main>
+      <ReadingProgress targetId="post-body" />
       <article aria-labelledby="post-title">
         <header data-nav-theme="light" className="bg-canvas pt-32 pb-12 md:pt-40 md:pb-16">
           <Container>
@@ -103,7 +105,7 @@ export default async function PostPage({ params }: PostPageProps) {
                 {toc.length > 0 ? <TableOfContents headings={toc} variant="inline" /> : null}
                 {/* About 68 characters per line. CSS ch is the width of "0", wider than the average letter in Inter
                     Tight, so max-width: 68ch would give about 95. 49ch at 18 px renders about 68. */}
-                <div className="max-w-[49ch] text-body-l">
+                <div id="post-body" className="max-w-[49ch] text-body-l">
                   <Content components={mdxComponents} />
                 </div>
               </div>
