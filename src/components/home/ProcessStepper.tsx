@@ -7,6 +7,9 @@ import { SectionHeader } from "@/components/ui/SectionHeader";
 import { processSteps } from "@/content/process";
 import { cx } from "@/lib/cx";
 
+/** Number of ticks in the progress bar above the steps. */
+const TICKS = 40;
+
 /**
  * "How we build": four steps. On desktop the section is three viewports tall and its content sticks under
  * the header while the visitor scrolls, so scrolling moves through the steps.
@@ -18,6 +21,19 @@ export function ProcessStepper() {
   // The rail follows progress through a spring, which smooths wheel steps into a continuous fill.
   const rail = useSpring(scrollYProgress, { stiffness: 140, damping: 30, mass: 0.4 });
   const [active, setActive] = useState(0);
+  // Tick bar: each tick is 8 px tall plus a Gaussian bump (up to 22 px) centred on the current progress,
+  // so a wave travels along the bar as you scroll. Heights are written directly to the DOM, not to state,
+  // so scrolling does not re-render the section 60 times a second.
+  const ticks = useRef<Array<HTMLSpanElement | null>>([]);
+  useMotionValueEvent(scrollYProgress, "change", (p) => {
+    const centre = p * (TICKS - 1);
+    ticks.current.forEach((tick, i) => {
+      if (!tick) return;
+      const d = i - centre;
+      tick.style.height = `${8 + 22 * Math.exp(-(d * d) / 18)}px`;
+      tick.style.backgroundColor = i <= centre ? "var(--color-coral-500)" : "rgb(15 18 38 / 0.18)";
+    });
+  });
   useMotionValueEvent(scrollYProgress, "change", (p) => {
     const next = Math.min(processSteps.length - 1, Math.floor(p * processSteps.length));
     setActive((current) => (current === next ? current : next));
@@ -39,6 +55,21 @@ export function ProcessStepper() {
             title="From friction to *a product you trust.*"
             align="left"
           />
+          {/* Tick bar and step counter (desktop, decorative). */}
+          <div aria-hidden="true" className="mt-10 hidden h-8 items-end gap-[5px] lg:flex">
+            {Array.from({ length: TICKS }, (_, i) => (
+              <span
+                key={i}
+                ref={(el) => {
+                  ticks.current[i] = el;
+                }}
+                className="block h-2 w-[2px] rounded-full bg-ink/20"
+              />
+            ))}
+            <span className="ml-auto font-mono text-micro tracking-[0.06em] text-ink">
+              {String(active + 1).padStart(2, "0")} / {String(processSteps.length).padStart(2, "0")}
+            </span>
+          </div>
           <div className="mt-12 grid gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] lg:gap-16">
             <ol className="relative flex flex-col gap-1 lg:pl-8">
               {/* Coral progress rail (desktop): a faint track with a fill that grows from the top. */}
