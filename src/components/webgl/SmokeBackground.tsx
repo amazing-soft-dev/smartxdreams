@@ -88,7 +88,8 @@ export function SmokeBackground({ className, intensity = 0.9, scale = 1.6, quali
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const gl = canvas.getContext("webgl", { alpha: true, premultipliedAlpha: true, antialias: false });
     if (!gl) return;
-    const scene = setup(gl);
+    // Replaced after a lost context is restored; null while the context is lost or a rebuild failed.
+    let scene: SmokeProgram | null = setup(gl);
     if (!scene) return;
 
     /** Sets every uniform that does not change per frame on a freshly set-up program. */
@@ -111,7 +112,7 @@ export function SmokeBackground({ className, intensity = 0.9, scale = 1.6, quali
         canvas.height = height;
         gl.viewport(0, 0, width, height);
       }
-      gl.uniform2f(scene.uniforms.resolution, width, height);
+      if (scene) gl.uniform2f(scene.uniforms.resolution, width, height);
     };
     const resizeObserver = new ResizeObserver(resize);
     resizeObserver.observe(canvas);
@@ -126,14 +127,14 @@ export function SmokeBackground({ className, intensity = 0.9, scale = 1.6, quali
       if (last) elapsed += now - last;
       last = now;
       // Yield to a higher-priority visible scene (the hero stars): keep the last frame.
-      if (isTopScene("smoke")) {
+      if (scene && isTopScene("smoke")) {
         gl.uniform1f(scene.uniforms.time, elapsed / 1000);
         gl.drawArrays(gl.TRIANGLES, 0, 3);
       }
       frame = requestAnimationFrame(render);
     };
     const play = () => {
-      if (frame || !onScreen || document.hidden) return;
+      if (frame || !onScreen || document.hidden || !scene) return;
       last = 0;
       frame = requestAnimationFrame(render);
     };
@@ -156,13 +157,34 @@ export function SmokeBackground({ className, intensity = 0.9, scale = 1.6, quali
     const onVisibility = () => (document.hidden ? pause() : play());
     document.addEventListener("visibilitychange", onVisibility);
 
+    // The browser can drop the context at any time (GPU reset, too many live contexts, a backgrounded mobile
+    // tab); the canvas goes blank over the static gradient. preventDefault() asks for it back. Everything
+    // made on the old context is gone, so on restore the program and buffer are built again and the smoke
+    // carries on from the same elapsed time.
+    const onContextLost = (event: Event) => {
+      event.preventDefault();
+      pause();
+      scene = null;
+    };
+    const onContextRestored = () => {
+      scene = setup(gl);
+      if (!scene) return; // Rebuild failed: the static gradient stays.
+      gl.viewport(0, 0, canvas.width, canvas.height);
+      applyUniforms(scene);
+      play();
+    };
+    canvas.addEventListener("webglcontextlost", onContextLost);
+    canvas.addEventListener("webglcontextrestored", onContextRestored);
+
     return () => {
       pause();
+      canvas.removeEventListener("webglcontextlost", onContextLost);
+      canvas.removeEventListener("webglcontextrestored", onContextRestored);
       setSceneVisible("smoke", SCENE_PRIORITY.smoke, false);
       intersection.disconnect();
       document.removeEventListener("visibilitychange", onVisibility);
       resizeObserver.disconnect();
-      scene.dispose();
+      scene?.dispose();
     };
   }, [intensity, scale, quality]);
 
