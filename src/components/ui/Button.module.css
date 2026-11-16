@@ -1,17 +1,148 @@
-/* Button effects. Variants and sizes are Tailwind classes in Button.tsx. */
-
-.button {
-}
+/*
+ * Button effects. Colours and sizes are Tailwind classes in Button.tsx.
+ * The label is two rows of letters stacked in a clipped box: at rest the top row shows.
+ */
 
 .label {
   position: relative;
   display: inline-block;
+  overflow: hidden;
+  line-height: 1.25;
+  height: 1.25em;
+}
+
+.row {
+  display: block;
+  white-space: pre;
+}
+
+.rowBottom {
+  position: absolute;
+  inset: 100% 0 auto 0;
+}
+
+.letter {
+  display: inline-block;
+  will-change: transform;
 }
 
 .tile {
   position: relative;
+  overflow: hidden;
 }
 
 .arrow {
   display: inline-flex;
+}
+
+.shine {
+  position: absolute;
+  inset: -20% auto -20% 0;
+  z-index: 2;
+  width: 38%;
+  pointer-events: none;
+  opacity: 0;
+  background: linear-gradient(100deg, transparent 0%, rgb(255 255 255 / 0.55) 50%, transparent 100%);
+  mix-blend-mode: soft-light;
+  transform: translateX(-120%) skewX(-18deg);
+}
+
+/*
+ * Hover effects run only for a fine pointer with hover, and never under reduced motion.
+ * Touch screens and reduced-motion visitors get the plain colour change only.
+ */
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  /* Letter roll: each letter moves up one line; the stagger runs left to right on enter. */
+  .letter {
+    transition: transform 520ms var(--ease-panel) calc(var(--i) * 18ms);
+  }
+
+  .button:hover .letter,
+  .button:focus-visible .letter {
+    transform: translateY(-100%);
+  }
+
+  /* Shine: one skewed soft-light highlight sweeps across on every hover. */
+  .button:hover .shine {
+    animation: shine 900ms var(--ease-standard);
+  }
+}
+
+@keyframes shine {
+  0% {
+    opacity: 1;
+    transform: translateX(-120%) skewX(-18deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(320%) skewX(-18deg);
+  }
+}
+
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  /* On leave the letters roll back right to left, a little faster. */
+  .letter {
+    transition-duration: 480ms;
+    transition-delay: calc((var(--n) - var(--i)) * 12ms);
+  }
+
+  .button:hover .letter,
+  .button:focus-visible .letter {
+    transition-duration: 520ms;
+    transition-delay: calc(var(--i) * 18ms);
+  }
+
+  /* Icon tile tilts; the arrow exits top-right and re-enters from bottom-left. */
+  .tile {
+    transition: transform 500ms var(--ease-out-quint);
+  }
+
+  .button:hover .tile,
+  .button:focus-visible .tile {
+    transform: rotate(-8deg) scale(1.06);
+  }
+
+  .button:hover .arrow,
+  .button:focus-visible .arrow {
+    animation: arrow-hop 820ms linear;
+  }
+}
+
+@keyframes arrow-hop {
+  0% {
+    transform: translate(0, 0);
+    animation-timing-function: cubic-bezier(0.55, 0, 0.1, 1);
+  }
+  42% {
+    transform: translate(160%, -160%);
+  }
+  43% {
+    transform: translate(-160%, 160%);
+    animation-timing-function: var(--ease-out-quint);
+  }
+  100% {
+    transform: translate(0, 0);
+  }
+}
+
+/* Press feedback works on every pointer type: shrink on press, spring back on release. */
+.button {
+  transition:
+    transform 420ms var(--ease-back),
+    background-color 250ms ease,
+    color 250ms ease,
+    box-shadow 250ms ease;
+}
+
+.button:active {
+  transform: scale(0.96);
+  transition: transform 140ms ease-out;
+}
+
+/* Reduced motion: no scaling or movement at all, only the colour change. */
+@media (prefers-reduced-motion: reduce) {
+  .button,
+  .button:active {
+    transform: none;
+  }
 }
