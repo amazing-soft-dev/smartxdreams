@@ -12,10 +12,20 @@ import { JsonLd } from "@/components/seo/JsonLd";
 import { defaultMetadata, organizationJsonLd, websiteJsonLd } from "@/lib/seo";
 import "./globals.css";
 
-// Variable font: one file covers every weight. Exposed as a CSS variable for the @theme font stack.
+/**
+ * Inter Tight, self-hosted by next/font (no request to Google at runtime).
+ * - Variable font: one file covers weights 100-900.
+ * - Only the Latin subset is preloaded: one woff2 of about 44 KB. Other subsets are declared with
+ *   unicode-range and downloaded only if a page uses those characters, which English copy does not.
+ * - display: swap shows text at once in the fallback; adjustFontFallback sizes that fallback (Arial) to
+ *   Inter Tight's metrics, so the swap does not shift the layout.
+ * Exposed as a CSS variable for the @theme font stack.
+ */
 const interTight = Inter_Tight({
   subsets: ["latin"],
   display: "swap",
+  preload: true,
+  adjustFontFallback: true,
   variable: "--font-inter-tight",
 });
 
