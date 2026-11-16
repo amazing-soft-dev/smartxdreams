@@ -32,11 +32,30 @@ type RevealProps = {
   /** Share of the element that must be in view before it reveals. */
   amount?: number;
   className?: string;
+  /**
+   * Above the fold: animate on mount instead of on scroll, starting from opacity 0.001 rather than 0.
+   * Browsers ignore fully transparent elements when measuring Largest Contentful Paint, so a hero that
+   * starts at 0 would delay LCP until its animation ends.
+   */
+  aboveFold?: boolean;
 };
 
-/** Reveals its children once, when they scroll into view. */
-export function Reveal({ children, preset = "up60", delay = 0, amount = 0.2, className }: RevealProps) {
+/** Reveals its children once, when they scroll into view (or on mount when aboveFold is set). */
+export function Reveal({ children, preset = "up60", delay = 0, amount = 0.2, className, aboveFold = false }: RevealProps) {
   const { hidden, transition } = revealPresets[preset];
+  if (aboveFold) {
+    return (
+      <motion.div
+        data-reveal=""
+        className={className}
+        initial={{ ...hidden, opacity: 0.001 }}
+        animate={visible}
+        transition={{ ...transition, delay }}
+      >
+        {children}
+      </motion.div>
+    );
+  }
   return (
     <motion.div
       data-reveal=""
