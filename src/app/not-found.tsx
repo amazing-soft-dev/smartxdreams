@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { Glow } from "@/components/ui/Glow";
+import { Photo } from "@/components/ui/Photo";
 import { Section } from "@/components/ui/Section";
 import { Tag } from "@/components/ui/Tag";
 import { products } from "@/content/products";
@@ -33,7 +34,12 @@ const tiles = [
 
 export default function NotFound() {
   return (
-    <Section surface="dark" labelledBy="not-found-title" className="min-h-[90svh] pt-36 md:pt-44">
+    <Section surface="dark" labelledBy="not-found-title" className="isolate min-h-[90svh] pt-36 md:pt-44">
+      {/* A motorway disappearing into fog: a quiet nod to being lost. Decorative, under an ink veil so text keeps its contrast. */}
+      <div aria-hidden="true" className="absolute inset-0 -z-10">
+        <Photo slot="not-found" fill sizes="100vw" />
+        <div className="absolute inset-0 bg-ink/80" />
+      </div>
       <Glow color="coral" size={720} opacity={0.35} className="top-24 left-1/2 -translate-x-1/2" />
       <div className="flex flex-col items-center text-center">
         <div aria-hidden="true" className="flex gap-3 md:gap-5">
