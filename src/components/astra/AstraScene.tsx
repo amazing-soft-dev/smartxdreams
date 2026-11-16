@@ -1,9 +1,24 @@
 "use client";
 
 import { useRef } from "react";
-import { AdditiveBlending, BufferAttribute, BufferGeometry, PerspectiveCamera, Points, Scene, ShaderMaterial } from "three";
+import {
+  AdditiveBlending,
+  BufferAttribute,
+  BufferGeometry,
+  Color,
+  Float32BufferAttribute,
+  LineBasicMaterial,
+  LineSegments,
+  PerspectiveCamera,
+  Points,
+  Scene,
+  ShaderMaterial,
+} from "three";
+import { SCENE_PRIORITY } from "@/components/webgl/scene-budget";
 import { MAX_SCENE_DPR, useThreeRenderer } from "@/components/webgl/useThreeRenderer";
 import { starFragmentShader, starVertexShader } from "./star-shader";
+import { getActiveProduct } from "./active-product";
+import { CONSTELLATION_Z, constellations } from "./constellations";
 import { createStarField } from "./stars";
 
 /** The three.js star-field. Loaded only through LazyScene, so three.js is a separate chunk. */
@@ -36,6 +51,29 @@ export default function AstraScene() {
     const points = new Points(geometry, material);
     scene.add(points);
 
+    // Product constellations: faint violet lines joining a few points each, drifting with the stars.
+    const lineSets = constellations.map((c) => {
+      const positions: number[] = [];
+      for (const [a, b] of c.lines) {
+        const pa = c.points[a];
+        const pb = c.points[b];
+        if (!pa || !pb) continue;
+        positions.push(pa[0], pa[1], CONSTELLATION_Z, pb[0], pb[1], CONSTELLATION_Z);
+      }
+      const lineGeometry = new BufferGeometry();
+      lineGeometry.setAttribute("position", new Float32BufferAttribute(positions, 3));
+      const lineMaterial = new LineBasicMaterial({
+        color: new Color(0xaa97ff),
+        transparent: true,
+        opacity: 0.18,
+        depthWrite: false,
+        blending: AdditiveBlending,
+      });
+      const lines = new LineSegments(lineGeometry, lineMaterial);
+      points.add(lines);
+      return { slug: c.slug, geometry: lineGeometry, material: lineMaterial };
+    });
+
     // Pointer parallax: the camera eases toward the pointer, so near stars move more than far ones.
     // Fine pointers only; touch screens keep a steady sky.
     const target = { x: 0, y: 0 };
@@ -51,6 +89,14 @@ export default function AstraScene() {
       camera,
       update: (elapsed, delta) => {
         material.uniforms.uTime!.value = elapsed;
+        // The hovered or focused product brightens its constellation; the others dim. Opacity eases toward
+        // its target by time, so it feels the same at any frame rate.
+        const active = getActiveProduct();
+        const ease = Math.min(1, delta * 6);
+        for (const set of lineSets) {
+          const target = active === null ? 0.18 : active === set.slug ? 0.9 : 0.06;
+          set.material.opacity += (target - set.material.opacity) * ease;
+        }
         // Slow drift: a full turn would take about 26 minutes, so it reads as stillness with life in it.
         points.rotation.z = elapsed * 0.004;
         points.rotation.y = Math.sin(elapsed * 0.05) * 0.04;
@@ -65,12 +111,16 @@ export default function AstraScene() {
         camera.updateProjectionMatrix();
       },
       dispose: () => {
+        for (const set of lineSets) {
+          set.geometry.dispose();
+          set.material.dispose();
+        }
         window.removeEventListener("pointermove", onPointerMove);
         geometry.dispose();
         material.dispose();
       },
     };
-  });
+  }, { id: "astra", priority: SCENE_PRIORITY.astra });
 
   return <canvas ref={canvasRef} className="absolute inset-0 size-full" />;
 }

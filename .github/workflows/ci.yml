@@ -93,6 +93,9 @@ jobs:
         if: matrix.target == 'static'
         run: npm run images
       - run: npm run build
+      - name: Check the three.js budget (server only)
+        if: matrix.target == 'server'
+        run: npm run check:bundle
       - name: Verify static output (static only)
         if: matrix.target == 'static'
         run: |

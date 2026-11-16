@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { cx } from "@/lib/cx";
+import { isTopScene, SCENE_PRIORITY, setSceneVisible } from "./scene-budget";
 import { smokeFragmentShader, smokeVertexShader } from "./smoke-shader";
 
 type SmokeBackgroundProps = {
@@ -118,8 +119,11 @@ export function SmokeBackground({ className, intensity = 0.9, scale = 1.6, quali
     const render = (now: number) => {
       if (last) elapsed += now - last;
       last = now;
-      gl.uniform1f(uniforms.time, elapsed / 1000);
-      gl.drawArrays(gl.TRIANGLES, 0, 3);
+      // Yield to a higher-priority visible scene (the hero stars): keep the last frame.
+      if (isTopScene("smoke")) {
+        gl.uniform1f(uniforms.time, elapsed / 1000);
+        gl.drawArrays(gl.TRIANGLES, 0, 3);
+      }
       frame = requestAnimationFrame(render);
     };
     const play = () => {
@@ -136,6 +140,7 @@ export function SmokeBackground({ className, intensity = 0.9, scale = 1.6, quali
     const intersection = new IntersectionObserver(
       ([entry]) => {
         onScreen = entry?.isIntersecting ?? false;
+        setSceneVisible("smoke", SCENE_PRIORITY.smoke, onScreen);
         if (onScreen) play();
         else pause();
       },
@@ -147,6 +152,7 @@ export function SmokeBackground({ className, intensity = 0.9, scale = 1.6, quali
 
     return () => {
       pause();
+      setSceneVisible("smoke", SCENE_PRIORITY.smoke, false);
       intersection.disconnect();
       document.removeEventListener("visibilitychange", onVisibility);
       resizeObserver.disconnect();
