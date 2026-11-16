@@ -27,6 +27,11 @@ type PostCardProps = {
  * With a mouse (hover and a fine pointer, motion allowed), the card lifts, the cover drifts against the
  * pointer, a light sweep crosses it and a "Read" badge follows the pointer. PostCard.module.css holds
  * the effects; this component only tracks the pointer position in CSS variables.
+ *
+ * Keep every ancestor of the link between it and the <article> free of transform, translate, scale,
+ * filter and similar properties: any of them would become the containing block of the link's ::after,
+ * shrinking the clickable area to that ancestor (the cover would stop opening the post on hover). That is
+ * why the hover lift sits on each line of text (styles.lift), not on the text column.
  */
 export function PostCard({
   href,
