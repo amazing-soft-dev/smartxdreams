@@ -71,6 +71,60 @@
         "license": "Unsplash License"
       },
       "pending": true
+    },
+    {
+      "slot": "about-story",
+      "src": "/images/about/story.jpg",
+      "width": 2400,
+      "height": 1583,
+      "alt": "A tidy desk with a laptop, a second monitor, a keyboard and notebooks by a window",
+      "decorative": false,
+      "tint": "#b8b8b8",
+      "blurDataURL": "data:image/webp;base64,UklGRmgAAABXRUJQVlA4IFwAAABQAgCdASoQAAsAA4BaJYgC7AYwTvQYaVQ5tcAA/sRcAKGOfwgkBlC6WhMl1rxhNO6p3Qm+VBk58cyKs1XoNVDMlWs4ewPYRQHEMXWfyjRXk0idMQyzJb24pJAAAA==",
+      "credit": {
+        "photographer": "Huy Phan",
+        "profileUrl": "https://unsplash.com/@huyphan2602",
+        "photoUrl": "https://unsplash.com/photos/VXpeQ3GetDU",
+        "source": "unsplash",
+        "license": "Unsplash License"
+      },
+      "pending": true
+    },
+    {
+      "slot": "about-values",
+      "src": "/images/about/values.jpg",
+      "width": 2400,
+      "height": 1600,
+      "alt": "A hand pinning printed screen sketches to a planning board",
+      "decorative": false,
+      "tint": "#d8d8d8",
+      "blurDataURL": "data:image/webp;base64,UklGRk4AAABXRUJQVlA4IEIAAAAwAgCdASoQAAsAA4BaJQBdgCHwy34sl4uJAAD+A7eYGDXf2tbsYnlkxlqbu1ekQe95vVserP55BZQYAbZyZH8AAAA=",
+      "credit": {
+        "photographer": "Alvaro Reyes",
+        "profileUrl": "https://unsplash.com/@alvarordesign",
+        "photoUrl": "https://unsplash.com/photos/qWwpHwip31M",
+        "source": "unsplash",
+        "license": "Unsplash License"
+      },
+      "pending": true
+    },
+    {
+      "slot": "about-team",
+      "src": "/images/about/team.jpg",
+      "width": 2400,
+      "height": 1600,
+      "alt": "Two people sketching a page layout with markers on a whiteboard",
+      "decorative": false,
+      "tint": "#b8b8b8",
+      "blurDataURL": "data:image/webp;base64,UklGRl4AAABXRUJQVlA4IFIAAAAQAgCdASoQAAsAA4BaJZQAAp/H+JF54jeAAP6bdiZhc+FxWiGBtakniIJGgS16fcnxYTFtvn4MCx46D6OGZpIioqQ87sY6TZrH0g1QYXWplRwA",
+      "credit": {
+        "photographer": "Kaleidico",
+        "profileUrl": "https://unsplash.com/@kaleidico",
+        "photoUrl": "https://unsplash.com/photos/26MJGnCM0Wc",
+        "source": "unsplash",
+        "license": "Unsplash License"
+      },
+      "pending": true
     }
   ]
 }
