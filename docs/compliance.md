@@ -96,3 +96,24 @@ hero screen "Illustrative screen. <Product> is in development." (added in this r
 | "We never sell your data" (Home FAQ, product pages) | Launch | Consistent with the privacy policy. |
 | Stats section | OK | All values are null, so the section is hidden until a sourced number exists (src/content/stats.ts). |
 | Roadmap | OK | Only "Waitlists open" is marked "Now"; the rest is "Planned", with no dates. |
+
+## 2. Disclaimers verified
+
+Each rule from the plan's copy and safety rules, checked against the copy on 2026-11-16. Where a disclaimer
+is shown: product pages show it **in the hero** (beside the product's promise) and again in the "honest
+limits" section; the Terms page lists every product disclaimer under "Our products are not professional
+advice", read from the same field, so the wording cannot drift.
+
+| Rule | Where it is met | Result |
+|---|---|---|
+| ApplyPilot: the user always reviews before anything is submitted | Promise "Nothing is sent until you press submit"; limit "never submits an application for you"; feature "Review first, always"; blog post "check before you submit" | Pass |
+| ApplyPilot: no "100% automatic", no interview outcomes | No such wording anywhere; limit "It does not promise interviews or offers, and it does not write experience you do not have" | Pass |
+| ToothLedger: an estimate, not a guarantee of coverage | Every mention says "estimate"; limits "your insurer decides what it actually pays" and "cannot promise savings"; mockup "Not a guarantee" | Pass |
+| ToothLedger: not insurance, financial or dental advice | Disclaimer in the hero, limits, Terms; blog post says "general information, not advice" | Pass |
+| Kinly: scam detection reduces risk but is not a guarantee | Feature, limit and FAQ all say "cannot catch every scam" and what to do instead | Pass |
+| Kinly: does not replace medical, legal or financial professionals | Disclaimer in the hero and limits; FAQ "Does Kinly give medical or legal advice? No." | Pass |
+| Kinly: large type, high contrast, plain language | `readability: "large"` sets larger type and full-strength text on the page (at least 16:1); copy written at about US grade 5 | Pass |
+| TrustDraft: AI drafts, a person approves everything | Promise "A person approves every answer before it goes out"; limit; mockup "Export is locked until every answer is approved" | Pass |
+| TrustDraft: unsupported answers flagged, never invented | Feature "Flags instead of guesses"; limit "flags questions it cannot support instead of inventing answers" | Pass |
+| Job sources: brand names as text only, with the trademark note | JobAtlas names sources as plain text; the trademark note is in the JobAtlas footnote and in the site footer on every page; no third-party logos anywhere | Pass (wording itself flagged for Counsel in section 1) |
+| Not-advice wording on the blog | The dental and scam posts say they are general information and point to a professional or the company involved | Pass |
