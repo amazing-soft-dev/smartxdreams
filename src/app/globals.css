@@ -180,6 +180,41 @@
   }
 }
 
+/* History navigation (back/forward) uses a View Transitions cross-fade; see TransitionProvider.
+   Full page loads between pages of this site get the same cross-fade. */
+@view-transition {
+  navigation: auto;
+}
+
+@keyframes vt-fade-out {
+  to {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes vt-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
+
+::view-transition-old(root) {
+  animation: 220ms var(--ease-in-out-cubic) both vt-fade-out;
+}
+
+::view-transition-new(root) {
+  animation: 380ms var(--ease-out-quint) 60ms both vt-fade-in;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none;
+  }
+}
+
 @keyframes caret-blink {
   50% {
     opacity: 0;

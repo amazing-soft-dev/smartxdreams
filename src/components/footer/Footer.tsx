@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { TransitionLink } from "@/components/transition/TransitionLink";
 import { Container } from "@/components/ui/Container";
 import { Logo } from "@/components/ui/Logo";
 import { FooterSmoke } from "./FooterSmoke";
@@ -27,9 +27,9 @@ export function Footer() {
       <Container className="relative pt-20 pb-10 md:pt-24">
         <div className="grid gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)] lg:gap-16">
           <div className="max-w-sm">
-            <Link href="/" aria-label="SmartxDreams home" className="inline-flex rounded-md">
+            <TransitionLink href="/" aria-label="SmartxDreams home" className="inline-flex rounded-md">
               <Logo tone="light" height={30} decorative />
-            </Link>
+            </TransitionLink>
             <p className="mt-5 text-body text-white/65">{company.tagline}</p>
             <SocialIcons />
           </div>
@@ -41,12 +41,12 @@ export function Footer() {
                 <ul className="mt-4 flex flex-col gap-1">
                   {group.items.map((item) => (
                     <li key={item.href}>
-                      <Link
+                      <TransitionLink
                         href={item.href}
                         className="inline-flex min-h-10 items-center text-label text-white/65 transition-colors duration-250 ease-[var(--ease-standard)] hover:text-white"
                       >
                         {item.label}
-                      </Link>
+                      </TransitionLink>
                     </li>
                   ))}
                 </ul>
@@ -63,9 +63,9 @@ export function Footer() {
             <ul className="flex gap-5">
               {legalLinks.map((item) => (
                 <li key={item.href}>
-                  <Link href={item.href} className="inline-flex min-h-10 items-center transition-colors hover:text-white">
+                  <TransitionLink href={item.href} className="inline-flex min-h-10 items-center transition-colors hover:text-white">
                     {item.label}
-                  </Link>
+                  </TransitionLink>
                 </li>
               ))}
             </ul>
