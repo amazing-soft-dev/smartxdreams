@@ -128,6 +128,42 @@
         "license": "Unsplash License"
       },
       "pending": true
+    },
+    {
+      "slot": "product-jobatlas",
+      "src": "/images/products/jobatlas.jpg",
+      "width": 2400,
+      "height": 1600,
+      "alt": "Hands on a laptop keyboard at a wooden desk",
+      "decorative": false,
+      "tint": "#382818",
+      "blurDataURL": "data:image/webp;base64,UklGRmwAAABXRUJQVlA4IGAAAADQAQCdASoQAAsAA4BaJagCdADIb+VWYAD+6e1ES/mF7pGZXjTXXwAmxi9pwn5T/LMr1L7DgOqKmd+bXmXi4y/7XK7+vokP1Xfxd7dpzQPjvWPeHgjMZX79aSnVHmbcAAA=",
+      "credit": {
+        "photographer": "Christin Hume",
+        "profileUrl": "https://unsplash.com/@christinhumephoto",
+        "photoUrl": "https://unsplash.com/photos/Hcfwew744z4",
+        "source": "unsplash",
+        "license": "Unsplash License"
+      },
+      "pending": true
+    },
+    {
+      "slot": "product-applypilot",
+      "src": "/images/products/applypilot.jpg",
+      "width": 2400,
+      "height": 1600,
+      "alt": "Close-up of hands typing on a laptop",
+      "decorative": false,
+      "tint": "#080808",
+      "blurDataURL": "data:image/webp;base64,UklGRmYAAABXRUJQVlA4IFoAAAAwAgCdASoQAAsAA4BaJZQCw7YuvvqvGjYwQAD+7vPRAzB/9R9e0Tdg5JHVPPjgg6Dx77h10mTGMfr6Hw2vx8tuLDWqeRk18ep0wbVv0nNyUMza7dfCzQOqAAA=",
+      "credit": {
+        "photographer": "Kaitlyn Baker",
+        "profileUrl": "https://unsplash.com/@kaitlynbaker",
+        "photoUrl": "https://unsplash.com/photos/vZJdYl5JVXY",
+        "source": "unsplash",
+        "license": "Unsplash License"
+      },
+      "pending": true
     }
   ]
 }
