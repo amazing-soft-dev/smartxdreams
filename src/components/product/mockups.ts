@@ -1,10 +1,10 @@
 import type { ComponentType } from "react";
 import {
-  BillExplainerCard,
   QuestionnaireCard,
 } from "@/components/mockups/HeroCards";
 import { ApplyPilotMockup } from "@/components/mockups/ApplyPilotMockup";
 import { JobAtlasMockup } from "@/components/mockups/JobAtlasMockup";
+import { KinlyMockup } from "@/components/mockups/KinlyMockup";
 import { SiteLogMockup } from "@/components/mockups/SiteLogMockup";
 import { ToothLedgerMockup } from "@/components/mockups/ToothLedgerMockup";
 
@@ -14,6 +14,6 @@ export const productMockups: Record<string, ComponentType<{ className?: string }
   applypilot: ApplyPilotMockup,
   sitelog: SiteLogMockup,
   toothledger: ToothLedgerMockup,
-  kinly: BillExplainerCard,
+  kinly: KinlyMockup,
   trustdraft: QuestionnaireCard,
 };
