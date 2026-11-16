@@ -6,6 +6,9 @@ import imageConfig from "./src/lib/image-config.json";
 const isStaticExport = process.env.NEXT_OUTPUT === "export";
 
 const nextConfig: NextConfig = {
+  // API route handlers are named route.api.ts. Only the server build lists "api.ts" here, so the static
+  // export never sees them: no /api in out/, and no build error for handlers that need a server.
+  pageExtensions: isStaticExport ? ["tsx", "ts", "jsx", "js"] : ["tsx", "ts", "jsx", "js", "api.ts"],
   // React Compiler memoizes components automatically, so we avoid manual
   // useMemo/useCallback/memo calls in application code.
   reactCompiler: true,
