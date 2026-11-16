@@ -1,4 +1,5 @@
 import { Reveal } from "@/components/motion/Reveal";
+import { TransitionLink } from "@/components/transition/TransitionLink";
 import { Section } from "@/components/ui/Section";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { products } from "@/content/products";
@@ -37,6 +38,7 @@ export function ProductGrid() {
               <article
                 className={cx(
                   "group relative flex h-full min-h-64 flex-col rounded-[30px] p-7",
+                  "outline-offset-4 has-[a:focus-visible]:outline-2 has-[a:focus-visible]:outline-violet-500",
                   "transition-[translate,box-shadow] duration-500 ease-[var(--ease-out-quint)] hover:-translate-y-1.5 hover:shadow-card-hover",
                   tone.surface,
                 )}
@@ -47,7 +49,16 @@ export function ProductGrid() {
                   <span className={pill}>{product.status === "waitlist" ? "Waitlist open" : product.status === "beta" ? "Beta" : "Available"}</span>
                 </div>
                 <div className="flex items-start justify-between gap-4">
-                  <h3 className="text-h4">{product.name}</h3>
+                  <h3 className="text-h4">
+                    {/* The link covers the whole card through ::after, so the card is one link whose name is the
+                        product name; the focus ring is drawn on the card. */}
+                    <TransitionLink
+                      href={`/products/${product.slug}`}
+                      className="outline-none after:absolute after:inset-0 after:rounded-[30px]"
+                    >
+                      {product.name}
+                    </TransitionLink>
+                  </h3>
                   {/* Arrow tile: tilts and nudges on hover, like the site buttons. */}
                   <span
                     aria-hidden="true"
