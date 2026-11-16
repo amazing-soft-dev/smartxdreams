@@ -1,7 +1,8 @@
 version: 2
 
-# Weekly update pull requests. These branches are NOT opened or merged by the pipeline workflows:
-# a person merges or closes them.
+# Weekly update pull requests into dev. Dependabot opens them itself. After CI passes,
+# merge-passing-pr.yml merges each one into dev, and the dev -> main promotion carries it to main.
+# A Dependabot branch someone else has pushed to is left for a person. See docs/pipeline.md.
 updates:
   - package-ecosystem: npm
     directory: /

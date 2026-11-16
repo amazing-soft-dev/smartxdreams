@@ -2,8 +2,21 @@ name: Merge passing pull request
 
 # Starts only after the CI workflow finishes. If CI succeeded for a pull request, merge-commit it,
 # but only when its head is still the commit CI validated. Eligible pairs:
-#   <feat|fix|docs|ci|build>/<n>-<slug> -> dev, and dev -> main.
-# Anything else (Dependabot, forks, other bases) is left alone.
+#   <feat|fix|docs|ci|build>/<n>-<slug> -> dev, dependabot/* -> dev, and dev -> main.
+# A Dependabot pull request is eligible when both the pull request and the head commit CI validated
+# are dependabot[bot]'s: a branch someone else has pushed to is left for a person. Its merge into dev
+# pushes dev, which opens or updates dev -> main, so a passing update reaches main like any change.
+# Forks and other bases are left alone.
+#
+# Secrets: a workflow_run run is not a Dependabot-triggered run, even when the CI run before it was.
+# It reads the normal Actions secrets, so the one GH_TOKEN repository secret serves every pull
+# request, Dependabot's included. No Dependabot secret is needed.
+#
+# A dev commit is checked by two CI runs (the push to dev and the dev -> main pull request), and both
+# report "CI passed". The merge waits for both, so whichever finishes last does the merge: a
+# successful push run on dev is accepted too, and a merge refused while the other run is still in
+# progress is a skip, not a failure.
+#
 # NOTE: workflow_run workflows are read from the default branch (main), so this file has no effect
 # until it has been merged to main. See docs/pipeline.md.
 
@@ -20,8 +33,9 @@ jobs:
     name: Merge if eligible
     if: >-
       github.event.workflow_run.conclusion == 'success' &&
-      github.event.workflow_run.event == 'pull_request' &&
-      github.event.workflow_run.head_repository.full_name == github.repository
+      github.event.workflow_run.head_repository.full_name == github.repository &&
+      (github.event.workflow_run.event == 'pull_request' ||
+       (github.event.workflow_run.event == 'push' && github.event.workflow_run.head_branch == 'dev'))
     runs-on: ubuntu-latest
     concurrency:
       group: merge-${{ github.event.workflow_run.head_branch }}
@@ -42,8 +56,28 @@ jobs:
       - name: Merge the validated pull request
         run: |
           set -euo pipefail
+
+          # A Dependabot pull request: opened by dependabot[bot], and the head commit CI validated is
+          # dependabot[bot]'s too, so nobody else has pushed to the branch. Prints the reason when not.
+          dependabot_eligible() {
+            local author="$1" commit_author
+            if [ "$author" != "app/dependabot" ] && [ "$author" != "dependabot[bot]" ]; then
+              echo "opened by $author, not dependabot[bot]"; return 1
+            fi
+            commit_author=$(gh api "repos/$REPO/commits/$RUN_SHA" --jq '.author.login // ""')
+            if [ "$commit_author" != "dependabot[bot]" ]; then
+              echo "head commit $RUN_SHA is by '$commit_author', not dependabot[bot]"; return 1
+            fi
+          }
+
+          # "CI passed" check runs on the validated commit that have not finished yet.
+          pending_ci() {
+            gh api "repos/$REPO/commits/$RUN_SHA/check-runs?check_name=CI%20passed" \
+              --jq '[.check_runs[] | select(.status != "completed")] | length'
+          }
+
           prs=$(gh pr list --repo "$REPO" --head "$HEAD_BRANCH" --state open \
-                  --json number,baseRefName,headRefOid,isCrossRepository \
+                  --json number,baseRefName,headRefOid,isCrossRepository,author \
                   --jq '[.[] | select(.isCrossRepository == false)]')
           count=$(jq 'length' <<< "$prs")
           if [ "$count" -eq 0 ]; then
@@ -59,6 +93,15 @@ jobs:
             eligible=false
             if [ "$base" = dev ] && [[ "$HEAD_BRANCH" =~ ^(feat|fix|docs|ci|build)/[0-9]+-[A-Za-z0-9._-]+$ ]]; then eligible=true; fi
             if [ "$base" = main ] && [ "$HEAD_BRANCH" = dev ]; then eligible=true; fi
+            if [ "$base" = dev ] && [[ "$HEAD_BRANCH" == dependabot/* ]]; then
+              author=$(jq -r ".[$i].author.login" <<< "$prs")
+              if reason=$(dependabot_eligible "$author"); then
+                eligible=true
+              else
+                echo "::notice::#$number ($HEAD_BRANCH -> dev) is left for a person: $reason."
+                continue
+              fi
+            fi
             if [ "$eligible" != true ]; then
               echo "::notice::#$number ($HEAD_BRANCH -> $base) is not an eligible pair. Leaving it."
               continue
@@ -76,6 +119,12 @@ jobs:
               current=$(gh pr view "$number" --repo "$REPO" --json headRefOid --jq .headRefOid)
               if [ "$current" != "$RUN_SHA" ]; then
                 echo "::notice::#$number head moved to $current after CI validated $RUN_SHA. Not merging; the newer CI run will."
+                continue
+              fi
+              # The other CI run on this commit may still be going; the required check is then not
+              # yet green. That run's completion starts this workflow again and merges.
+              if [ "$(pending_ci)" -gt 0 ]; then
+                echo "::notice::#$number has another CI run in progress on $RUN_SHA. Its completion will merge."
                 continue
               fi
               echo "::error::Merging #$number failed at the validated head $RUN_SHA."
