@@ -124,3 +124,13 @@
     transform: translate(0, 0);
   }
 }
+
+/* Press feedback works on every pointer type: shrink on press, spring back on release. */
+.button {
+  transition: transform 420ms var(--ease-back);
+}
+
+.button:active {
+  transform: scale(0.96);
+  transition: transform 140ms ease-out;
+}
