@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { TransitionLink } from "@/components/transition/TransitionLink";
 import { usePathname } from "next/navigation";
 import { mainNav } from "@/content/site";
 import { cx } from "@/lib/cx";
@@ -29,7 +29,7 @@ export function DesktopNav({ theme }: DesktopNavProps) {
           const current = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
           return (
             <li key={item.href}>
-              <Link
+              <TransitionLink
                 href={item.href}
                 aria-current={current ? "page" : undefined}
                 className={cx(
@@ -44,7 +44,7 @@ export function DesktopNav({ theme }: DesktopNavProps) {
                 )}
               >
                 {item.label}
-              </Link>
+              </TransitionLink>
             </li>
           );
         })}
