@@ -1,10 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { ContactForm } from "@/components/forms/ContactForm";
 import { Reveal } from "@/components/motion/Reveal";
 import { Accent } from "@/components/ui/Accent";
 import { Card } from "@/components/ui/Card";
 import { Container } from "@/components/ui/Container";
 import { Glow } from "@/components/ui/Glow";
+import { Section } from "@/components/ui/Section";
+import { SectionHeader } from "@/components/ui/SectionHeader";
 import { Tag } from "@/components/ui/Tag";
 import { contact } from "@/content/contact";
 import { pageMetadata } from "@/lib/seo";
@@ -52,6 +55,21 @@ export default function ContactPage() {
           </ul>
         </Container>
       </section>
+
+      <Section id="contact-form" labelledBy="contact-form-title" surface="canvas" className="scroll-mt-20">
+        <div className="grid gap-10 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-16">
+          <SectionHeader
+            id="contact-form-title"
+            tag="Message"
+            title="Send us a *message*."
+            description="Every field is required. A person reads each message and replies by email."
+            align="left"
+          />
+          <Card padding="lg">
+            <ContactForm />
+          </Card>
+        </div>
+      </Section>
     </main>
   );
 }
