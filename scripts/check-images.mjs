@@ -5,8 +5,9 @@
 //    is registered ahead of the page that will use it: it may be unused, but not used (the page issue
 //    removes the flag when it starts using the photo).
 // 3. Nothing in src/ references /images/... directly (photos go through <Photo slot />).
+// 4. Masters stay within the size budget in src/lib/image-config.json (long side, KB per file, total MB).
 
-import { readdir, readFile } from "node:fs/promises";
+import { readdir, readFile, stat } from "node:fs/promises";
 import path from "node:path";
 import config from "../src/lib/image-config.json" with { type: "json" };
 import registry from "../src/content/photos.json" with { type: "json" };
@@ -82,11 +83,38 @@ for (const [slot, where] of uses) {
   if (where.length > 1) problems.push(`slot "${slot}" is used ${where.length} times (${where.join(", ")})`);
 }
 
+// 4. Size budget for masters (src/lib/image-config.json): long side, bytes per file, and total bytes.
+const budget = config.budget;
+let totalBytes = 0;
+let largest = { file: "", bytes: 0 };
+if (budget) {
+  const sharp = (await import("sharp")).default;
+  for (const file of files) {
+    const abs = path.join(root, "public", file);
+    const { size } = await stat(abs);
+    totalBytes += size;
+    if (size > largest.bytes) largest = { file, bytes: size };
+    const { width = 0, height = 0 } = await sharp(abs).metadata();
+    if (Math.max(width, height) > budget.maxLongSidePx) {
+      problems.push(`${file} is ${width}x${height}; resize so the long side is at most ${budget.maxLongSidePx} px`);
+    }
+    if (size > budget.maxMasterKB * 1024) {
+      problems.push(`${file} is ${Math.round(size / 1024)} KB; the budget is ${budget.maxMasterKB} KB per photo (re-export at quality ~80)`);
+    }
+  }
+  if (totalBytes > budget.maxTotalMB * 1024 * 1024) {
+    problems.push(`photos total ${(totalBytes / 1024 / 1024).toFixed(1)} MB; the budget is ${budget.maxTotalMB} MB`);
+  }
+}
+
 if (problems.length > 0) {
   console.error(`check:images failed (${files.length} photo file(s), ${entries.length} registry entr(ies)):`);
   for (const p of problems) console.error(`  - ${p}`);
   process.exit(1);
 }
+const sizes = budget
+  ? ` Masters ${(totalBytes / 1024 / 1024).toFixed(1)} of ${budget.maxTotalMB} MB; largest ${Math.round(largest.bytes / 1024)} of ${budget.maxMasterKB} KB.`
+  : "";
 console.log(
-  `check:images: ${files.length} photo(s), all credited; ${entries.length - pending.size} used exactly once, ${pending.size} pending their page.`,
+  `check:images: ${files.length} photo(s), all credited; ${entries.length - pending.size} used exactly once, ${pending.size} pending their page.${sizes}`,
 );
