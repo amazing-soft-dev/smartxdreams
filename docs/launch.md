@@ -53,3 +53,37 @@ confirmation links, and consent records to the team. All come from `CONTACT_FROM
      pressing Confirm shows "You are on the … waitlist"; the team inbox gets "[Waitlist] Confirmed: …".
    - Check that none of these land in spam (Gmail and Outlook), and that SPF and DKIM show "pass" in the
      message headers.
+
+## 3. DNS and domain
+
+1. **Choose the canonical host.** `www.example.com` or `example.com`; pick one and use it everywhere.
+2. **Add both hosts in Vercel** (Project Settings → Domains): the canonical one, and the other set to
+   **redirect (308)** to it.
+3. **Point DNS at Vercel** with the records Vercel shows for each host: an `A` record for the apex, or
+   `ALIAS`/`ANAME` if your provider supports it, and a `CNAME` for `www`. Remove old `A`/`AAAA` records for
+   those hosts. Lower the TTL a day ahead if you are moving from another host.
+4. **HTTPS:** Vercel issues and renews the certificate once DNS resolves. The site already sends
+   `Strict-Transport-Security: max-age=63072000; includeSubDomains`. Do not add `preload` or submit the
+   domain to the HSTS preload list until every subdomain serves HTTPS.
+5. **Set `NEXT_PUBLIC_SITE_URL`** to the canonical origin, for example `https://www.example.com`, and
+   **redeploy**.
+6. **Check the live site:**
+   - `https://<domain>/` loads over HTTPS; the other host and `http://` redirect to the canonical origin;
+     `/About` redirects to `/about` (308).
+   - The page source shows `<link rel="canonical">`, `og:url`, and JSON-LD URLs on the canonical origin.
+   - `/sitemap.xml`, `/robots.txt` (with the sitemap line), `/llms.txt` and `/blog/rss.xml` use the
+     canonical origin.
+   - The response headers include `Content-Security-Policy`, `X-Frame-Options: DENY` and
+     `Referrer-Policy`, and no `X-Powered-By`.
+   - A waitlist confirmation email links to the canonical origin.
+7. **Search engines:** verify the domain in Google Search Console and Bing Webmaster Tools (a DNS TXT
+   record), then submit `https://<domain>/sitemap.xml`.
+8. **Email DNS sanity:** if the root domain does not send email, publish `v=spf1 -all` on it, and keep a
+   DMARC record (section 2) so nobody can send as the domain.
+
+### If you host the static export instead
+
+`NEXT_OUTPUT=export npm run build` writes a plain site to `out/`. It has **no API routes**: the forms show
+that they cannot send. It also has no proxy and no redirects, and the host must add the security headers
+itself. Copy the headers from `src/lib/security-headers.ts` into the host's configuration (for example a
+`_headers` file) and add a lowercase redirect rule there too.
