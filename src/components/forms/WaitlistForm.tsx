@@ -220,7 +220,7 @@ export function WaitlistForm({ product, products = [] }: WaitlistFormProps) {
           Email address
         </label>
         <div
-          className={`mt-2 flex gap-2 rounded-[18px] bg-white/10 p-1.5 ring-white/15 focus-within:ring-violet-300 ${errors.email ? "ring-2 ring-coral-300" : "ring-1"}`}
+          className={`mt-2 flex gap-2 rounded-[18px] bg-white/10 p-1.5 ring-white/15 focus-within:ring-2 focus-within:ring-violet-300 ${errors.email ? "ring-2 ring-coral-300" : "ring-1"}`}
         >
           <input
             id={fieldId("email")}

@@ -68,7 +68,7 @@ export default async function BlogCategoryPage({ params }: CategoryPageProps) {
 
       <Section labelledBy="category-posts-title" surface="canvas">
         <nav aria-label="Blog categories">
-          <ul className="-mx-5 flex gap-2 overflow-x-auto px-5 pb-1 [scrollbar-width:none] md:mx-0 md:flex-wrap md:overflow-visible md:px-0">
+          <ul className="-mx-5 -mt-1.5 -mb-0.5 flex gap-2 overflow-x-auto px-5 pt-1.5 pb-1.5 [scrollbar-width:none] md:mx-0 md:flex-wrap md:overflow-visible md:px-0">
             <li className="shrink-0">
               <TransitionLink
                 href="/blog"
