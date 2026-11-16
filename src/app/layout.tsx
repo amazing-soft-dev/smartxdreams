@@ -39,6 +39,13 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <SmoothScroll>
           <MotionProvider>
             <TransitionProvider>
+              {/* First stop for keyboard and screen-reader users: jump past the header to the page content. */}
+              <a
+                href="#main"
+                className="fixed top-3 left-3 z-[200] inline-flex min-h-11 -translate-y-24 items-center rounded-full bg-ink px-5 text-label font-medium text-white shadow-tag focus:translate-y-0 focus:outline-violet-300"
+              >
+                Skip to content
+              </a>
               <Header />
               {children}
               <Footer />

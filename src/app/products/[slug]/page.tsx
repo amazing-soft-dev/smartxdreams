@@ -64,7 +64,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
   if (!product) notFound();
   return (
     // readability "large" switches the page to bigger, full-contrast text (see globals.css).
-    <main data-readable={product.readability ?? "standard"}>
+    <main id="main" tabIndex={-1} data-readable={product.readability ?? "standard"}>
       <JsonLd data={productJsonLd(product)} />
       <ProductHero product={product} Mockup={productMockups[product.slug]} />
       <ProductProblem product={product} />

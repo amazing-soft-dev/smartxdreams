@@ -26,14 +26,14 @@ export function ApplyPilotMockup({ className }: { className?: string }) {
           <span className="size-2 rounded-full bg-ink/15" />
           <span className="size-2 rounded-full bg-ink/15" />
         </span>
-        <span className="ml-2 flex-1 truncate rounded-md bg-white px-2.5 py-1 text-[0.6875rem] text-ink/55">careers.example.com/apply</span>
+        <span className="ml-2 flex-1 truncate rounded-md bg-white px-2.5 py-1 text-[0.6875rem] text-ink/65">careers.example.com/apply</span>
         <span className="rounded-md bg-violet-500 px-2 py-1 text-[0.6875rem] font-medium text-white">ApplyPilot</span>
       </div>
       <div className="flex flex-col gap-2.5 p-4 text-[0.75rem]">
         <p className="text-[0.8125rem] font-medium">Apply: Senior Analyst</p>
         {fields.map((f) => (
           <div key={f.label}>
-            <p className="flex justify-between text-ink/55">
+            <p className="flex justify-between text-ink/65">
               {f.label}
               <span className={f.value ? "text-violet-700" : "text-coral-700"}>{f.from}</span>
             </p>

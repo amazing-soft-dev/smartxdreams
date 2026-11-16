@@ -51,7 +51,7 @@ export default async function PostPage({ params }: PostPageProps) {
   const headings = extractHeadings(post.body);
   const toc = headings.length >= 3 ? headings : [];
   return (
-    <main>
+    <main id="main" tabIndex={-1}>
       <JsonLd data={blogPostingJsonLd(post)} />
       <ReadingProgress targetId="post-body" />
       <article aria-labelledby="post-title">
@@ -59,7 +59,7 @@ export default async function PostPage({ params }: PostPageProps) {
           <Container>
             <TransitionLink
               href="/blog"
-              className="inline-flex min-h-10 items-center gap-2 text-label font-medium text-ink/70 transition-colors hover:text-ink"
+              className="inline-flex min-h-11 items-center gap-2 text-label font-medium text-ink/70 transition-colors hover:text-ink"
             >
               <svg aria-hidden="true" viewBox="0 0 16 16" width="14" height="14" fill="none">
                 <path d="M13 8H3m4-4L3 8l4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
@@ -71,7 +71,7 @@ export default async function PostPage({ params }: PostPageProps) {
                 {post.draft ? <span className="rounded-full bg-coral-50 px-2.5 py-0.5 font-medium text-coral-900">Draft</span> : null}
                 <TransitionLink
                   href={`/blog/category/${category.id}`}
-                  className="font-medium text-coral-700 underline-offset-4 hover:underline"
+                  className="inline-flex min-h-11 items-center font-medium text-coral-700 underline-offset-4 hover:underline"
                 >
                   {category.label}
                 </TransitionLink>

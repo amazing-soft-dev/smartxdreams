@@ -49,7 +49,7 @@ export default async function BlogCategoryPage({ params }: CategoryPageProps) {
   const posts = listedPosts().filter((p) => p.category === category.id);
   const products = category.products.map((slug) => productBySlug(slug)).filter((p): p is Product => p !== undefined);
   return (
-    <main>
+    <main id="main" tabIndex={-1}>
       <section
         aria-labelledby="category-title"
         data-surface="dark"
@@ -68,7 +68,7 @@ export default async function BlogCategoryPage({ params }: CategoryPageProps) {
 
       <Section labelledBy="category-posts-title" surface="canvas">
         <nav aria-label="Blog categories">
-          <ul className="-mx-5 flex gap-2 overflow-x-auto px-5 pb-1 [scrollbar-width:none] md:mx-0 md:flex-wrap md:overflow-visible md:px-0">
+          <ul className="-mx-5 -mt-1.5 -mb-0.5 flex gap-2 overflow-x-auto px-5 pt-1.5 pb-1.5 [scrollbar-width:none] md:mx-0 md:flex-wrap md:overflow-visible md:px-0">
             <li className="shrink-0">
               <TransitionLink
                 href="/blog"
@@ -86,7 +86,7 @@ export default async function BlogCategoryPage({ params }: CategoryPageProps) {
                     aria-current={current ? "page" : undefined}
                     className={cx(
                       "inline-flex min-h-11 items-center rounded-tag px-4 text-label font-medium",
-                      current ? "bg-coral-500/12 text-coral-700" : "bg-white text-ink/80 shadow-tag hover:text-ink",
+                      current ? "bg-coral-500/12 text-coral-800" : "bg-white text-ink/80 shadow-tag hover:text-ink",
                     )}
                   >
                     {c.label}

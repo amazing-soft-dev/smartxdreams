@@ -33,7 +33,7 @@ const itemList = {
 /** /products: all six products, filterable by who they are for. */
 export default function ProductsPage() {
   return (
-    <main>
+    <main id="main" tabIndex={-1}>
       <JsonLd data={itemList} />
       <section
         aria-labelledby="products-title"
