@@ -51,6 +51,12 @@ export function ProductHero({ product, Mockup }: ProductProps & { Mockup?: Compo
               How it works
             </Button>
           </Reveal>
+          {/* Products that need one show their disclaimer right in the hero, not only further down. */}
+          {product.disclaimer ? (
+            <Reveal aboveFold delay={0.62}>
+              <p className="mt-6 max-w-xl text-label text-white/70">{product.disclaimer}</p>
+            </Reveal>
+          ) : null}
         </div>
         {Mockup ? (
           <Reveal aboveFold preset="waveUp" delay={0.4} className="mx-auto w-full max-w-md">

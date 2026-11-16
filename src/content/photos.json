@@ -195,8 +195,7 @@
         "photoUrl": "https://unsplash.com/photos/Vs6ip7fsld8",
         "source": "unsplash",
         "license": "Unsplash License"
-      },
-      "pending": true
+      }
     },
     {
       "slot": "product-kinly",
