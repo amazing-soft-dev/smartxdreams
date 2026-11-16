@@ -24,6 +24,10 @@ const serverSchema = z.object({
   CONTACT_FROM_EMAIL: z.string().min(3).optional(),
   /** Team inbox that receives contact form messages. */
   CONTACT_TO_EMAIL: z.email().optional(),
+  /** Signs waitlist confirmation links (HMAC-SHA256). At least 32 random characters, e.g. openssl rand -hex 32. */
+  WAITLIST_SECRET: z.string().min(32, "WAITLIST_SECRET must be at least 32 characters").optional(),
+  /** Optional Resend segment that confirmed waitlist contacts are added to. */
+  RESEND_WAITLIST_SEGMENT_ID: z.string().min(1).optional(),
   /** Vercel sets this to production, preview or development. */
   VERCEL_ENV: z.enum(["production", "preview", "development"]).optional(),
 });
@@ -57,6 +61,8 @@ export function serverEnv(): ServerEnv {
     RESEND_API_KEY: process.env.RESEND_API_KEY || undefined,
     CONTACT_FROM_EMAIL: process.env.CONTACT_FROM_EMAIL || undefined,
     CONTACT_TO_EMAIL: process.env.CONTACT_TO_EMAIL || undefined,
+    WAITLIST_SECRET: process.env.WAITLIST_SECRET || undefined,
+    RESEND_WAITLIST_SEGMENT_ID: process.env.RESEND_WAITLIST_SEGMENT_ID || undefined,
     VERCEL_ENV: process.env.VERCEL_ENV || undefined,
   });
   if (!parsed.success) {
