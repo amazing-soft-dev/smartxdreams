@@ -57,7 +57,6 @@ export default async function OpenGraphImage() {
               height: SYMBOL_HEIGHT,
             }}
           >
-            {/* eslint-disable-next-line @next/next/no-img-element -- rendered to a PNG by next/og, not the DOM */}
             <img
               src={symbol}
               alt=""
