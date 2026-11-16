@@ -178,8 +178,7 @@
         "photoUrl": "https://unsplash.com/photos/dSjrv4w1g1Q",
         "source": "unsplash",
         "license": "Unsplash License"
-      },
-      "pending": true
+      }
     },
     {
       "slot": "product-toothledger",
