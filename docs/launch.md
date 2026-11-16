@@ -112,8 +112,9 @@ itself. Copy the headers from `src/lib/security-headers.ts` into the host's conf
   the in-memory limits can be moved to a shared store if needed.
 - [ ] **Consent records:** waitlist "[Waitlist] Confirmed" emails are the consent record (docs/api.md).
   Keep them, or export them to a durable store, for as long as people stay on the lists.
-- [ ] **Dependabot:** review and merge its pull requests; CI (including the end-to-end and axe checks)
-  must pass first.
+- [ ] **Dependabot:** its weekly PRs merge into `dev` and then `main` automatically after CI (including
+  the end-to-end and axe checks). Skim the deployed site after a Monday batch, especially after a
+  major update.
 
 **Uptime:** add an external monitor (for example Better Stack, UptimeRobot or Checkly) for `/`, `/blog`
 and `/sitemap.xml`, alerting the team on two consecutive failures. Vercel has no built-in uptime alerts.
