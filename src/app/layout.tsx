@@ -5,9 +5,7 @@ import { Inter_Tight } from "next/font/google";
 import type { ReactNode } from "react";
 import { MotionProvider } from "@/components/motion/MotionProvider";
 import { SmoothScroll } from "@/components/motion/SmoothScroll";
-import { Header } from "@/components/nav/Header";
-import { JsonLd } from "@/components/seo/JsonLd";
-import { defaultMetadata, organizationJsonLd, websiteJsonLd } from "@/lib/seo";
+import { defaultMetadata } from "@/lib/seo";
 import "./globals.css";
 
 // Variable font: one file covers every weight. Exposed as a CSS variable for the @theme font stack.
@@ -21,7 +19,10 @@ const interTight = Inter_Tight({
 // local builds or the static export.
 const isProduction = process.env.VERCEL_ENV === "production";
 
-export const metadata: Metadata = defaultMetadata;
+export const metadata: Metadata = {
+  title: "SmartxDreams",
+  description: "SmartxDreams builds AI products for everyday work and life.",
+};
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
@@ -33,12 +34,8 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         </noscript>
       </head>
       <body>
-        <JsonLd data={[organizationJsonLd(), websiteJsonLd()]} />
         <SmoothScroll>
-          <MotionProvider>
-            <Header />
-            {children}
-          </MotionProvider>
+          <MotionProvider>{children}</MotionProvider>
         </SmoothScroll>
         {isProduction ? (
           <>
