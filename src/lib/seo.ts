@@ -55,3 +55,30 @@ export function pageMetadata({ title, description, path }: PageMetadataInput): M
     twitter: { card: "summary_large_image", title, description },
   };
 }
+
+/** schema.org Organization for SmartxDreams. */
+export function organizationJsonLd(): Record<string, unknown> {
+  return {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "@id": `${siteUrl}/#organization`,
+    name: company.name,
+    url: absoluteUrl("/"),
+    logo: absoluteUrl("/brand/logo-mark.png"),
+    description: company.description,
+  };
+}
+
+/** schema.org WebSite, linked to the Organization. */
+export function websiteJsonLd(): Record<string, unknown> {
+  return {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "@id": `${siteUrl}/#website`,
+    name: company.name,
+    url: absoluteUrl("/"),
+    description: company.tagline,
+    publisher: { "@id": `${siteUrl}/#organization` },
+    inLanguage: "en",
+  };
+}

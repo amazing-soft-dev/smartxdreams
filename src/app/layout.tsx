@@ -5,7 +5,8 @@ import { Inter_Tight } from "next/font/google";
 import type { ReactNode } from "react";
 import { MotionProvider } from "@/components/motion/MotionProvider";
 import { SmoothScroll } from "@/components/motion/SmoothScroll";
-import { defaultMetadata } from "@/lib/seo";
+import { JsonLd } from "@/components/seo/JsonLd";
+import { defaultMetadata, organizationJsonLd, websiteJsonLd } from "@/lib/seo";
 import "./globals.css";
 
 // Variable font: one file covers every weight. Exposed as a CSS variable for the @theme font stack.
@@ -31,6 +32,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         </noscript>
       </head>
       <body>
+        <JsonLd data={[organizationJsonLd(), websiteJsonLd()]} />
         <SmoothScroll>
           <MotionProvider>{children}</MotionProvider>
         </SmoothScroll>
