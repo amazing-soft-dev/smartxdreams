@@ -5,6 +5,7 @@ import { Inter_Tight } from "next/font/google";
 import type { ReactNode } from "react";
 import { MotionProvider } from "@/components/motion/MotionProvider";
 import { SmoothScroll } from "@/components/motion/SmoothScroll";
+import { Header } from "@/components/nav/Header";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { defaultMetadata, organizationJsonLd, websiteJsonLd } from "@/lib/seo";
 import "./globals.css";
@@ -34,7 +35,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <body>
         <JsonLd data={[organizationJsonLd(), websiteJsonLd()]} />
         <SmoothScroll>
-          <MotionProvider>{children}</MotionProvider>
+          <MotionProvider>
+            <Header />
+            {children}
+          </MotionProvider>
         </SmoothScroll>
         {isProduction ? (
           <>
