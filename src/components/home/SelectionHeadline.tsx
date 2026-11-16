@@ -98,7 +98,7 @@ export function SelectionHeadline({ text, targets, id, className }: SelectionHea
             <span key={pos} className={`absolute ${pos} size-2 rounded-[1px] border border-violet-300 bg-ink`} />
           ))}
           {label ? (
-            <span className="absolute top-[calc(100%+8px)] right-0 rounded-md bg-violet-300 px-2 py-1 font-mono text-micro leading-none font-semibold tracking-[0.04em] whitespace-nowrap text-ink">
+            <span className="absolute bottom-[calc(100%+6px)] left-[-1px] rounded-md bg-violet-300 px-2 py-1 font-mono text-micro leading-none font-semibold tracking-[0.04em] whitespace-nowrap text-ink">
               {label.kind} / {label.value}
             </span>
           ) : null}
