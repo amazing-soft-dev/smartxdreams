@@ -23,7 +23,7 @@ export function Footer() {
   return (
     <footer data-surface="dark" data-nav-theme="dark" className="relative isolate overflow-hidden bg-ink text-white">
       <Container className="relative pt-20 pb-10 md:pt-24">
-        <div className="grid gap-12">
+        <div className="grid gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)] lg:gap-16">
           <div className="max-w-sm">
             <Link href="/" aria-label="SmartxDreams home" className="inline-flex rounded-md">
               <Logo tone="light" height={30} decorative />
@@ -32,7 +32,7 @@ export function Footer() {
             <SocialIcons />
           </div>
 
-          <nav aria-label="Footer" className="grid gap-10">
+          <nav aria-label="Footer" className="grid grid-cols-2 gap-x-6 gap-y-10 sm:grid-cols-3">
             {groups.map((group) => (
               <div key={group.label}>
                 <h2 className="text-label font-medium text-white">{group.label}</h2>
