@@ -27,8 +27,16 @@ export async function POST(request: Request): Promise<Response> {
   // Bots get the same answer as people, and nothing is sent.
   if (spamVerdict(parsed.data)) return ok();
 
-  const teamInbox = emailTransport()?.teamInbox;
-  if (!teamInbox) return emailUnavailable();
+  // Without email settings (local builds, CI, previews without secrets) answer a safe 503 instead of failing
+  // later. The log names the missing settings, never anything the sender typed.
+  const transport = emailTransport();
+  const teamInbox = transport?.teamInbox;
+  if (!teamInbox) {
+    console.warn(
+      `[contact] email is not configured: set ${transport ? "CONTACT_TO_EMAIL" : "RESEND_API_KEY, CONTACT_FROM_EMAIL and CONTACT_TO_EMAIL"}`,
+    );
+    return emailUnavailable();
+  }
 
   // The message counts as delivered once it reaches the team inbox; if that fails, the sender is told to retry.
   const notified = await sendEmail({ to: teamInbox, purpose: "contact-notification", ...teamNotification(parsed.data, new Date()) });
