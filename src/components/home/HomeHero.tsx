@@ -37,7 +37,7 @@ export function HomeHero() {
           <Tag tone="dark">{company.tagline}</Tag>
         </Reveal>
         <Reveal aboveFold delay={0.4} className="w-full">
-          <SelectionHeadline id="home-hero-title" text={headline} targets={targets} className="mx-auto mt-6 max-w-4xl text-display" />
+          <SelectionHeadline id="home-hero-title" text={headline} targets={targets} className="mx-auto mt-10 max-w-4xl text-display" />
         </Reveal>
         <Reveal aboveFold delay={0.5}>
         <p className="mt-6 max-w-2xl text-body-l text-white/65">
