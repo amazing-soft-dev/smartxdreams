@@ -2,6 +2,7 @@
 
 import { type RefObject, useEffect } from "react";
 import { type Camera, type Scene, WebGLRenderer } from "three";
+import { isTopScene, setSceneVisible } from "./scene-budget";
 
 /** Highest device pixel ratio we render at; above this the extra pixels are not worth the GPU time. */
 export const MAX_SCENE_DPR = 1.75;
@@ -24,7 +25,12 @@ export type SceneHandle = {
  *
  * Only scene modules import this file, so three.js stays out of the main bundle.
  */
-export function useThreeRenderer(canvasRef: RefObject<HTMLCanvasElement | null>, setup: () => SceneHandle) {
+export function useThreeRenderer(
+  canvasRef: RefObject<HTMLCanvasElement | null>,
+  setup: () => SceneHandle,
+  /** Identity and priority in the shared scene budget (see scene-budget.ts). */
+  budget: { id: string; priority: number },
+) {
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -58,8 +64,11 @@ export function useThreeRenderer(canvasRef: RefObject<HTMLCanvasElement | null>,
       const delta = last ? Math.min((now - last) / 1000, 0.1) : 0;
       last = now;
       elapsed += delta;
-      handle.update?.(elapsed, delta);
-      renderer.render(handle.scene, handle.camera);
+      // Another visible scene outranks this one: keep the last frame and skip the GPU work.
+      if (isTopScene(budget.id)) {
+        handle.update?.(elapsed, delta);
+        renderer.render(handle.scene, handle.camera);
+      }
       frame = requestAnimationFrame(tick);
     };
     const play = () => {
@@ -74,6 +83,7 @@ export function useThreeRenderer(canvasRef: RefObject<HTMLCanvasElement | null>,
 
     const intersection = new IntersectionObserver(([entry]) => {
       onScreen = entry?.isIntersecting ?? false;
+      setSceneVisible(budget.id, budget.priority, onScreen);
       if (onScreen) play();
       else pause();
     });
@@ -83,6 +93,7 @@ export function useThreeRenderer(canvasRef: RefObject<HTMLCanvasElement | null>,
 
     return () => {
       pause();
+      setSceneVisible(budget.id, budget.priority, false);
       intersection.disconnect();
       resizeObserver.disconnect();
       document.removeEventListener("visibilitychange", onVisibility);

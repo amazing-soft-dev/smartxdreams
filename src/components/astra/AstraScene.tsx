@@ -14,6 +14,7 @@ import {
   Scene,
   ShaderMaterial,
 } from "three";
+import { SCENE_PRIORITY } from "@/components/webgl/scene-budget";
 import { MAX_SCENE_DPR, useThreeRenderer } from "@/components/webgl/useThreeRenderer";
 import { starFragmentShader, starVertexShader } from "./star-shader";
 import { getActiveProduct } from "./active-product";
@@ -119,7 +120,7 @@ export default function AstraScene() {
         material.dispose();
       },
     };
-  });
+  }, { id: "astra", priority: SCENE_PRIORITY.astra });
 
   return <canvas ref={canvasRef} className="absolute inset-0 size-full" />;
 }
