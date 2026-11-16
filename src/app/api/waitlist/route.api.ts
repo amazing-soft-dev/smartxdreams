@@ -4,6 +4,7 @@ import { clientIp, rateLimit } from "@/lib/api/rate-limit";
 import { waitlistRequestSchema } from "@/lib/api/schemas";
 import { spamVerdict } from "@/lib/api/spam";
 import { waitlistConfig } from "@/lib/api/waitlist-config";
+import { mayEmailSignup, normalizeEmail, recordSignupEmail } from "@/lib/api/waitlist-dedupe";
 import { confirmationEmail } from "@/lib/api/waitlist-emails";
 import { TOKEN_TTL_MS, createToken } from "@/lib/api/waitlist-token";
 
@@ -16,7 +17,8 @@ const LIMIT = { limit: 5, windowMs: 10 * 60_000 };
 /**
  * POST /api/waitlist: join one product's waitlist, with double opt-in. Nothing is stored here: the
  * person gets an email with a signed link, and only confirming it (POST /api/waitlist/confirm) puts them on
- * the list. The product must be one of the six slugs. Response format: docs/api.md.
+ * the list. The product must be one of the six slugs. A repeat sign-up gets the same answer; see
+ * waitlist-dedupe.ts. Response format: docs/api.md.
  */
 export async function POST(request: Request): Promise<Response> {
   const limit = rateLimit(`waitlist:${clientIp(request)}`, LIMIT);
@@ -30,7 +32,13 @@ export async function POST(request: Request): Promise<Response> {
   const config = waitlistConfig();
   if (!config) return emailUnavailable();
 
-  const { email, product, consentVersion } = parsed.data;
+  const { product, consentVersion } = parsed.data;
+  const email = normalizeEmail(parsed.data.email);
+
+  // Already emailed twice today for this product: answer exactly as if we sent another, so the response
+  // never reveals a previous sign-up, but do not send it.
+  if (!mayEmailSignup(email, product)) return ok();
+
   const now = Date.now();
   const token = createToken(config.secret, {
     e: email,
@@ -41,6 +49,7 @@ export async function POST(request: Request): Promise<Response> {
   });
   const sent = await sendEmail({ to: email, purpose: "waitlist-confirmation", ...confirmationEmail({ product, token }) });
   if (!sent.ok) return emailUnavailable();
+  recordSignupEmail(email, product);
 
   return ok();
 }

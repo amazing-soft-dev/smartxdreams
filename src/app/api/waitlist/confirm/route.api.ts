@@ -2,6 +2,7 @@ import { z } from "zod";
 import { emailUnavailable, fail, ok, rateLimited, readJson } from "@/lib/api/respond";
 import { clientIp, rateLimit } from "@/lib/api/rate-limit";
 import { waitlistConfig } from "@/lib/api/waitlist-config";
+import { firstConfirmation } from "@/lib/api/waitlist-dedupe";
 import { verifyToken } from "@/lib/api/waitlist-token";
 
 export const runtime = "nodejs";
@@ -31,6 +32,9 @@ export async function POST(request: Request): Promise<Response> {
       ? fail(410, "expired_token", "This link has expired. Join the waitlist again from the product page to get a new one.")
       : fail(400, "invalid_token", "This link is not valid. Check that you opened the whole link from the email.");
   }
+
+  // Confirming the same link again (double click, reopened email) is still a success, recorded only once.
+  if (!firstConfirmation(parsed.data.token, check.payload.exp)) return ok();
 
   return ok();
 }
