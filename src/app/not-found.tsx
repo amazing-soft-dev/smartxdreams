@@ -1,7 +1,18 @@
+import Link from "next/link";
 import { Glow } from "@/components/ui/Glow";
 import { Section } from "@/components/ui/Section";
 import { Tag } from "@/components/ui/Tag";
+import { products } from "@/content/products";
+import { mainNav } from "@/content/site";
+import type { NavItem } from "@/content/types";
 import { cx } from "@/lib/cx";
+
+/** Suggestions come from the site content: the main pages (except Home, which has its own button)
+ * followed by the products. Nothing is hard-coded here. */
+const suggestions: NavItem[] = [
+  ...mainNav.filter((item) => item.href !== "/"),
+  ...products.map((p) => ({ label: p.name, href: `/products/${p.slug}`, description: p.tagline })),
+];
 
 /** The three glass tiles, tilted alternately; the middle "0" glows coral. Decorative. */
 const tiles = [
@@ -41,6 +52,22 @@ export default function NotFound() {
         <p className="mt-4 max-w-md text-body-l text-white/65">
           The link may be old, or the page may have moved. Here are the places people usually look for.
         </p>
+
+        <nav aria-label="Suggested pages" className="mt-12 w-full max-w-3xl">
+          <ul className="grid gap-2 text-left sm:grid-cols-2">
+            {suggestions.map((item) => (
+              <li key={item.href}>
+                <Link
+                  href={item.href}
+                  className="flex h-full flex-col rounded-[18px] bg-white/[0.06] px-5 py-4 ring-1 ring-white/10 transition-colors duration-250 hover:bg-white/10"
+                >
+                  <span className="text-body-l text-white">{item.label}</span>
+                  {item.description ? <span className="mt-1 text-label text-white/65">{item.description}</span> : null}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </nav>
       </div>
     </Section>
   );
