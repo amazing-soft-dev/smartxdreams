@@ -70,5 +70,15 @@ jobs:
             fi
 
             echo "Merging #$number ($HEAD_BRANCH -> $base) as a merge commit at $RUN_SHA."
-            gh pr merge "$number" --repo "$REPO" --merge --match-head-commit "$RUN_SHA"
+            if ! gh pr merge "$number" --repo "$REPO" --merge --match-head-commit "$RUN_SHA"; then
+              # A push can land between the check above and the merge. GitHub then refuses the merge
+              # (--match-head-commit). That is the intended protection, so report a skip, not a failure.
+              current=$(gh pr view "$number" --repo "$REPO" --json headRefOid --jq .headRefOid)
+              if [ "$current" != "$RUN_SHA" ]; then
+                echo "::notice::#$number head moved to $current after CI validated $RUN_SHA. Not merging; the newer CI run will."
+                continue
+              fi
+              echo "::error::Merging #$number failed at the validated head $RUN_SHA."
+              exit 1
+            fi
           done
