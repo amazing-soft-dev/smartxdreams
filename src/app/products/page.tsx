@@ -1,4 +1,5 @@
-import { ProductsBrowser } from "@/components/products/ProductsBrowser";
+import { Suspense } from "react";
+import { ProductsBrowser, ProductsListFallback } from "@/components/products/ProductsBrowser";
 import { Container } from "@/components/ui/Container";
 import { Glow } from "@/components/ui/Glow";
 import { Section } from "@/components/ui/Section";
@@ -26,7 +27,10 @@ export default function ProductsPage() {
         </Container>
       </section>
       <Section labelledBy="products-title" surface="canvas">
-        <ProductsBrowser />
+        {/* The browser reads search params, so it renders inside Suspense; the fallback lists every product. */}
+        <Suspense fallback={<ProductsListFallback />}>
+          <ProductsBrowser />
+        </Suspense>
       </Section>
     </main>
   );
