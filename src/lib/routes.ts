@@ -13,16 +13,16 @@ export type SiteRoute = {
 
 const pages: SiteRoute[] = [
   { path: "/", ready: true, changeFrequency: "weekly", priority: 1 },
-  { path: "/products", ready: false, changeFrequency: "monthly", priority: 0.9 },
-  { path: "/about", ready: false, changeFrequency: "monthly", priority: 0.6 },
-  { path: "/blog", ready: false, changeFrequency: "weekly", priority: 0.7 },
-  { path: "/contact", ready: false, changeFrequency: "yearly", priority: 0.5 },
-  { path: "/privacy", ready: false, changeFrequency: "yearly", priority: 0.2 },
-  { path: "/terms", ready: false, changeFrequency: "yearly", priority: 0.2 },
+  { path: "/products", ready: true, changeFrequency: "monthly", priority: 0.9 },
+  { path: "/about", ready: true, changeFrequency: "monthly", priority: 0.6 },
+  { path: "/blog", ready: true, changeFrequency: "weekly", priority: 0.7 },
+  { path: "/contact", ready: true, changeFrequency: "yearly", priority: 0.5 },
+  { path: "/privacy", ready: true, changeFrequency: "yearly", priority: 0.2 },
+  { path: "/terms", ready: true, changeFrequency: "yearly", priority: 0.2 },
 ];
 
-/** Product pages exist once the product template lands (issue #34). */
-export const productPagesReady = false;
+/** Product pages exist since the product template landed (issue #34). */
+export const productPagesReady = true;
 
 const productRoutes = (): SiteRoute[] =>
   productSlugs().map((slug) => ({

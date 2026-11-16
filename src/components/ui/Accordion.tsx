@@ -31,9 +31,13 @@ export function Accordion({ items, defaultOpen = 0, multiple = false, tone = "li
     const last = triggers.length - 1;
     const target =
       event.key === "ArrowDown"
-        ? current === last ? 0 : current + 1
+        ? current === last
+          ? 0
+          : current + 1
         : event.key === "ArrowUp"
-          ? current === 0 ? last : current - 1
+          ? current === 0
+            ? last
+            : current - 1
           : event.key === "Home"
             ? 0
             : event.key === "End"
@@ -62,13 +66,7 @@ export function Accordion({ items, defaultOpen = 0, multiple = false, tone = "li
             key={item.question}
             className={cx(
               "rounded-[20px] transition-colors duration-300",
-              tone === "light"
-                ? isOpen
-                  ? "bg-white shadow-tag"
-                  : "bg-ink/[0.05]"
-                : isOpen
-                  ? "bg-white/12"
-                  : "bg-white/[0.06]",
+              tone === "light" ? (isOpen ? "bg-white shadow-tag" : "bg-ink/[0.05]") : isOpen ? "bg-white/12" : "bg-white/[0.06]",
             )}
           >
             <h3>
@@ -115,7 +113,7 @@ function PlusIcon({ open, tone }: { open: boolean; tone: "light" | "dark" }) {
     <span
       aria-hidden="true"
       className={cx(
-        "relative inline-flex size-8 shrink-0 items-center justify-center rounded-full transition-transform duration-300 ease-[var(--ease-back)] hover:scale-108",
+        "relative inline-flex size-8 shrink-0 items-center justify-center rounded-full transition-transform duration-300 ease-[var(--ease-back)] hover:scale-108 motion-reduce:hover:scale-100",
         tone === "light" ? "bg-ink text-white" : "bg-white text-ink",
       )}
     >

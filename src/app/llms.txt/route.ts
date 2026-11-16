@@ -1,4 +1,5 @@
 import { products } from "@/content/products";
+import { publishedPosts } from "@/lib/blog/posts";
 import { audienceLabel } from "@/content/selectors";
 import { company } from "@/content/site";
 import { productPagesReady, readyRoutes } from "@/lib/routes";
@@ -34,6 +35,11 @@ export function GET() {
     ...readyRoutes()
       .filter((r) => !r.path.startsWith("/products/"))
       .map((r) => `- ${absoluteUrl(r.path)}`),
+    "",
+    "## Blog",
+    "",
+    ...publishedPosts().map((p) => `- [${p.title}](${absoluteUrl(`/blog/${p.slug}`)}): ${p.description}`),
+    `- RSS: ${absoluteUrl("/blog/rss.xml")}`,
     "",
   ];
   return new Response(lines.join("\n"), {

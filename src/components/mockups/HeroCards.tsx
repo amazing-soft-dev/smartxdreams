@@ -35,7 +35,7 @@ export function JobFeedCard({ className }: { className?: string }) {
       {jobs.map((job) => (
         <div key={job.role} className="rounded-xl bg-canvas px-3 py-2">
           <p className="font-medium">{job.role}</p>
-          <p className="text-ink/55">{job.company}</p>
+          <p className="text-ink/65">{job.company}</p>
           <div className="mt-1.5 flex flex-wrap gap-1">
             {job.sources.map((s) => (
               <Chip key={s}>{s}</Chip>
@@ -59,7 +59,7 @@ export function AutofillCard({ className }: { className?: string }) {
     <MockupFrame title="ApplyPilot" caption="Filling 3 of 9" className={className}>
       {fields.map((f) => (
         <div key={f.label}>
-          <p className="text-ink/55">{f.label}</p>
+          <p className="text-ink/65">{f.label}</p>
           <p className="mt-0.5 flex items-center justify-between rounded-lg border border-violet-200 bg-violet-50/60 px-2.5 py-1.5">
             {f.value}
             <span className="text-violet-600">✓</span>
@@ -85,7 +85,7 @@ export function SiteReportCard({ className }: { className?: string }) {
       ].map((row) => (
         <div key={row.area}>
           <p className="mb-1 flex justify-between">
-            {row.area} <span className="text-ink/55">{row.value}%</span>
+            {row.area} <span className="text-ink/65">{row.value}%</span>
           </p>
           <Bar value={row.value} />
         </div>
@@ -99,19 +99,19 @@ export function SiteReportCard({ className }: { className?: string }) {
 export function CostBarCard({ className }: { className?: string }) {
   return (
     <MockupFrame title="ToothLedger" caption="Estimate" className={className}>
-      <p className="text-ink/55">You pay (estimate)</p>
+      <p className="text-ink/65">You pay (estimate)</p>
       <p className="text-[1.375rem] leading-none font-medium">$412</p>
       <span className="flex h-2.5 overflow-hidden rounded-full">
         <span className="bg-violet-500" style={{ width: "64%" }} />
         <span className="bg-coral-500" style={{ width: "36%" }} />
       </span>
-      <p className="flex justify-between text-ink/55">
+      <p className="flex justify-between text-ink/65">
         <span>Plan pays $738</span>
         <span>You $412</span>
       </p>
       <div>
         <p className="mb-1 flex justify-between">
-          Yearly limit left <span className="text-ink/55">$262 of $1,000</span>
+          Yearly limit left <span className="text-ink/65">$262 of $1,000</span>
         </p>
         <Bar value={26} tone="coral" />
       </div>

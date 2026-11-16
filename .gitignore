@@ -157,3 +157,9 @@ public/_img/
 
 # Claude
 .claude/
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/

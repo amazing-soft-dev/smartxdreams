@@ -35,7 +35,7 @@ export function MockupFrame({ title, caption, children, className, tone = "light
         </span>
         <span className="ml-1 text-[0.8125rem] font-medium">{title}</span>
         {caption ? (
-          <span className={cx("ml-auto truncate text-[0.6875rem]", dark ? "text-white/55" : "text-ink/50")}>{caption}</span>
+          <span className={cx("ml-auto truncate text-[0.6875rem]", dark ? "text-white/55" : "text-ink/65")}>{caption}</span>
         ) : null}
       </div>
       <div className="flex flex-1 flex-col gap-2.5 p-4 text-[0.75rem] leading-snug">{children}</div>
