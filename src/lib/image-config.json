@@ -1,0 +1,9 @@
+{
+  "sourceDir": "public/images",
+  "sourcePublicPath": "/images",
+  "outputDir": "public/_img",
+  "outputPublicPath": "/_img",
+  "widths": [640, 1024, 1600, 2400],
+  "quality": 78,
+  "extensions": [".jpg", ".jpeg", ".png", ".webp"]
+}

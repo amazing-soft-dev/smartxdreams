@@ -67,8 +67,8 @@ jobs:
       - run: npm ci
       - run: npm run lint
       - run: npm run typecheck
-      # Each photo must be used exactly once. --if-present until the script lands in issue #2.
-      - run: npm run --if-present check:images
+      # Each photo in public/images must be used exactly once.
+      - run: npm run check:images
 
   build:
     name: Build (${{ matrix.target }})
@@ -91,14 +91,14 @@ jobs:
       - run: npm ci
       - name: Build responsive WebP images (static only)
         if: matrix.target == 'static'
-        run: npm run --if-present images
+        run: npm run images
       - run: npm run build
       - name: Verify static output (static only)
         if: matrix.target == 'static'
         run: |
-          # --if-present until verify:out lands in issue #2. The script checks the expected HTML,
-          # sitemap, icons and image files, and that out/api does not exist.
-          npm run --if-present verify:out
+          # Checks the expected HTML, sitemap, icons, public assets and image variants, and that
+          # out/api does not exist.
+          npm run verify:out
           if [ -d out/api ]; then echo "::error::out/api must not exist in the static export"; exit 1; fi
 
   passed:
