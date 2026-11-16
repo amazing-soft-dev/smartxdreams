@@ -5,6 +5,7 @@ import { Inter_Tight } from "next/font/google";
 import type { ReactNode } from "react";
 import { MotionProvider } from "@/components/motion/MotionProvider";
 import { SmoothScroll } from "@/components/motion/SmoothScroll";
+import { Footer } from "@/components/footer/Footer";
 import { Header } from "@/components/nav/Header";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { defaultMetadata, organizationJsonLd, websiteJsonLd } from "@/lib/seo";
@@ -38,6 +39,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           <MotionProvider>
             <Header />
             {children}
+            <Footer />
           </MotionProvider>
         </SmoothScroll>
         {isProduction ? (

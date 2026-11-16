@@ -90,3 +90,11 @@ export const companyFaq: Faq[] = [
       "No. Some products explain bills, insurance plans or letters in plain words, but they do not replace a professional. When something matters, check with your dentist, insurer, lawyer or bank.",
   },
 ];
+
+export type SocialNetwork = "linkedin" | "x" | "github" | "youtube";
+
+/**
+ * Company social profiles. Empty until the real URLs exist; the footer shows no social icons while this
+ * list is empty, so the site never links to a placeholder profile.
+ */
+export const socialLinks: { network: SocialNetwork; href: string }[] = [];
