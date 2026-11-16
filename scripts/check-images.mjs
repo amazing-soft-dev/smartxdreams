@@ -1,16 +1,20 @@
-// Checks that every photo in public/images is used exactly once in the source, and that the source
-// does not reference a photo that does not exist. A photo is "used" when its public path
-// (/images/<path>) appears in a file under src/. Passes when there are no photos.
+// Checks the photo rules (see docs/images.md). Passes when there are no photos.
+// 1. Every photo file in public/images has exactly one registry entry (src/content/photos.json) with a
+//    credit from Unsplash or Pexels, and every entry points to a file that exists.
+// 2. Every registered slot is used exactly once in src/, as slot="<id>".
+// 3. Nothing in src/ references /images/... directly (photos go through <Photo slot />).
 
 import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
 import config from "../src/lib/image-config.json" with { type: "json" };
+import registry from "../src/content/photos.json" with { type: "json" };
 
 const root = path.resolve(import.meta.dirname, "..");
 const sourceDir = path.join(root, config.sourceDir);
 const srcDir = path.join(root, "src");
+const registryFile = path.join(root, "src", "content", "photos.json");
 const scanExtensions = new Set([".ts", ".tsx", ".js", ".jsx", ".mjs", ".md", ".mdx", ".json", ".css"]);
-const configFile = path.join(root, "src", "lib", "image-config.json");
+const licenses = { unsplash: "Unsplash License", pexels: "Pexels License" };
 
 async function walk(dir, keep) {
   try {
@@ -25,35 +29,54 @@ async function walk(dir, keep) {
 const toPublicPath = (file) =>
   `${config.sourcePublicPath}/${path.relative(sourceDir, file).split(path.sep).join("/")}`;
 
-const photos = (await walk(sourceDir, (n) => config.extensions.includes(path.extname(n).toLowerCase()))).map(
+const files = (await walk(sourceDir, (n) => config.extensions.includes(path.extname(n).toLowerCase()))).map(
   toPublicPath,
 );
-const sources = (await walk(srcDir, (n) => scanExtensions.has(path.extname(n)))).filter((f) => f !== configFile);
+const entries = registry.photos ?? [];
+const problems = [];
 
-const uses = new Map(photos.map((p) => [p, []]));
-const missing = [];
-const escaped = config.sourcePublicPath.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-const reference = new RegExp(`${escaped}/[A-Za-z0-9._/-]+\\.(?:jpe?g|png|webp)`, "gi");
-
-for (const file of sources) {
-  const text = await readFile(file, "utf8");
-  for (const match of text.matchAll(reference)) {
-    const where = path.relative(root, file);
-    if (uses.has(match[0])) uses.get(match[0]).push(where);
-    else missing.push(`${match[0]} (in ${where})`);
+// 1. Files and registry entries match one to one, with valid credits.
+for (const file of files) {
+  const matches = entries.filter((e) => e.src === file);
+  if (matches.length === 0) problems.push(`no registry entry (and no credit) for ${file}`);
+  if (matches.length > 1) problems.push(`${file} is registered ${matches.length} times`);
+}
+const slots = new Set();
+for (const entry of entries) {
+  if (!files.includes(entry.src)) problems.push(`slot "${entry.slot}" points to a missing file: ${entry.src}`);
+  if (slots.has(entry.slot)) problems.push(`slot "${entry.slot}" is registered more than once`);
+  slots.add(entry.slot);
+  const c = entry.credit ?? {};
+  if (!c.photographer || !c.profileUrl || !c.photoUrl) problems.push(`slot "${entry.slot}" has an incomplete credit`);
+  if (licenses[c.source] !== c.license) {
+    problems.push(`slot "${entry.slot}" must be from Unsplash or Pexels under its own license (got ${c.source} / ${c.license})`);
   }
 }
 
-const problems = [];
-for (const [photo, files] of uses) {
-  if (files.length === 0) problems.push(`unused: ${photo}`);
-  if (files.length > 1) problems.push(`used ${files.length} times: ${photo} (${files.join(", ")})`);
+// 2 and 3. Scan src/ (except the registry) for slot uses and direct /images references.
+const sources = (await walk(srcDir, (n) => scanExtensions.has(path.extname(n)))).filter((f) => f !== registryFile);
+const uses = new Map(entries.map((e) => [e.slot, []]));
+const escaped = config.sourcePublicPath.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+const direct = new RegExp(`${escaped}/[A-Za-z0-9._/-]+\\.(?:jpe?g|png|webp)`, "gi");
+const slotUse = /\bslot=["']([a-z0-9-]+)["']/g;
+
+for (const file of sources) {
+  const text = await readFile(file, "utf8");
+  const where = path.relative(root, file);
+  for (const match of text.matchAll(direct)) problems.push(`direct reference ${match[0]} in ${where}; use <Photo slot />`);
+  for (const match of text.matchAll(slotUse)) {
+    if (uses.has(match[1])) uses.get(match[1]).push(where);
+    else problems.push(`unknown slot "${match[1]}" in ${where}`);
+  }
 }
-for (const m of missing) problems.push(`missing file: ${m}`);
+for (const [slot, where] of uses) {
+  if (where.length === 0) problems.push(`slot "${slot}" is never used`);
+  if (where.length > 1) problems.push(`slot "${slot}" is used ${where.length} times (${where.join(", ")})`);
+}
 
 if (problems.length > 0) {
-  console.error(`check:images failed (${photos.length} photo(s)):`);
+  console.error(`check:images failed (${files.length} photo file(s), ${entries.length} registry entr(ies)):`);
   for (const p of problems) console.error(`  - ${p}`);
   process.exit(1);
 }
-console.log(`check:images: ${photos.length} photo(s), each used exactly once.`);
+console.log(`check:images: ${files.length} photo(s), each credited and used exactly once.`);
