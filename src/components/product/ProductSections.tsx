@@ -3,6 +3,8 @@ import { WaitlistInline } from "@/components/forms/WaitlistInline";
 import { Reveal } from "@/components/motion/Reveal";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { Photo } from "@/components/ui/Photo";
+import { FaqSection } from "@/components/sections/FaqSection";
 import { Container } from "@/components/ui/Container";
 import { Glow } from "@/components/ui/Glow";
 import { Section } from "@/components/ui/Section";
@@ -127,6 +129,11 @@ export function ProductLimits({ product }: ProductProps) {
     <Section labelledBy="limits-title" surface="white">
       <div className="grid gap-12 lg:grid-cols-2">
         <div>
+          {product.photo ? (
+            <div className="relative mb-8 aspect-[16/10] overflow-hidden rounded-[30px]">
+              <Photo slot={product.photo.slot} fill sizes="(min-width: 1024px) 45vw, 100vw" />
+            </div>
+          ) : null}
           <Tag>Who it is for</Tag>
           <ul className="mt-6 flex flex-col gap-3">
             {product.whoFor.map((who) => (
@@ -156,6 +163,7 @@ export function ProductLimits({ product }: ProductProps) {
               {product.disclaimer}
             </p>
           ) : null}
+          {product.footnote ? <p className="mt-6 text-micro text-ink/65">{product.footnote}</p> : null}
         </div>
       </div>
     </Section>
@@ -182,4 +190,10 @@ export function ProductWaitlist({ product }: ProductProps) {
       </div>
     </Section>
   );
+}
+
+/** Product questions, with FAQPage JSON-LD. Renders nothing until the product has FAQs. */
+export function ProductFaq({ product }: ProductProps) {
+  if (product.faq.length === 0) return null;
+  return <FaqSection id="product-faq" items={product.faq} title={`${product.name} *questions.*`} />;
 }

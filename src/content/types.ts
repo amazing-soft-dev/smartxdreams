@@ -58,6 +58,10 @@ export type Product = {
   faq: Faq[];
   /** Legal or safety note shown near the call to action, when the product needs one. */
   disclaimer?: string;
+  /** Small print under the limits, such as the third-party trademark note. */
+  footnote?: string;
+  /** Photo for the "who it is for" section, by registry slot (src/content/photos.json). */
+  photo?: { slot: string };
   /** Slugs of related products. */
   related: string[];
   seo: {
