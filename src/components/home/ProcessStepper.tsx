@@ -1,6 +1,6 @@
 "use client";
 
-import { useMotionValueEvent, useScroll } from "motion/react";
+import { motion, useMotionValueEvent, useScroll, useSpring } from "motion/react";
 import { useRef, useState } from "react";
 import { Container } from "@/components/ui/Container";
 import { SectionHeader } from "@/components/ui/SectionHeader";
@@ -15,6 +15,8 @@ export function ProcessStepper() {
   const section = useRef<HTMLElement>(null);
   // Progress through the tall section, 0 at its top and 1 when its bottom reaches the viewport bottom.
   const { scrollYProgress } = useScroll({ target: section, offset: ["start start", "end end"] });
+  // The rail follows progress through a spring, which smooths wheel steps into a continuous fill.
+  const rail = useSpring(scrollYProgress, { stiffness: 140, damping: 30, mass: 0.4 });
   const [active, setActive] = useState(0);
   useMotionValueEvent(scrollYProgress, "change", (p) => {
     const next = Math.min(processSteps.length - 1, Math.floor(p * processSteps.length));
@@ -38,7 +40,11 @@ export function ProcessStepper() {
             align="left"
           />
           <div className="mt-12 grid gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] lg:gap-16">
-            <ol className="relative flex flex-col gap-1">
+            <ol className="relative flex flex-col gap-1 lg:pl-8">
+              {/* Coral progress rail (desktop): a faint track with a fill that grows from the top. */}
+              <span aria-hidden="true" className="absolute top-0 bottom-0 left-0 hidden w-[1.5px] rounded-full bg-ink/10 lg:block">
+                <motion.span className="block h-full w-full origin-top rounded-full bg-coral-500" style={{ scaleY: rail }} />
+              </span>
               {processSteps.map((step, i) => (
                 <li
                   key={step.title}
@@ -46,7 +52,7 @@ export function ProcessStepper() {
                   className={cx("py-4 transition-opacity duration-500 lg:opacity-55 lg:aria-[current=step]:opacity-100")}
                 >
                   <h3 className="text-h5">
-                    <span className="mr-3 font-mono text-micro text-ink/60">{String(i + 1).padStart(2, "0")}</span>
+                    <span className="mr-3 font-mono text-micro text-ink/70">{String(i + 1).padStart(2, "0")}</span>
                     {step.title}
                   </h3>
                   {/* On desktop only the active step shows its detail; it opens with a height transition. */}
