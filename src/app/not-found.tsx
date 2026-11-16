@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { DidYouMean } from "@/components/not-found/DidYouMean";
 import { Button } from "@/components/ui/Button";
 import { Glow } from "@/components/ui/Glow";
 import { Photo } from "@/components/ui/Photo";
@@ -8,13 +9,23 @@ import { Tag } from "@/components/ui/Tag";
 import { products } from "@/content/products";
 import { mainNav } from "@/content/site";
 import type { NavItem } from "@/content/types";
+import { blogCategories } from "@/content/blog/categories";
+import { allPosts } from "@/lib/blog/posts";
 import { cx } from "@/lib/cx";
+import { readyRoutes } from "@/lib/routes";
 
 /** Suggestions come from the site content: the main pages (except Home, which has its own button)
  * followed by the products. Nothing is hard-coded here. */
 const suggestions: NavItem[] = [
   ...mainNav.filter((item) => item.href !== "/"),
   ...products.map((p) => ({ label: p.name, href: `/products/${p.slug}`, description: p.tagline })),
+];
+
+/** Every real page, for the "Did you mean" suggestion: site routes, posts and blog categories. */
+const knownPaths = [
+  ...readyRoutes().map((r) => r.path),
+  ...allPosts().map((p) => `/blog/${p.slug}`),
+  ...blogCategories.map((c) => `/blog/category/${c.id}`),
 ];
 
 // Next.js serves this page with HTTP 404 (and writes out/404.html in the static export). It should
@@ -68,6 +79,7 @@ export default function NotFound() {
         <p className="mt-4 max-w-md text-body-l text-white/65">
           The link may be old, or the page may have moved. Here are the places people usually look for.
         </p>
+        <DidYouMean paths={knownPaths} />
 
         <div className="mt-8 flex flex-wrap justify-center gap-3">
           <Button href="/" variant="coral">
