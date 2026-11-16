@@ -51,7 +51,7 @@
     filter: blur(4px);
   }
   to {
-    max-width: 1ch;
+    max-width: 1em;
     opacity: 1;
     filter: blur(0);
   }
