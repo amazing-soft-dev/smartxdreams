@@ -154,3 +154,9 @@ next-env.d.ts
 
 # Generated responsive WebP variants (npm run images)
 public/_img/
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
