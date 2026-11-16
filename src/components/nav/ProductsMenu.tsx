@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useId, useRef, useState } from "react";
+import { type KeyboardEvent, useEffect, useId, useRef, useState } from "react";
 import { products } from "@/content/products";
 import { audienceLabel } from "@/content/selectors";
 import { cx } from "@/lib/cx";
@@ -43,11 +43,55 @@ export function ProductsMenu({ theme }: ProductsMenuProps) {
 
   useEffect(() => cancelClose, []);
 
+  const rootRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const items = () => Array.from(rootRef.current?.querySelectorAll<HTMLAnchorElement>("[data-menu-item]") ?? []);
+
+  // Keyboard: Arrow Down on the button opens the menu and focuses the first product; arrows move
+  // between products (wrapping); Home and End jump; Escape closes and returns focus to the button.
+  const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === "Escape" && open) {
+      event.preventDefault();
+      setOpen(false);
+      buttonRef.current?.focus();
+      return;
+    }
+    const list = items();
+    const index = list.indexOf(document.activeElement as HTMLAnchorElement);
+    if (event.target === buttonRef.current && event.key === "ArrowDown") {
+      event.preventDefault();
+      setOpen(true);
+      requestAnimationFrame(() => items()[0]?.focus());
+      return;
+    }
+    if (index < 0) return;
+    const last = list.length - 1;
+    const next =
+      event.key === "ArrowDown" || event.key === "ArrowRight"
+        ? (index === last ? 0 : index + 1)
+        : event.key === "ArrowUp" || event.key === "ArrowLeft"
+          ? (index === 0 ? last : index - 1)
+          : event.key === "Home"
+            ? 0
+            : event.key === "End"
+              ? last
+              : -1;
+    if (next < 0) return;
+    event.preventDefault();
+    list[next]?.focus();
+  };
+
   const highlighted = products[active] ?? products[0];
 
   return (
     <div
+      ref={rootRef}
       className="relative"
+      onKeyDown={onKeyDown}
+      // Tabbing out of the menu closes it.
+      onBlur={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setOpen(false);
+      }}
       onPointerEnter={(e) => {
         if (e.pointerType !== "mouse") return;
         cancelClose();
@@ -58,6 +102,7 @@ export function ProductsMenu({ theme }: ProductsMenuProps) {
       }}
     >
       <button
+        ref={buttonRef}
         type="button"
         aria-expanded={open}
         aria-controls={panelId}
