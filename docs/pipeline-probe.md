@@ -12,3 +12,5 @@ This file exists only to give the pipeline a doc-only change to carry end to end
 6. GitHub closes #68 by itself.
 
 No human step is involved. If any step needs a person, the pipeline is broken and a `ci/` fix issue is opened.
+
+- Race probe step 1 (00:57:15 UTC)
