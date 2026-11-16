@@ -1,3 +1,4 @@
+import { Reveal } from "@/components/motion/Reveal";
 import { Container } from "@/components/ui/Container";
 import { Glow } from "@/components/ui/Glow";
 import { Tag } from "@/components/ui/Tag";
@@ -28,12 +29,18 @@ export function HomeHero() {
       <Glow color="violet" size={1100} opacity={0.45} className="-top-1/3 left-1/2 -translate-x-1/2" />
       <Glow color="coral" size={700} opacity={0.3} className="-bottom-1/3 left-[15%]" />
       <Container className="flex flex-col items-center text-center">
-        <Tag tone="dark">{company.tagline}</Tag>
-        <SelectionHeadline id="home-hero-title" text={headline} targets={targets} className="mt-6 max-w-4xl text-display" />
+        <Reveal aboveFold preset="left60" delay={0.2}>
+          <Tag tone="dark">{company.tagline}</Tag>
+        </Reveal>
+        <Reveal aboveFold delay={0.4} className="w-full">
+          <SelectionHeadline id="home-hero-title" text={headline} targets={targets} className="mx-auto mt-6 max-w-4xl text-display" />
+        </Reveal>
+        <Reveal aboveFold delay={0.5}>
         <p className="mt-6 max-w-2xl text-body-l text-white/65">
           Job searches, applications, site reports, dental bills, paperwork and security questionnaires. Each product
           does one job, shows its sources and leaves the final call to you.
         </p>
+        </Reveal>
       </Container>
     </section>
   );
