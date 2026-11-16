@@ -34,3 +34,25 @@
 .static {
   display: inline-block;
 }
+
+/*
+ * When a toggle adds a digit (for example $49 to $470), the new slot grows from zero width and fades in,
+ * so the number widens smoothly instead of jumping.
+ */
+.slot,
+.static {
+  animation: slot-in 900ms var(--ease-out-quint) both;
+}
+
+@keyframes slot-in {
+  from {
+    max-width: 0;
+    opacity: 0;
+    filter: blur(4px);
+  }
+  to {
+    max-width: 1ch;
+    opacity: 1;
+    filter: blur(0);
+  }
+}
