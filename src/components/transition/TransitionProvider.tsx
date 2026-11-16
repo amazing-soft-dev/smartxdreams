@@ -112,6 +112,17 @@ export function TransitionProvider({ children }: { children: ReactNode }) {
         router.push(href);
         return;
       }
+      // Reduced motion: no overlay at all, but keep the focus move and the announcement.
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        const changed = new Promise<void>((resolve) => {
+          routeWaiter.current = resolve;
+          window.setTimeout(resolve, ROUTE_TIMEOUT_MS);
+        });
+        router.push(href);
+        await changed;
+        arrive(url.pathname);
+        return;
+      }
       busy.current = true;
       router.prefetch(href);
       el.dataset.state = "active";
