@@ -36,20 +36,36 @@ export default function AstraScene() {
     const points = new Points(geometry, material);
     scene.add(points);
 
+    // Pointer parallax: the camera eases toward the pointer, so near stars move more than far ones.
+    // Fine pointers only; touch screens keep a steady sky.
+    const target = { x: 0, y: 0 };
+    const finePointer = window.matchMedia("(pointer: fine)").matches;
+    const onPointerMove = (event: PointerEvent) => {
+      target.x = (event.clientX / window.innerWidth) * 2 - 1;
+      target.y = (event.clientY / window.innerHeight) * 2 - 1;
+    };
+    if (finePointer) window.addEventListener("pointermove", onPointerMove, { passive: true });
+
     return {
       scene,
       camera,
-      update: (elapsed) => {
+      update: (elapsed, delta) => {
         material.uniforms.uTime!.value = elapsed;
         // Slow drift: a full turn would take about 26 minutes, so it reads as stillness with life in it.
         points.rotation.z = elapsed * 0.004;
         points.rotation.y = Math.sin(elapsed * 0.05) * 0.04;
+        // Damped follow: about 3 per second of the remaining distance, independent of frame rate.
+        const k = Math.min(1, delta * 3);
+        camera.position.x += (target.x * 0.35 - camera.position.x) * k;
+        camera.position.y += (-target.y * 0.25 - camera.position.y) * k;
+        camera.lookAt(0, 0, -3);
       },
       resize: (width, height) => {
         camera.aspect = width / height;
         camera.updateProjectionMatrix();
       },
       dispose: () => {
+        window.removeEventListener("pointermove", onPointerMove);
         geometry.dispose();
         material.dispose();
       },
