@@ -93,6 +93,20 @@ export function publishedPosts(): Post[] {
   return allPosts().filter((p) => !p.draft);
 }
 
+/**
+ * Posts listed on the blog index and category pages. Drafts are listed everywhere except the production
+ * deployment (local, CI and Vercel previews show them with a "Draft" label), so they can be reviewed before
+ * anyone flips `draft: false`. Draft pages still build, are marked noindex and stay out of the sitemap and feed.
+ */
+export function listedPosts(): Post[] {
+  return process.env.VERCEL_ENV === "production" ? publishedPosts() : allPosts();
+}
+
+/** The newest featured post among these posts, or the newest post when none is featured. */
+export function featuredPost(posts: Post[]): Post | undefined {
+  return posts.find((p) => p.featured) ?? posts[0];
+}
+
 /** Posts in one category, drafts included, newest first. */
 export function postsInCategory(id: BlogCategoryId): Post[] {
   return allPosts().filter((p) => p.category === id);

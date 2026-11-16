@@ -1,0 +1,75 @@
+"use client";
+
+import type { ReactNode } from "react";
+import { TransitionLink } from "@/components/transition/TransitionLink";
+import { cx } from "@/lib/cx";
+
+type PostCardProps = {
+  href: string;
+  title: string;
+  category: string;
+  /** Date and reading time, e.g. "15 Nov 2026 · 3 min read". */
+  meta: string;
+  draft?: boolean;
+  /** The cover, rendered on the server (a photo or a code-built cover). */
+  cover: ReactNode;
+  /** Featured: wide two-column card with the description and a "Read article" cue. */
+  featured?: boolean;
+  description?: string;
+  headingLevel?: "h2" | "h3";
+};
+
+/**
+ * A blog post card. The title is the card's only link, stretched over the whole card, so screen readers
+ * hear one link per post and keyboard users get one tab stop with a visible focus ring.
+ */
+export function PostCard({
+  href,
+  title,
+  category,
+  meta,
+  draft,
+  cover,
+  featured,
+  description,
+  headingLevel: Heading = "h3",
+}: PostCardProps) {
+  return (
+    <article
+      className={cx(
+        "relative h-full outline-offset-4 has-[a:focus-visible]:outline-2 has-[a:focus-visible]:outline-violet-500 rounded-[30px] bg-white p-2",
+        featured ? "grid gap-2 md:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]" : "flex flex-col",
+      )}
+    >
+      <div
+        className={cx(
+          "relative isolate overflow-hidden rounded-[24px] bg-ink",
+          featured ? "aspect-[16/10] md:aspect-auto md:min-h-96" : "aspect-[16/10]",
+        )}
+      >
+        <div className="absolute inset-0">{cover}</div>
+      </div>
+      <div className={cx("flex flex-1 flex-col", featured ? "justify-center p-5 md:p-8" : "px-4 pt-5 pb-4")}>
+        <p className="flex flex-wrap items-center gap-2 text-label font-medium text-coral-700">
+          {category}
+          {draft ? <span className="rounded-full bg-ink/[0.07] px-2 py-0.5 text-micro text-ink/75">Draft</span> : null}
+        </p>
+        <Heading className={cx("mt-3", featured ? "text-h3" : "text-h6")}>
+          <TransitionLink href={href} className="outline-none after:absolute after:inset-0 after:z-10 after:rounded-[30px]">
+            {title}
+          </TransitionLink>
+        </Heading>
+        {description ? <p className="mt-4 text-body-l text-ink/70">{description}</p> : null}
+        <p className={cx("text-label text-ink/60", featured ? "mt-6" : "mt-auto pt-4")}>{meta}</p>
+        {featured ? (
+          <span aria-hidden="true" className="mt-8 inline-flex w-fit items-center gap-2 text-label font-medium text-ink">
+            Read article
+            <svg viewBox="0 0 16 16" width="14" height="14" fill="none">
+              <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </span>
+        ) : null}
+      </div>
+    </article>
+  );
+}
