@@ -4,8 +4,29 @@
     {
       "name": "web",
       "runtimeExecutable": "cmd",
-      "runtimeArgs": ["/c", "cd /d .worktrees\\w && npm run dev"],
+      "runtimeArgs": [
+        "/c",
+        "cd /d .worktrees\\w && npm run dev"
+      ],
       "port": 3000
+    },
+    {
+      "name": "prod",
+      "runtimeExecutable": "cmd",
+      "runtimeArgs": [
+        "/c",
+        "cd /d .worktrees\\w && npx next start -p 3200"
+      ],
+      "port": 3200
+    },
+    {
+      "name": "prod-test",
+      "runtimeExecutable": "cmd",
+      "runtimeArgs": [
+        "/c",
+        "cd /d .worktrees\\w && set WAITLIST_SECRET=local-test-secret-not-real-0123456789abcdef&& set RESEND_API_KEY=re_local_fake_key&& set CONTACT_FROM_EMAIL=test@example.com&& set CONTACT_TO_EMAIL=team@example.com&& npx next start -p 3300"
+      ],
+      "port": 3300
     }
   ]
 }
