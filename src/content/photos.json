@@ -227,6 +227,132 @@
         "source": "unsplash",
         "license": "Unsplash License"
       }
+    },
+    {
+      "slot": "blog-studio",
+      "src": "/images/blog/studio.jpg",
+      "width": 2400,
+      "height": 1600,
+      "alt": "Hand tools hanging in rows on a workshop wall",
+      "decorative": true,
+      "tint": "#d8d8c8",
+      "blurDataURL": "data:image/webp;base64,UklGRmYAAABXRUJQVlA4IFoAAAAQAgCdASoQAAsAA4BaJaACdAEXfPHbpVLgAPa6cCDH7/MCQjoJ9t1jR3HwvKrukGRx3stpelaul1JsESVOAOUX0CyMVpg0x8KibL44mIQxiEMm81hFOawuAAA=",
+      "focal": "50% 50%",
+      "credit": {
+        "photographer": "Barn Images",
+        "profileUrl": "https://unsplash.com/@barnimages",
+        "photoUrl": "https://unsplash.com/photos/t5YUoHW6zRo",
+        "source": "unsplash",
+        "license": "Unsplash License"
+      }
+    },
+    {
+      "slot": "blog-job-search",
+      "src": "/images/blog/job-search.jpg",
+      "width": 2400,
+      "height": 1800,
+      "alt": "A notepad, two pens, a keyboard and glasses on a white desk",
+      "decorative": true,
+      "tint": "#e8e8e8",
+      "blurDataURL": "data:image/webp;base64,UklGRk4AAABXRUJQVlA4IEIAAADQAQCdASoQAAwAA4BaJZwAAu1FELTHmAD+79YdMvYBanxRXNQy0StXEK6mf1aG9swa8PUwzz4v8RMgkmSLFkz3oAA=",
+      "focal": "50% 50%",
+      "credit": {
+        "photographer": "Jess Bailey",
+        "profileUrl": "https://unsplash.com/@jessbaileydesigns",
+        "photoUrl": "https://unsplash.com/photos/q10VITrVYUM",
+        "source": "unsplash",
+        "license": "Unsplash License"
+      }
+    },
+    {
+      "slot": "blog-autofill",
+      "src": "/images/blog/autofill.jpg",
+      "width": 2400,
+      "height": 1566,
+      "alt": "A hand ticking items off a handwritten checklist",
+      "decorative": true,
+      "tint": "#e8e8e8",
+      "blurDataURL": "data:image/webp;base64,UklGRmIAAABXRUJQVlA4IFYAAAAQAgCdASoQAAoAA4BaJYwAAvxHToypvT4AAP2dcA+yL+pp5Cm3iPhQTiz2vHXA/wtgE8bM37w7ErKbbOfX7dyxl/gUBuWPFDavbuxtDFR0PR7Zh3AAAA==",
+      "focal": "50% 50%",
+      "credit": {
+        "photographer": "Jakub Żerdzicki",
+        "profileUrl": "https://unsplash.com/@jakubzerdzicki",
+        "photoUrl": "https://unsplash.com/photos/weJ7qyjHYwk",
+        "source": "unsplash",
+        "license": "Unsplash License"
+      }
+    },
+    {
+      "slot": "blog-site-report",
+      "src": "/images/blog/site-report.jpg",
+      "width": 2400,
+      "height": 1600,
+      "alt": "Steel reinforcing bars rising against the sky on a building site",
+      "decorative": true,
+      "tint": "#d8e8e8",
+      "blurDataURL": "data:image/webp;base64,UklGRmIAAABXRUJQVlA4IFYAAAAQAgCdASoQAAsAA4BaJZACdAEMzJSfR2qoAP7zgXrUYOXbqolARAsHXAz/pIgOcdrUsjH3lplXue1JppY0Ijvs27mIkmoN1N+ehDSbN0gSVE1lC9aAAA==",
+      "focal": "50% 50%",
+      "credit": {
+        "photographer": "Michael Bader",
+        "profileUrl": "https://unsplash.com/@badermich1",
+        "photoUrl": "https://unsplash.com/photos/eyq7H7gO0EY",
+        "source": "unsplash",
+        "license": "Unsplash License"
+      }
+    },
+    {
+      "slot": "blog-dental",
+      "src": "/images/blog/dental.jpg",
+      "width": 2400,
+      "height": 1604,
+      "alt": "An empty, bright dental treatment room",
+      "decorative": true,
+      "tint": "#f8f8f8",
+      "blurDataURL": "data:image/webp;base64,UklGRlwAAABXRUJQVlA4IFAAAAAQAgCdASoQAAsAA4BaJYwCdAEVp2OXhqGAAP5r7ihHXQ6Qj0UIlJ9jzz1EyLIqPJ1xqiWhh+o3WQ5FBgWiFxR/eQIn+2AQXnCNg4Ue/gAAAA==",
+      "focal": "50% 50%",
+      "credit": {
+        "photographer": "Benyamin Bohlouli",
+        "profileUrl": "https://unsplash.com/@benyamin_bohlouli",
+        "photoUrl": "https://unsplash.com/photos/e7MJLM5VGjY",
+        "source": "unsplash",
+        "license": "Unsplash License"
+      }
+    },
+    {
+      "slot": "blog-scams",
+      "src": "/images/blog/scams.jpg",
+      "width": 2400,
+      "height": 1602,
+      "alt": "Plain envelopes and paper tags spread on a table",
+      "decorative": true,
+      "tint": "#e8e8e8",
+      "blurDataURL": "data:image/webp;base64,UklGRjAAAABXRUJQVlA4ICQAAADQAQCdASoQAAsAA4BaJZQAAudhOmKXAAD+6ByxZOkT24eQAAA=",
+      "focal": "50% 50%",
+      "credit": {
+        "photographer": "Joanna Kosinska",
+        "profileUrl": "https://unsplash.com/@joannakosinska",
+        "photoUrl": "https://unsplash.com/photos/uGcDWKN91Fs",
+        "source": "unsplash",
+        "license": "Unsplash License"
+      }
+    },
+    {
+      "slot": "blog-security",
+      "src": "/images/blog/security.jpg",
+      "width": 2400,
+      "height": 1596,
+      "alt": "Shelves of labelled ring binders in an office",
+      "decorative": true,
+      "tint": "#180808",
+      "blurDataURL": "data:image/webp;base64,UklGRlIAAABXRUJQVlA4IEYAAAAwAgCdASoQAAsAA4BaJQBdgMTuMEMlltnowAD+7QneYdphQE5jPGMBG/cIvyNCH7qXqIGzbZYlkqOM37/iOuGLCXWAAAAA",
+      "focal": "50% 50%",
+      "credit": {
+        "photographer": "Viktor Talashuk",
+        "profileUrl": "https://unsplash.com/@viktortalashuk",
+        "photoUrl": "https://unsplash.com/photos/05HLFQu8bFw",
+        "source": "unsplash",
+        "license": "Unsplash License"
+      }
     }
   ]
 }
