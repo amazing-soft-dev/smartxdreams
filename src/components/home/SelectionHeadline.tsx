@@ -6,6 +6,8 @@ import { Fragment, useEffect, useRef, useState } from "react";
 export type SelectionTarget = {
   /** Index of the word in the headline (split on spaces). */
   word: number;
+  /** Chip under the box, like a layer name in a design tool: kind, then value. */
+  label: { kind: string; value: string };
 };
 
 type SelectionHeadlineProps = {
@@ -34,6 +36,13 @@ export function SelectionHeadline({ text, targets, id, className }: SelectionHea
   const [step, setStep] = useState(0);
   const [box, setBox] = useState<Box | null>(null);
   const target = targets[step % targets.length];
+  // The chip text changes 60% of the way through each move, while the box is still travelling.
+  const [label, setLabel] = useState(targets[0]?.label);
+  useEffect(() => {
+    if (!target) return;
+    const timer = window.setTimeout(() => setLabel(target.label), reduced ? 0 : SELECTION_MOVE_MS * 0.6);
+    return () => window.clearTimeout(timer);
+  }, [target, reduced]);
 
   // Advance to the next word on a fixed rhythm.
   useEffect(() => {
@@ -88,6 +97,11 @@ export function SelectionHeadline({ text, targets, id, className }: SelectionHea
           {(["-top-1 -left-1", "-top-1 -right-1", "-bottom-1 -left-1", "-bottom-1 -right-1"] as const).map((pos) => (
             <span key={pos} className={`absolute ${pos} size-2 rounded-[1px] border border-violet-300 bg-ink`} />
           ))}
+          {label ? (
+            <span className="absolute top-[calc(100%+8px)] right-0 rounded-md bg-violet-300 px-2 py-1 font-mono text-micro leading-none font-semibold tracking-[0.04em] whitespace-nowrap text-ink">
+              {label.kind} / {label.value}
+            </span>
+          ) : null}
         </span>
       ) : null}
     </h1>

@@ -5,8 +5,13 @@ import { company } from "@/content/site";
 import { SelectionHeadline, type SelectionTarget } from "./SelectionHeadline";
 
 const headline = "Six focused AI products for the work nobody wants to do.";
-/** Words the selection box visits: Six, focused, AI, work. */
-const targets: SelectionTarget[] = [{ word: 0 }, { word: 1 }, { word: 2 }, { word: 5 }];
+/** Words the selection box visits (Six, focused, AI, work), each with its chip. */
+const targets: SelectionTarget[] = [
+  { word: 0, label: { kind: "Portfolio", value: "6 products" } },
+  { word: 1, label: { kind: "Scope", value: "one job each" } },
+  { word: 2, label: { kind: "Review", value: "a person decides" } },
+  { word: 6, label: { kind: "Output", value: "drafts you approve" } },
+];
 
 /**
  * The Home hero: a full-height dark stage with a violet and coral glow, the studio tag, the headline and
