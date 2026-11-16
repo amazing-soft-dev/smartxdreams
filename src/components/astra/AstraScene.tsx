@@ -23,9 +23,9 @@ import { createStarField } from "./stars";
 
 /** The three.js star-field. Loaded only through LazyScene, so three.js is a separate chunk. */
 export default function AstraScene() {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const hostRef = useRef<HTMLDivElement>(null);
 
-  useThreeRenderer(canvasRef, () => {
+  useThreeRenderer(hostRef, () => {
     const scene = new Scene();
     const camera = new PerspectiveCamera(55, 1, 0.1, 50);
     camera.position.set(0, 0, 6);
@@ -122,5 +122,6 @@ export default function AstraScene() {
     };
   }, { id: "astra", priority: SCENE_PRIORITY.astra });
 
-  return <canvas ref={canvasRef} className="absolute inset-0 size-full" />;
+  // useThreeRenderer creates the canvas in here, a new one on every mount.
+  return <div ref={hostRef} className="absolute inset-0" />;
 }
