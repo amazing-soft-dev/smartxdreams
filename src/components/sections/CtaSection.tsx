@@ -20,8 +20,12 @@ export function CtaSection() {
         <h2 id="cta-title" className="mt-6 max-w-3xl text-h2">
           <span className="sr-only">Be the first to try SmartxDreams products.</span>
           <span aria-hidden="true">
-            Be the first to try{" "}
-            <TypedWord words={names} staticText="our products." className="text-violet-300" />
+            Be the first to try
+            {/* The typed word sits on its own line with one line of height reserved, so typing never re-wraps
+                the heading or moves the content below it (no layout shift). */}
+            <span className="block min-h-[1.2em]">
+              <TypedWord words={names} staticText="our products." className="text-violet-300" />
+            </span>
           </span>
         </h2>
         <p className="mt-5 max-w-xl text-body-l text-white/65">
