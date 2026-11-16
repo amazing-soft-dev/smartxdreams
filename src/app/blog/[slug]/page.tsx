@@ -18,7 +18,12 @@ export async function generateMetadata({ params }: PostPageProps): Promise<Metad
   const { slug } = await params;
   const post = postBySlug(slug);
   if (!post) return {};
-  const metadata = pageMetadata({ title: post.title, description: post.description, path: `/blog/${post.slug}` });
+  const base = pageMetadata({ title: post.title, description: post.description, path: `/blog/${post.slug}` });
+  // Lets feed readers find the blog feed from any post.
+  const metadata: Metadata = {
+    ...base,
+    alternates: { ...base.alternates, types: { "application/rss+xml": [{ url: "/blog/rss.xml", title: "SmartxDreams blog" }] } },
+  };
   // Drafts are readable by link but stay out of search engines until someone reviews them.
   return post.draft ? { ...metadata, robots: { index: false, follow: true } } : metadata;
 }
