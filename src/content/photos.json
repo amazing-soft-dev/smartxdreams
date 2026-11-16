@@ -164,6 +164,78 @@
         "license": "Unsplash License"
       },
       "pending": true
+    },
+    {
+      "slot": "product-sitelog",
+      "src": "/images/products/sitelog.jpg",
+      "width": 2000,
+      "height": 1328,
+      "alt": "A building site seen from above: a grid of steel reinforcement with one worker in a hard hat",
+      "decorative": false,
+      "tint": "#080808",
+      "blurDataURL": "data:image/webp;base64,UklGRkoAAABXRUJQVlA4ID4AAADQAQCdASoQAAsAA4BaJZwAAiX5tZ59wAD+ibxKSX3y+YZLPXwh298yVwEZGL9ACTHGFUdiGblgVjm89cAAAA==",
+      "credit": {
+        "photographer": "Toni Reed",
+        "profileUrl": "https://unsplash.com/@trfotos",
+        "photoUrl": "https://unsplash.com/photos/dSjrv4w1g1Q",
+        "source": "unsplash",
+        "license": "Unsplash License"
+      },
+      "pending": true
+    },
+    {
+      "slot": "product-toothledger",
+      "src": "/images/products/toothledger.jpg",
+      "width": 2400,
+      "height": 1600,
+      "alt": "A calculator and a pen resting on handwritten notes",
+      "decorative": false,
+      "tint": "#080808",
+      "blurDataURL": "data:image/webp;base64,UklGRmAAAABXRUJQVlA4IFQAAADwAQCdASoQAAsAA4BaJQBOgCG1UWYmugAAybKs15ZRJpK0Dw+xejnfcDmM5mcCLxdxluChrCXRuwrHCnW3zGPbcA/9X0VI0x1QrJ89jBylBop3oAA=",
+      "credit": {
+        "photographer": "Aaron Lefler",
+        "profileUrl": "https://unsplash.com/@alefler",
+        "photoUrl": "https://unsplash.com/photos/Vs6ip7fsld8",
+        "source": "unsplash",
+        "license": "Unsplash License"
+      },
+      "pending": true
+    },
+    {
+      "slot": "product-kinly",
+      "src": "/images/products/kinly.jpg",
+      "width": 2400,
+      "height": 1600,
+      "alt": "An older person's hand with reading glasses resting on a printed letter",
+      "decorative": false,
+      "tint": "#383838",
+      "blurDataURL": "data:image/webp;base64,UklGRlwAAABXRUJQVlA4IFAAAAAQAgCdASoQAAsAA4BaJbACdAD0TGt/5FGAAP7r9z5b/DRJY6B8H/nAtNT+yVx4seuuzQqlcErV1WqWed6dK6HlsM3bame7MS85dXRBv9AAAA==",
+      "credit": {
+        "photographer": "Beth Macdonald",
+        "profileUrl": "https://unsplash.com/@elsbethcat",
+        "photoUrl": "https://unsplash.com/photos/bXJjWbD9VOY",
+        "source": "unsplash",
+        "license": "Unsplash License"
+      },
+      "pending": true
+    },
+    {
+      "slot": "product-trustdraft",
+      "src": "/images/products/trustdraft.jpg",
+      "width": 2400,
+      "height": 1351,
+      "alt": "Rows of network equipment lit green in a dark server rack",
+      "decorative": false,
+      "tint": "#080808",
+      "blurDataURL": "data:image/webp;base64,UklGRlwAAABXRUJQVlA4IFAAAADwAQCdASoQAAkAA4BaJZAC7AEQAvqISjAA/uzP356+ouekIseOhJDyDV5cFSghfO1OW0fbUtMKO+bpdgfzU2177fAJxfmTeDy7IT1tySAAAA==",
+      "credit": {
+        "photographer": "Tyler",
+        "profileUrl": "https://unsplash.com/@tylergm",
+        "photoUrl": "https://unsplash.com/photos/OnI_TNcIv9U",
+        "source": "unsplash",
+        "license": "Unsplash License"
+      },
+      "pending": true
     }
   ]
 }
