@@ -40,6 +40,22 @@ export function readingMinutes(body: string): number {
   return Math.max(1, Math.ceil(words / WORDS_PER_MINUTE));
 }
 
+/**
+ * The line number of the first level-1 heading in a body ("# Title", a "===" underline or an <h1> tag),
+ * outside fenced code, or 0 when there is none.
+ */
+function firstH1Line(body: string): number {
+  const lines = body.split(/\r?\n/);
+  let inFence = false;
+  for (const [i, line] of lines.entries()) {
+    if (/^\s*(```|~~~)/.test(line)) inFence = !inFence;
+    if (inFence) continue;
+    const underline = /^=+\s*$/.test(line) && (lines[i - 1] ?? "").trim() !== "";
+    if (/^#\s/.test(line) || underline || /<h1[\s>]/i.test(line)) return i + 1;
+  }
+  return 0;
+}
+
 /** Reads and validates one post. Any problem throws, which fails the build with the file and the reason. */
 function readPost(fileName: string): Post {
   const file = path.posix.join("src/content/blog/posts", fileName);
@@ -63,6 +79,12 @@ function readPost(fileName: string): Post {
     throw new Error(`Invalid frontmatter in ${file}:\n${problems}`);
   }
   const body = source.slice(match[0].length);
+  const h1 = firstH1Line(body);
+  if (h1) {
+    // Line number in the file: frontmatter lines plus the line within the body.
+    const line = source.slice(0, match[0].length).split(/\r?\n/).length - 1 + h1;
+    throw new Error(`${file}:${line}: the post title is the page's only h1, so start headings at "##".`);
+  }
   return { ...result.data, slug, file, body, readingMinutes: readingMinutes(body) };
 }
 

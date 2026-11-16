@@ -21,9 +21,11 @@ function MdxLink({ href = "", children, ...rest }: ComponentPropsWithoutRef<"a">
 
 /**
  * How Markdown elements render inside a post. Posts start at h2: the post title is the page's only h1.
+ * The loader rejects "#" headings; mapping h1 to h2 here is a second line of defence.
  * Spacing and sizes follow the site type scale.
  */
 export const mdxComponents: MDXComponents = {
+  h1: (props) => <h2 className="mt-12 scroll-mt-28 text-h4" {...props} />,
   h2: (props) => <h2 className="mt-12 scroll-mt-28 text-h4" {...props} />,
   h3: (props) => <h3 className="mt-8 scroll-mt-28 text-h6" {...props} />,
   p: (props) => <p className="mt-5 text-body-l text-ink/80" {...props} />,
