@@ -52,5 +52,39 @@ export function JobAtlasFeedMockup({ className }: { className?: string }) {
   );
 }
 
-/** The JobAtlas hero mockup (the feed). */
-export const JobAtlasMockup = JobAtlasFeedMockup;
+/** The company-details drawer that opens beside a job: size, funding, reviews and other open roles. */
+export function CompanyDrawerMockup({ className }: { className?: string }) {
+  const facts = [
+    { label: "Size", value: "120 people" },
+    { label: "Funding", value: "Series B" },
+    { label: "Public reviews", value: "4.1 / 5 (86)" },
+  ];
+  return (
+    <MockupFrame title="Northwind" caption="Company" tone="dark" className={className}>
+      <div className="grid grid-cols-3 gap-2">
+        {facts.map((f) => (
+          <div key={f.label} className="rounded-xl bg-white/[0.06] px-2.5 py-2">
+            <p className="text-[0.6875rem] text-white/55">{f.label}</p>
+            <p className="mt-0.5 font-medium">{f.value}</p>
+          </div>
+        ))}
+      </div>
+      <p className="text-white/55">Also hiring</p>
+      {["Design Systems Lead", "Content Designer"].map((role) => (
+        <p key={role} className="rounded-xl bg-white/[0.06] px-3 py-2">
+          {role}
+        </p>
+      ))}
+    </MockupFrame>
+  );
+}
+
+/** The JobAtlas hero mockup: the feed, with the company drawer overlapping its lower corner on wider screens. */
+export function JobAtlasMockup({ className }: { className?: string }) {
+  return (
+    <div aria-hidden="true" className={`relative ${className ?? ""}`}>
+      <JobAtlasFeedMockup className="sm:mr-16" />
+      <CompanyDrawerMockup className="mt-3 sm:absolute sm:-right-2 sm:-bottom-10 sm:mt-0 sm:w-64" />
+    </div>
+  );
+}
