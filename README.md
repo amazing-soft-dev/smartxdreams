@@ -37,15 +37,17 @@ Run `npm run lint`, `npm run typecheck` and `npm run build` before pushing.
 | --- | --- |
 | Framework | Next.js 16.4 (App Router, Turbopack) with the React Compiler enabled |
 | UI | React 19.3 |
-| Language | TypeScript 6.0 in strict mode, `@/*` maps to `src/*` |
+| Language | TypeScript 7.0.2 in strict mode, `@/*` maps to `src/*` |
 | Lint | ESLint 10 with `eslint-config-next`, zero warnings allowed |
 
 Versions are pinned exactly in `package.json`.
 
 ### Version notes
 
-- **TypeScript 6.0.3, not 7.** `typescript-eslint` 8.72 supports TypeScript
-  below 6.1.0. Move to TypeScript 7 once `typescript-eslint` supports it.
+- **TypeScript 7.0.2 is the compiler** (`tsc` and Next). `typescript-eslint`
+  8.72 cannot load TypeScript 7.0, which ships no JavaScript API, so
+  `postinstall` points that package at `@typescript/typescript6` 6.0.2.
+  Remove that link when `typescript-eslint` supports TypeScript 7.
 - **ESLint 10 with older plugins.** `eslint-plugin-import` and
   `eslint-plugin-jsx-a11y` (pulled in by `eslint-config-next`) list ESLint 9 as
   their newest supported peer. Their rules were checked under ESLint 10, but
