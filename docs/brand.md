@@ -89,7 +89,7 @@ The wordmark is "Smart**x**Dreams" in Inter Tight, weight 600, at 0.6 x `height`
 ## Changing the symbol
 
 1. Replace the four masters in `public/brand/` and both icon-set folders, keeping the file names.
-2. If the geometry changed, update `SYMBOL` in `src/components/ui/Logo.tsx`, the paths in `src/app/icon.svg`, and `SYMBOL_BOX` in `src/app/opengraph-image.tsx` (the strokes' bounding box in the 1024 px PNG).
+2. If the geometry changed, update `SYMBOL` in `src/lib/brand-symbol.ts` (shared by `Logo` and the Earth backdrop's [cloud symbol](earth.md#the-cloud-symbol)), the paths in `src/app/icon.svg`, and `SYMBOL_BOX` in `src/app/opengraph-image.tsx` (the strokes' bounding box in the 1024 px PNG).
 3. Copy the light-bg `favicon.ico` to `src/app/favicon.ico` and the dark-bg `apple-touch-icon.png` to `src/app/apple-icon.png`.
 4. If the colours changed, update `SYMBOL_COLORS` and `WORDMARK_COLORS` in `Logo.tsx`, the `<style>` in `icon.svg`, and the tables on this page.
 5. Run `npm test` (Logo, manifest and Organization logo tests) and, for the static export, `NEXT_OUTPUT=export npm run build && npm run verify:out`.

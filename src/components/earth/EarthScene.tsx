@@ -2,6 +2,7 @@
 
 import { useRef } from "react";
 import {
+  CanvasTexture,
   LinearFilter,
   Mesh,
   OrthographicCamera,
@@ -10,12 +11,14 @@ import {
   ShaderMaterial,
   Vector2,
   Vector3,
+  Vector4,
   WebGLRenderTarget,
 } from "three";
 import { SCENE_PRIORITY } from "@/components/webgl/scene-budget";
 import { useThreeRenderer } from "@/components/webgl/useThreeRenderer";
 import { composeFragmentShader, earthVertexShader, planetFragmentShader } from "./earth-shader";
-import { earthLayoutFor, planetCircle, planetUniform, sunDirection } from "./layout";
+import { earthLayoutFor, planetCircle, planetUniform, sunDirection, symbolUniform } from "./layout";
+import { drawSymbolMask, symbolMaskTransform } from "./symbol-mask";
 
 /**
  * The three.js Earth backdrop. Loaded only through LazyScene, so three.js is a separate chunk.
@@ -51,10 +54,23 @@ export default function EarthScene() {
       target.texture.minFilter = LinearFilter;
       target.texture.magFilter = LinearFilter;
 
+      // The symbol's cloud-density mask, drawn once. Without a 2D context the planet shows without it.
+      const maskCanvas = drawSymbolMask(document);
+      const symbolMask = maskCanvas ? new CanvasTexture(maskCanvas) : null;
+      const { coverage } = symbolMaskTransform();
+
       const composeMaterial = new ShaderMaterial({
         vertexShader: earthVertexShader,
         fragmentShader: composeFragmentShader,
-        uniforms: { uBase: { value: target.texture } },
+        uniforms: {
+          uBase: { value: target.texture },
+          uSymbol: { value: symbolMask },
+          // Side 0 hides the symbol until the first resize places it (and for good if there is no mask).
+          uSymbolPlace: { value: new Vector4(0, 0, 0, 0) },
+          uPlanet: planetMaterial.uniforms.uPlanet!,
+          uSun: planetMaterial.uniforms.uSun!,
+          uResolution: planetMaterial.uniforms.uResolution!,
+        },
         depthTest: false,
         depthWrite: false,
       });
@@ -88,11 +104,13 @@ export default function EarthScene() {
           planetMaterial.uniforms.uPlanet!.value.set(...planetUniform(planetCircle(layout.planet), width / height));
           planetMaterial.uniforms.uSun!.value.set(...sunDirection(layout.sunAngle));
           planetMaterial.uniforms.uResolution!.value.set(width, height);
+          if (symbolMask) composeMaterial.uniforms.uSymbolPlace!.value.set(...symbolUniform(layout.symbol, width / height, coverage));
           dirty = true;
         },
         dispose: () => {
           renderer.domElement.removeEventListener("webglcontextrestored", onContextRestored);
           target.dispose();
+          symbolMask?.dispose();
           quad.dispose();
           planetMaterial.dispose();
           composeMaterial.dispose();

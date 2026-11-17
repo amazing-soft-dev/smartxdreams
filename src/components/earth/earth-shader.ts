@@ -4,7 +4,7 @@
  * The planet is drawn in two passes. `planetFragmentShader` paints the whole backdrop (sky, stars, the planet,
  * its atmosphere and the sunrise on the limb) from procedural noise. It is costly, so the scene runs it only
  * when the canvas size changes and keeps the result in a texture. `composeFragmentShader` draws that texture
- * every frame, which is cheap, and is where anything that moves is added.
+ * every frame, which is cheap, and adds the SmartxDreams symbol in cloud on top; anything that moves goes there.
  *
  * Coordinates: `p` is in hero heights with the origin at the bottom-left, so x runs from 0 to width/height.
  * The planet is a circle (`uPlanet`: centre x, centre y, radius) and the sun a direction (`uSun`), both from
@@ -193,13 +193,74 @@ void main() {
 }
 `;
 
-/** Per frame: draws the baked backdrop. */
+/** Per frame: draws the baked backdrop, then the SmartxDreams symbol as cloud over the planet. */
 export const composeFragmentShader = /* glsl */ `
 uniform sampler2D uBase;
+uniform sampler2D uSymbol;     // cloud-density mask: S strand in red, D strand in green (symbol-mask.ts)
+uniform vec4 uSymbolPlace;     // centre x, centre y and mask side (hero heights from the bottom-left), tilt
+uniform vec3 uPlanet;
+uniform vec3 uSun;
+uniform vec2 uResolution;
 
 varying vec2 vUv;
 
+${noise}
+${palette}
+
+// The symbol lies on the curved surface and is seen at a slant, so it is drawn a little shorter than wide.
+const float FORESHORTEN = 0.86;
+
+vec2 symbolUv(vec2 p) {
+  vec2 q = p - uSymbolPlace.xy;
+  float c = cos(uSymbolPlace.w), s = sin(uSymbolPlace.w);
+  q = vec2(c * q.x + s * q.y, -s * q.x + c * q.y);
+  q.y /= FORESHORTEN;
+  return q / uSymbolPlace.z + 0.5;
+}
+
+// Cloud density of the symbol at p (hero heights): the soft strands, eroded and puffed out by noise in the
+// symbol's own space so the billows stay put on the strands. Three scales: broad lumps that swell and thin
+// the strands, rounded cumulus puffs along their edges, and fine wisps.
+float density(vec2 p) {
+  vec2 uv = symbolUv(p);
+  if (uv.x < 0.0 || uv.y < 0.0 || uv.x > 1.0 || uv.y > 1.0) return 0.0;
+  vec2 strands = texture2D(uSymbol, uv).rg;
+  float body = max(strands.r, strands.g);
+  if (body < 0.02) return 0.0;
+  float lumps = fbm(vec3(uv * 7.0, 1.7));
+  float puffs = 1.0 - abs(noise3(vec3(uv * 22.0, 3.1)) * 2.0 - 1.0);
+  float wisps = noise3(vec3(uv * 60.0, 8.2));
+  return smoothstep(0.28, 0.75, body + (lumps - 0.5) * 0.7 + (puffs - 0.5) * 0.28 + (wisps - 0.5) * 0.12);
+}
+
 void main() {
-  gl_FragColor = vec4(texture2D(uBase, vUv).rgb, 1.0);
+  vec3 base = texture2D(uBase, vUv).rgb;
+  vec2 p = vUv * vec2(uResolution.x / uResolution.y, 1.0);
+
+  // Skip everything far from the symbol: one cheap distance test for most of the screen.
+  if (length(p - uSymbolPlace.xy) > uSymbolPlace.z * 0.85) {
+    gl_FragColor = vec4(base, 1.0);
+    return;
+  }
+
+  // Only on the planet, fading out just inside the limb.
+  float r = length(p - uPlanet.xy) / uPlanet.z;
+  float onPlanet = 1.0 - smoothstep(0.97, 1.0, r);
+
+  vec2 sunDir = normalize(uSun.xy);
+  float rho = density(p);
+  // Self-shadow: cloud between this point and the sun dims it, so each strand is lit on its sunward side.
+  float occlusion = density(p + sunDir * 0.005) * 0.5 + density(p + sunDir * 0.014) * 0.5;
+  float sun = exp(-occlusion * 1.3);
+  // Thick cores scatter more light, so they stay bright even on the shaded side.
+  vec3 cloud = mix(CLOUD_SHADE, CLOUD_SUN, clamp(sun * 0.8 + rho * 0.35, 0.0, 1.0));
+  cloud += DAWN * pow(sun, 3.0) * 0.12;
+  // The cloud's shadow on the ocean: a point is shaded when cloud lies toward the sun from it.
+  float shadow = density(p + sunDir * 0.03) * (1.0 - rho);
+  vec3 ground = base * (1.0 - 0.4 * shadow * onPlanet);
+
+  // Thin edges let the ocean through, as real cloud does.
+  float alpha = smoothstep(0.02, 0.6, rho) * 0.97 * onPlanet;
+  gl_FragColor = vec4(mix(ground, cloud, alpha), 1.0);
 }
 `;

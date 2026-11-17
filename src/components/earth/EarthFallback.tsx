@@ -1,4 +1,5 @@
 import { cx } from "@/lib/cx";
+import { CloudSymbol } from "./CloudSymbol";
 import styles from "./EarthFallback.module.css";
 import { earthLayoutCss } from "./layout";
 
@@ -7,7 +8,7 @@ const LAYOUT_CSS = earthLayoutCss("[data-earth-fallback]");
 
 /**
  * The Earth backdrop in pure CSS: ink sky, an ocean-blue planet with the same circle as the WebGL scene, its
- * violet atmosphere and the coral sunrise on the limb. It is painted with the page, so the hero is never
+ * violet atmosphere, the coral sunrise on the limb and the SmartxDreams symbol in cloud. It is painted with the page, so the hero is never
  * empty, and it is all that shows for reduced motion, data saver, low-power devices and missing WebGL 2.
  * Decorative.
  */
@@ -17,6 +18,7 @@ export function EarthFallback({ className }: { className?: string }) {
       <style>{LAYOUT_CSS}</style>
       <div className={styles.planet} />
       <div className={styles.flare} />
+      <CloudSymbol className={styles.symbol} />
     </div>
   );
 }
