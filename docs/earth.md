@@ -9,7 +9,7 @@ Code lives in `src/components/earth`; the shared WebGL helpers are in `src/compo
 
 ## Using it
 
-Place `<EarthField />` inside a positioned container the size of the hero. It is decorative (`aria-hidden`); only the scene listens to the pointer, and only over the planet.
+Place `<EarthField />` inside a positioned container the size of the hero (on Home, `HomeHero`; see [Hero composition](#hero-composition-homehero-homecards)). It is decorative (`aria-hidden`); only the scene listens to the pointer, and only over the planet.
 
 ```tsx
 <section className="relative isolate overflow-hidden">
@@ -17,6 +17,24 @@ Place `<EarthField />` inside a positioned container the size of the hero. It is
   …
 </section>
 ```
+
+## Hero composition (`HomeHero`, `HomeCards`)
+
+The Home hero is laid out like the generalcontextlabs.com hero: the copy over the sky, the planet rising beside or below it, and nothing covering the SmartxDreams symbol in the clouds.
+
+| Width | Hero | Copy | Planet and symbol |
+|---|---|---|---|
+| under 768 px | copy height plus a band of min(88vw, 360 px) below it | across the top | rises in the band below the copy; symbol 0.12 H, low on the right |
+| 768–1023 px | at least the viewport | across the top | fills the lower half; symbol 0.22 H |
+| 1024 px and up | clamp(660 px, 50vw, 100svh), about twice as wide as tall | left column (44vw, at most 620 px), centred vertically | rises from under the copy to the right edge; symbol 0.28 H at the bottom right |
+
+- **Placement:** `PLATE_BREAKPOINTS` in `plate-layout.ts`. On desktop the plate sits low on the right: its left edge may start partway across the hero, since the planet along that edge is below the hero's bottom and only sky shows beside it (see [Placement](#placement-plate-layoutts)).
+- **Scrim:** on desktop a soft radial wash of the sky's colour sits behind the copy column, so the sunrise and the limb's glow never cut the description's contrast.
+- **Cards:** the six product mockups (`HeroWave`) live in `HomeCards`, a dark band right under the hero that rises 16 px over its bottom edge with rounded top corners, like the reference's page surface, so the planet runs under it instead of stopping at a hard line. It declares `data-nav-theme="dark"`.
+
+`e2e/home-hero.spec.ts` checks, on desktop and mobile, that the headline, description and button never overlap the symbol, that the symbol is inside the hero and above the band, that the cards are in the band and not the hero, and that "How we build" still links to the process section. `plate-layout.test.ts` checks the placement over the hero shapes each breakpoint has to handle.
+
+If you change the copy's length or the hero's padding, run both, and look at 375, 820 and 1475 px.
 
 ## How it loads
 
