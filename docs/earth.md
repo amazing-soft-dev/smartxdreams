@@ -29,11 +29,11 @@ Place `<EarthField />` inside a positioned, dark container. It is decorative (`a
 
 All lengths are in hero heights (H) from the hero's bottom-right corner, so the planet keeps its shape at any hero height and a wider screen only adds sky on the left.
 
-| From | Planet | Sunrise |
-|---|---|---|
-| 0 px (phone) | low, wide arc under the description and behind the button | just past the right edge |
-| 640 px (tablet) | rises from the lower left to the top right | upper right |
-| 1024 px (desktop) | from the bottom middle to above the top right | under the header |
+| From | Planet | Sunrise | Cloud symbol |
+|---|---|---|---|
+| 0 px (phone) | low, wide arc under the description and behind the button | just past the right edge | small, right of the button, above the cards |
+| 640 px (tablet) | rises from the lower left to the top right | upper right | bottom right, below the cards |
+| 1024 px (desktop) | from the bottom middle to above the top right | under the header | right of the headline, above the cards |
 
 The scene reads the breakpoint from `window.innerWidth`; the fallback gets the same numbers as custom properties from `earthLayoutCss()` and positions itself with container query units (`100cqh` is one hero height). Change the table in one place and both follow. `layout.test.ts` checks the geometry.
 
@@ -45,6 +45,18 @@ The scene reads the breakpoint from `window.innerWidth`; the fallback gets the s
 - **Planet:** a sphere shaded from its view-space normal. Warped fractal noise gives coasts, shallow shelves, green and dry land and polar ice; broad cloud systems are broken up by smaller cumulus. Noise stretched along the meridians reads as brush strokes.
 - **Light:** daylight from the sun direction, a small glint on open water, and an atmosphere that thickens toward the limb.
 - **Limb:** a halo and painted wisps, violet (`violet-400`) away from the sun and coral (`coral-400`) to dawn toward it, and the hot point of the sun about to rise.
+
+## The cloud symbol
+
+Where the reference draws its own logo in clouds, we draw the SmartxDreams symbol: the S and the D as two woven strands of cloud at the bottom right of the planet.
+
+- **Shape:** the geometry is shared with the `Logo` component through `src/lib/brand-symbol.ts`, so the cloud symbol is always the brand mark, crossings included. Never copy the paths.
+- **Mask:** `drawSymbolMask()` (`symbol-mask.ts`) draws it once into a 256 px texture: each strand twice the logo's stroke width, cut where the other strand passes over it, blurred into a soft falloff. The S is in the red channel and the D in the green.
+- **Cloud:** `composeFragmentShader` swells and thins the strands with noise (broad lumps, cumulus puffs, fine wisps), lights each strand on its sunward side by checking how much cloud lies toward the sun, keeps thick cores bright, lets thin edges show the ocean, and darkens the ocean under it as a cast shadow. It draws only on the planet and fades out just inside the limb.
+- **Placement:** `symbol` in each breakpoint: centre (`right`, `bottom`) and artwork `height` in H, and a `tilt` in degrees. It is foreshortened (0.86) to lie on the globe. `symbol-placement.test.ts` checks it stays on the planet, inside the right edge, and clear of the desktop headline and cards.
+- **Fallback:** `CloudSymbol` draws the same strands as SVG, roughened with `feTurbulence` and blurred, in the same place from the `--earth-symbol-*` properties.
+
+If you move the symbol, check it at 375, 820 and 1475 px: the copy and the product cards sit on top of the backdrop and must not cover it.
 
 ## Cost
 

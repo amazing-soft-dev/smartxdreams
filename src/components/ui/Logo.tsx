@@ -1,4 +1,5 @@
 import { useId } from "react";
+import { SYMBOL, SYMBOL_MASK_BOX } from "@/lib/brand-symbol";
 import { cx } from "@/lib/cx";
 
 type LogoProps = {
@@ -19,31 +20,13 @@ type LogoProps = {
 
 type Tone = NonNullable<LogoProps["tone"]>;
 
-/**
- * The symbol from public/brand/smartxdreams-symbol-*-bg.svg: an S (top) and a D (bottom) drawn as two
- * 18-unit strokes that pass over and under each other. The viewBox is cropped from the master's padded
- * 390-unit square to the strokes themselves, so `height` is the height of the artwork.
- */
-const SYMBOL = {
-  viewBox: "216 116 168 273",
-  ratio: 168 / 273,
-  s: "M384 125H300A75 75 0 1 0 375 200",
-  d: "M225 380V305A75 75 0 1 1 300 380Z",
-  stroke: 18,
-  /** Where the S crosses over the D (right) and the D over the S (left); the strokes underneath are cut there. */
-  crossings: { overD: { cx: 353.56, cy: 252.5 }, overS: { cx: 246.44, cy: 252.5 } },
-  crossingRadius: 36,
-  /** Width of the cut: the stroke plus a 7-unit gap on each side. */
-  cut: 32,
-} as const;
-
 /** Stroke colours of the two master files. */
 const SYMBOL_COLORS: Record<Tone, { s: string; d: string }> = {
   dark: { s: "#2B2170", d: "#6E56F0" },
   light: { s: "#A99BFF", d: "#E6E1FF" },
 };
 
-const MASK_BOX = { x: 105, y: 57.5, width: 390, height: 390 } as const;
+const MASK_BOX = SYMBOL_MASK_BOX;
 
 type SymbolMarkProps = {
   tone: Tone;

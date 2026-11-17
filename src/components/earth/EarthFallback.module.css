@@ -41,3 +41,18 @@
   border-radius: 50%;
   background: radial-gradient(circle, rgb(255 236 210 / 0.95) 0 3%, rgb(255 132 87 / 0.45) 14%, rgb(255 132 87 / 0) 60%);
 }
+
+/*
+ * The symbol in cloud, centred (right, bottom) H from the bottom-right corner, tilted like the shader's
+ * (a positive tilt turns counter-clockwise) and foreshortened to lie on the globe. --earth-symbol-height is
+ * the artwork's height; the svg adds padding for the blur, so it is taller by --earth-symbol-frame.
+ */
+.symbol {
+  position: absolute;
+  height: calc(var(--earth-symbol-height) * var(--earth-symbol-frame) * 100cqh);
+  width: auto;
+  left: calc(100cqw - var(--earth-symbol-right) * 100cqh);
+  bottom: calc(var(--earth-symbol-bottom) * 100cqh);
+  transform: translate(-50%, 50%) rotate(calc(var(--earth-symbol-tilt) * -1deg)) scaleY(0.86);
+  overflow: visible;
+}

@@ -17,6 +17,12 @@ export type PlanetSpec = {
   overhang: number;
 };
 
+/**
+ * Where the SmartxDreams symbol is drawn in cloud: its centre (`right` from the right edge, `bottom` up from
+ * the bottom edge), the height of the artwork, and a tilt in degrees (positive turns it counter-clockwise).
+ */
+export type SymbolPlacement = { right: number; bottom: number; height: number; tilt: number };
+
 /** The same planet as a circle: centre at (width/H - right, -bottom), radius `radius`, all in H. */
 export type PlanetCircle = { right: number; bottom: number; radius: number };
 
@@ -29,6 +35,8 @@ export type EarthBreakpoint = {
    * the planet's centre. The sunrise flare sits there, and the planet is lit from that side.
    */
   sunAngle: number;
+  /** The cloud symbol, at the bottom right of the planet, clear of the copy and the product cards. */
+  symbol: SymbolPlacement;
 };
 
 /**
@@ -38,10 +46,29 @@ export type EarthBreakpoint = {
 export const EARTH_BREAKPOINTS: readonly EarthBreakpoint[] = [
   // Phone: a low, wide arc that passes under the description and behind the button, with the sun just past
   // the right edge so only its glow reaches in.
-  { minWidth: 0, planet: { edgeY: 0.34, baseX: 1.2, overhang: 0.3 }, sunAngle: 94 },
-  { minWidth: 640, planet: { edgeY: 0.82, baseX: 0.95, overhang: 0.2 }, sunAngle: 108 },
-  // Desktop: just under the header, above the headline.
-  { minWidth: 1024, planet: { edgeY: 1.02, baseX: 0.92, overhang: 0.08 }, sunAngle: 118 },
+  // The symbol is small, in the one patch of planet the copy and cards leave free: right of the button,
+  // just above the card carousel.
+  {
+    minWidth: 0,
+    planet: { edgeY: 0.42, baseX: 1.2, overhang: 0.3 },
+    sunAngle: 94,
+    symbol: { right: 0.04, bottom: 0.335, height: 0.085, tilt: -6 },
+  },
+  // Tablet: the symbol sits in the open ocean below the card carousel.
+  {
+    minWidth: 640,
+    planet: { edgeY: 0.82, baseX: 0.95, overhang: 0.2 },
+    sunAngle: 108,
+    symbol: { right: 0.14, bottom: 0.11, height: 0.17, tilt: -10 },
+  },
+  // Desktop: sunrise just under the header, above the headline; the symbol to the right of the headline,
+  // above the cards.
+  {
+    minWidth: 1024,
+    planet: { edgeY: 1.02, baseX: 0.92, overhang: 0.08 },
+    sunAngle: 118,
+    symbol: { right: 0.15, bottom: 0.62, height: 0.27, tilt: -12 },
+  },
 ];
 
 /**
@@ -94,15 +121,28 @@ export function planetUniform(circle: PlanetCircle, aspect: number): [number, nu
   return [aspect - circle.right, -circle.bottom, circle.radius];
 }
 
+/**
+ * Shader uniform for the cloud symbol: centre x and y (H, origin bottom-left), the side of the square mask in
+ * H (the artwork covers `coverage` of it, see symbol-mask.ts), and the tilt in radians.
+ */
+export function symbolUniform(
+  symbol: SymbolPlacement,
+  aspect: number,
+  coverage: number,
+): [number, number, number, number] {
+  return [aspect - symbol.right, symbol.bottom, symbol.height / coverage, (symbol.tilt * Math.PI) / 180];
+}
+
 const round = (n: number) => Number(n.toFixed(4));
 
 /**
  * Custom properties for the CSS fallback, one rule per breakpoint: `--earth-right`, `--earth-bottom` and
  * `--earth-radius` (unitless H, turned into lengths with container query units), and `--earth-sun-x` and
- * `--earth-sun-y`, the direction from the centre to the sunrise on the limb.
+ * `--earth-sun-y`, the direction from the centre to the sunrise on the limb, and the symbol's placement as
+ * `--earth-symbol-right`, `--earth-symbol-bottom`, `--earth-symbol-height` (H) and `--earth-symbol-tilt` (deg).
  */
 export function earthLayoutCss(selector: string): string {
-  return EARTH_BREAKPOINTS.map(({ minWidth, planet, sunAngle }) => {
+  return EARTH_BREAKPOINTS.map(({ minWidth, planet, sunAngle, symbol }) => {
     const c = planetCircle(planet);
     const a = (sunAngle * Math.PI) / 180;
     const vars = {
@@ -111,6 +151,10 @@ export function earthLayoutCss(selector: string): string {
       "--earth-radius": c.radius,
       "--earth-sun-x": Math.cos(a),
       "--earth-sun-y": Math.sin(a),
+      "--earth-symbol-right": symbol.right,
+      "--earth-symbol-bottom": symbol.bottom,
+      "--earth-symbol-height": symbol.height,
+      "--earth-symbol-tilt": symbol.tilt,
     };
     const body = Object.entries(vars).map(([name, value]) => `${name}:${round(value)}`).join(";");
     const rule = `${selector}{${body}}`;
