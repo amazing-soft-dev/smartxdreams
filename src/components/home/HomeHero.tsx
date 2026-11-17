@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/Button";
 import { Container } from "@/components/ui/Container";
 import { Tag } from "@/components/ui/Tag";
 import { company } from "@/content/site";
-import { HeroWave } from "./HeroWave";
 import { SelectionHeadline, type SelectionTarget } from "./SelectionHeadline";
 
 const headline = "Six focused AI products for the work nobody wants to do.";
@@ -17,8 +16,13 @@ const targets: SelectionTarget[] = [
 ];
 
 /**
- * The Home hero: a full-height dark stage with the Earth seen from orbit, the studio tag, the headline and
- * the description. Text is the largest element on screen, so it is also the Largest Contentful Paint.
+ * The Home hero, laid out like the generalcontextlabs.com hero: the copy left-aligned over the starfield sky,
+ * the painted Earth with the SmartxDreams symbol in its clouds filling the right (see EarthField and
+ * docs/earth.md). On phones and tablets the copy sits across the top and the planet rises below it.
+ *
+ * The desktop hero is about twice as wide as it is tall (50vw, at least 660 px, at most the viewport), which is
+ * the shape the plate's placement is designed for; it grows if the copy needs more room. Text is the largest
+ * element on screen, so it is also the Largest Contentful Paint.
  */
 export function HomeHero() {
   return (
@@ -26,38 +30,34 @@ export function HomeHero() {
       aria-labelledby="home-hero-title"
       data-surface="dark"
       data-nav-theme="dark"
-      className="relative isolate flex items-center overflow-hidden bg-ink pt-24 pb-10 text-white md:min-h-[100svh] md:pt-40 md:pb-20"
+      className="relative isolate flex min-h-[max(680px,100svh)] items-start overflow-hidden bg-space pt-28 pb-16 text-white md:min-h-[max(720px,100svh)] md:pt-36 lg:min-h-[clamp(660px,50vw,100svh)] lg:items-center lg:pt-28 lg:pb-24"
     >
-      {/* The CSS planet first; the three.js planet loads on top when the device allows it. */}
+      {/* The still sky and plate first; the three.js plate loads on top when the device allows it. */}
       <EarthField />
-      {/* Ink scrim behind the copy, so the headline and description read over the planet and its glow. */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(58%_34%_at_50%_40%,rgb(15_18_38/0.8),rgb(15_18_38/0.45)_55%,rgb(15_18_38/0)_100%)]"
-      />
-      <Container className="flex flex-col items-center text-center">
-        <Reveal aboveFold preset="left60" delay={0.2}>
-          <Tag tone="dark">{company.tagline}</Tag>
-        </Reveal>
-        <Reveal aboveFold delay={0.4} className="w-full">
-          <SelectionHeadline id="home-hero-title" text={headline} targets={targets} className="mx-auto mt-8 max-w-4xl text-display md:mt-10" />
-        </Reveal>
-        <Reveal aboveFold delay={0.5}>
-        <p className="mt-5 max-w-2xl text-body-l text-white/65 md:mt-6">
-          Job searches, applications, site reports, dental bills, paperwork and security questionnaires. Each product
-          does one job, shows its sources and leaves the final call to you.
-        </p>
-        </Reveal>
-        <Reveal aboveFold delay={0.6} className="mt-7 flex flex-wrap justify-center gap-3 md:mt-9">
-          {/* Coral with ink text: 6.54:1. */}
-          <Button href="/products" variant="coral" size="lg">
-            Explore the products
-          </Button>
-          <Button href="#how-we-build" variant="ghost" size="lg" icon={false} className="max-sm:hidden">
-            How we build
-          </Button>
-        </Reveal>
-        <HeroWave />
+      <Container>
+        <div className="max-w-xl lg:max-w-[min(44vw,620px)]">
+          <Reveal aboveFold preset="left60" delay={0.2}>
+            <Tag tone="dark">{company.tagline}</Tag>
+          </Reveal>
+          <Reveal aboveFold delay={0.4} className="w-full">
+            <SelectionHeadline id="home-hero-title" text={headline} targets={targets} className="mt-7 text-display md:mt-9" />
+          </Reveal>
+          <Reveal aboveFold delay={0.5}>
+            <p className="mt-5 max-w-lg text-body-l text-white/70 md:mt-6">
+              Job searches, applications, site reports, dental bills, paperwork and security questionnaires. Each
+              product does one job, shows its sources and leaves the final call to you.
+            </p>
+          </Reveal>
+          <Reveal aboveFold delay={0.6} className="mt-7 flex flex-wrap gap-3 md:mt-9">
+            {/* Coral with ink text: 6.54:1. */}
+            <Button href="/products" variant="coral" size="lg">
+              Explore the products
+            </Button>
+            <Button href="#how-we-build" variant="ghost" size="lg" icon={false} className="max-sm:hidden">
+              How we build
+            </Button>
+          </Reveal>
+        </div>
       </Container>
     </section>
   );
