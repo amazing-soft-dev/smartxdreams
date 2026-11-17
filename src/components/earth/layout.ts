@@ -46,12 +46,13 @@ export type EarthBreakpoint = {
 export const EARTH_BREAKPOINTS: readonly EarthBreakpoint[] = [
   // Phone: a low, wide arc that passes under the description and behind the button, with the sun just past
   // the right edge so only its glow reaches in.
-  // The symbol sits beside the button, under the limb, above the card carousel.
+  // The symbol is small, in the one patch of planet the copy and cards leave free: right of the button,
+  // just above the card carousel.
   {
     minWidth: 0,
-    planet: { edgeY: 0.34, baseX: 1.2, overhang: 0.3 },
+    planet: { edgeY: 0.42, baseX: 1.2, overhang: 0.3 },
     sunAngle: 94,
-    symbol: { right: 0.075, bottom: 0.215, height: 0.14, tilt: -6 },
+    symbol: { right: 0.04, bottom: 0.335, height: 0.085, tilt: -6 },
   },
   // Tablet: the symbol sits in the open ocean below the card carousel.
   {
