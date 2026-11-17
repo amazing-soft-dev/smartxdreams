@@ -1,7 +1,7 @@
 /**
- * Geometry of the SmartxDreams symbol (public/brand/smartxdreams-symbol-*-bg.svg): an S (top) and a D (bottom)
- * drawn as two 18-unit strokes that pass over and under each other. Shared by the Logo component and the
- * Earth backdrop's cloud symbol, so both always draw the same mark.
+ * Geometry of the SmartxDreams stroke symbol (also drawn by src/app/icon.svg): an S (top) and a D (bottom)
+ * drawn as two 18-unit strokes that pass over and under each other. Kept apart from the Logo component so any
+ * code that needs the mark's geometry draws the same symbol.
  *
  * Units are the master SVG's user units. `viewBox` is cropped from the master's padded 390-unit square to the
  * strokes themselves, so a height in px is the height of the artwork.
