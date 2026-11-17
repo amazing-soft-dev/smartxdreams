@@ -17,6 +17,15 @@
     pulse var(--sky-pulse-period) linear infinite;
 }
 
+/* A faint violet haze over the sky. `lighten` keeps the stars as bright as they are and tints only the dark. */
+.atmosphere {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 60%, rgb(168 78 237) 12%, transparent 100%);
+  opacity: 0.15;
+  mix-blend-mode: lighten;
+}
+
 /* Off screen or in a hidden tab, the shooting-star loop stops and the stars hold still. */
 [data-paused] > .svg .star {
   animation-play-state: paused;

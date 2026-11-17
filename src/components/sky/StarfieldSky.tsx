@@ -17,8 +17,9 @@ const ROOT_STYLE = { "--sky-pulse-period": `${PULSE_PERIOD_MS}ms` } as CSSProper
 
 /**
  * The night sky around the planet, after the Framer "Starfield" component: 200 seeded stars on `space`
- * (#070117) that twinkle and gently swell and shrink, and now and then a shooting star. Place it inside a
- * positioned container; it fills it. Decorative: hidden from assistive technology and never takes the pointer.
+ * (#070117) that twinkle and gently swell and shrink, now and then a shooting star, and a faint violet haze.
+ * Place it inside a positioned container; it fills it. Decorative: hidden from assistive technology and never
+ * takes the pointer.
  */
 export function StarfieldSky({ className }: { className?: string }) {
   const rootRef = useRef<HTMLDivElement>(null);
@@ -87,6 +88,7 @@ export function StarfieldSky({ className }: { className?: string }) {
         ))}
         <g ref={shootingRef} data-sky-shooting-stars="" />
       </svg>
+      <div className={styles.atmosphere} />
     </div>
   );
 }
