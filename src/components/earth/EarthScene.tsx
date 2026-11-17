@@ -19,6 +19,7 @@ import { useThreeRenderer } from "@/components/webgl/useThreeRenderer";
 import { composeFragmentShader, earthVertexShader, planetFragmentShader } from "./earth-shader";
 import { earthLayoutFor, planetCircle, planetUniform, stormUniform, sunDirection, symbolUniform } from "./layout";
 import { drawSymbolMask, symbolMaskTransform } from "./symbol-mask";
+import { createWake, WAKE_GUSTS } from "./wake";
 
 /**
  * The three.js Earth backdrop. Loaded only through LazyScene, so three.js is a separate chunk.
@@ -56,6 +57,24 @@ export default function EarthScene() {
       target.texture.minFilter = LinearFilter;
       target.texture.magFilter = LinearFilter;
 
+      // Pointer wake, for fine pointers that can hover (not touch screens): the pointer's position in hero
+      // heights from the canvas's bottom-left, while it is over the canvas.
+      const wake = createWake();
+      const wakeGusts = new Float32Array(WAKE_GUSTS * 4);
+      const finePointer = window.matchMedia("(hover: hover) and (pointer: fine)");
+      const canvas = renderer.domElement;
+      const onPointerMove = (event: PointerEvent) => {
+        if (!finePointer.matches || event.pointerType === "touch") return;
+        const box = canvas.getBoundingClientRect();
+        const inside =
+          event.clientX >= box.left && event.clientX <= box.right && event.clientY >= box.top && event.clientY <= box.bottom;
+        if (!inside || box.height === 0) return wake.leave();
+        wake.move((event.clientX - box.left) / box.height, (box.bottom - event.clientY) / box.height, event.timeStamp / 1000);
+      };
+      const onPointerLeave = () => wake.leave();
+      window.addEventListener("pointermove", onPointerMove, { passive: true });
+      document.documentElement.addEventListener("pointerleave", onPointerLeave);
+
       // The symbol's cloud-density mask, drawn once. Without a 2D context the planet shows without it.
       const maskCanvas = drawSymbolMask(document);
       const symbolMask = maskCanvas ? new CanvasTexture(maskCanvas) : null;
@@ -74,6 +93,7 @@ export default function EarthScene() {
           uResolution: planetMaterial.uniforms.uResolution!,
           uStorm: planetMaterial.uniforms.uStorm!,
           uTime: { value: 0 },
+          uWake: { value: wakeGusts },
         },
         depthTest: false,
         depthWrite: false,
@@ -102,6 +122,8 @@ export default function EarthScene() {
         update: (elapsed) => {
           if (dirty) bake();
           composeMaterial.uniforms.uTime!.value = elapsed;
+          // Event timestamps and performance.now() share a clock.
+          wake.write(performance.now() / 1000, wakeGusts);
         },
         resize: (width, height) => {
           // The breakpoint follows the viewport, like the CSS fallback's media queries.
@@ -115,6 +137,8 @@ export default function EarthScene() {
         },
         dispose: () => {
           renderer.domElement.removeEventListener("webglcontextrestored", onContextRestored);
+          window.removeEventListener("pointermove", onPointerMove);
+          document.documentElement.removeEventListener("pointerleave", onPointerLeave);
           target.dispose();
           symbolMask?.dispose();
           quad.dispose();

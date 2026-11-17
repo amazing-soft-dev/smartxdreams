@@ -22,6 +22,8 @@ void main() {
 }
 `;
 
+import { WAKE_GUSTS, WAKE_RADIUS } from "./wake";
+
 /** Value noise and fractal noise in 3D. Sampling on the sphere's surface avoids seams and pole pinching. */
 const noise = /* glsl */ `
 float hash13(vec3 p) {
@@ -221,6 +223,7 @@ uniform vec3 uSun;
 uniform vec2 uResolution;
 uniform vec3 uStorm;           // cyclone centre x, centre y and radius (hero heights from the bottom-left)
 uniform float uTime;           // seconds the scene has been running
+uniform vec4 uWake[${WAKE_GUSTS}];      // pointer gusts: x, y, push x, push y (hero heights; see wake.ts)
 
 varying vec2 vUv;
 
@@ -253,6 +256,17 @@ vec2 storm(vec2 p) {
   float a = (0.19 * sin(uTime * 0.16) + 0.035 * sin(uTime * 0.23)) * heart;
   float c = cos(a), s = sin(a);
   return vec2(c * r.x - s * r.y, s * r.x + c * r.y) - r;
+}
+
+// The pointer wake: each gust pushes what is near it along the pointer's direction (a Gaussian bump).
+// Returns the push at p; content there moves by it.
+vec2 wake(vec2 p) {
+  vec2 push = vec2(0.0);
+  for (int i = 0; i < ${WAKE_GUSTS}; i++) {
+    vec2 r = p - uWake[i].xy;
+    push += uWake[i].zw * exp(-dot(r, r) / (${WAKE_RADIUS.toFixed(4)} * ${WAKE_RADIUS.toFixed(4)}));
+  }
+  return push;
 }
 
 // The symbol lies on the curved surface and is seen at a slant, so it is drawn a little shorter than wide.
@@ -290,7 +304,8 @@ void main() {
   float inside = uPlanet.z - length(p - uPlanet.xy);
   vec2 delta = vec2(0.0);
   if (inside > CALM_LIMB) {
-    delta = (ambient(p) + storm(p)) * smoothstep(CALM_LIMB, FULL_MOTION, inside);
+    // Sampling against the push moves the content along it.
+    delta = (ambient(p) + storm(p) - wake(p)) * smoothstep(CALM_LIMB, FULL_MOTION, inside);
     float limit = (inside - CALM_LIMB) * 0.5;
     float travel = length(delta);
     if (travel > limit) delta *= limit / travel;
@@ -305,6 +320,8 @@ void main() {
   // The symbol rides the weather at its centre as one piece: shearing it with the bands would slowly bend
   // the S and the D out of shape.
   p += ambient(uSymbolPlace.xy);
+  // The wake does part its strands, though: they bend around the pointer and settle back.
+  p -= wake(p);
 
   // Only on the planet, fading out just inside the limb.
   float r = length(p - uPlanet.xy) / uPlanet.z;
