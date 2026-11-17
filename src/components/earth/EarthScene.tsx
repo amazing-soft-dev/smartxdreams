@@ -21,6 +21,9 @@ import { earthLayoutFor, planetCircle, planetUniform, stormUniform, sunDirection
 import { drawSymbolMask, symbolMaskTransform } from "./symbol-mask";
 import { createWake, WAKE_GUSTS } from "./wake";
 
+/** How long the scene takes to fade in over the CSS planet. */
+const FADE_IN_MS = 700;
+
 /**
  * The three.js Earth backdrop. Loaded only through LazyScene, so three.js is a separate chunk.
  *
@@ -101,6 +104,13 @@ export default function EarthScene() {
       const scene = new Scene();
       scene.add(fullScreen(quad, composeMaterial));
 
+      // Fade in over the CSS planet once the first frame is drawn, instead of popping in. The fallback has the
+      // same geometry, so this reads as the picture coming to life.
+      canvas.style.opacity = "0";
+      canvas.style.transition = `opacity ${FADE_IN_MS}ms ease-out`;
+      let shown = false;
+      let fadeFrame = 0;
+
       let dirty = true;
       const buffer = new Vector2();
       const bake = () => {
@@ -121,6 +131,11 @@ export default function EarthScene() {
         camera,
         update: (elapsed) => {
           if (dirty) bake();
+          if (!shown) {
+            shown = true;
+            // After this frame reaches the screen.
+            fadeFrame = requestAnimationFrame(() => (canvas.style.opacity = "1"));
+          }
           composeMaterial.uniforms.uTime!.value = elapsed;
           // Event timestamps and performance.now() share a clock.
           wake.write(performance.now() / 1000, wakeGusts);
@@ -137,6 +152,7 @@ export default function EarthScene() {
         },
         dispose: () => {
           renderer.domElement.removeEventListener("webglcontextrestored", onContextRestored);
+          cancelAnimationFrame(fadeFrame);
           window.removeEventListener("pointermove", onPointerMove);
           document.documentElement.removeEventListener("pointerleave", onPointerLeave);
           target.dispose();
