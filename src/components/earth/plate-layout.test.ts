@@ -12,12 +12,12 @@ import {
 
 /**
  * Hero shapes (width / height) each breakpoint must handle: phones are tall, tablets run from portrait to
- * landscape, and the desktop hero is between a 1024 × 660 laptop and an ultrawide.
+ * landscape, and the desktop hero fills the viewport, from a 4:3 screen (1.33) to an ultrawide.
  */
 const ASPECTS: Record<number, number[]> = {
   0: [0.3, 0.36, 0.4, 0.46, 0.55, 0.62],
   640: [0.6, 0.69, 1, 1.4],
-  1024: [1.5, 1.55, 1.94, 2, 2.4],
+  1024: [1.33, 1.5, 1.55, 1.6, 1.78, 1.94, 2, 2.4],
 };
 
 const EPS = 1e-9;

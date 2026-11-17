@@ -6,8 +6,8 @@ type LogoProps = {
   /** "full" is the mark with the wordmark; "mark" is the symbol alone. */
   variant?: "full" | "mark";
   /**
-   * "dark" is artwork for light surfaces (navy and violet, smartxdreams-symbol-light-bg);
-   * "light" is artwork for dark surfaces (lavender, smartxdreams-symbol-dark-bg).
+   * "dark" is artwork for light surfaces (navy and violet);
+   * "light" is artwork for dark surfaces (lavender).
    */
   tone?: "dark" | "light";
   /** Rendered height in pixels. Width follows the artwork's aspect ratio. */
