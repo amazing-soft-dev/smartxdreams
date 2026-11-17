@@ -1,0 +1,76 @@
+/*
+ * The starfield sky. Stars twinkle and pulse with CSS keyframes only, so React never renders per frame.
+ * Per-star delays come from inline styles: the twinkle delay, then the pulse phase as a negative delay.
+ */
+.svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.star {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation:
+    twinkle 2s linear infinite,
+    pulse var(--sky-pulse-period) linear infinite;
+}
+
+/* A faint violet haze over the sky. `lighten` keeps the stars as bright as they are and tints only the dark. */
+.atmosphere {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 60%, rgb(168 78 237) 12%, transparent 100%);
+  opacity: 0.15;
+  mix-blend-mode: lighten;
+}
+
+/* Off screen or in a hidden tab, the shooting-star loop stops and the stars hold still. */
+[data-paused] > .svg .star {
+  animation-play-state: paused;
+}
+
+/* Reduced motion: a still sky, from the first paint (the component also skips shooting stars and scroll). */
+@media (prefers-reduced-motion: reduce) {
+  .star {
+    animation: none;
+  }
+}
+
+/* Opacity 1 -> 0.3 -> 1, as the reference's `twinkle`. */
+@keyframes twinkle {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.3;
+  }
+}
+
+/*
+ * One period of scale(1 + 0.125·sin): quarter-period steps with sine easing (easeOutSine to each extreme,
+ * easeInSine back to 1), which follows a sine curve closely.
+ */
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    animation-timing-function: cubic-bezier(0.61, 1, 0.88, 1);
+  }
+  25% {
+    transform: scale(1.125);
+    animation-timing-function: cubic-bezier(0.12, 0, 0.39, 0);
+  }
+  50% {
+    transform: scale(1);
+    animation-timing-function: cubic-bezier(0.61, 1, 0.88, 1);
+  }
+  75% {
+    transform: scale(0.875);
+    animation-timing-function: cubic-bezier(0.12, 0, 0.39, 0);
+  }
+  100% {
+    transform: scale(1);
+  }
+}

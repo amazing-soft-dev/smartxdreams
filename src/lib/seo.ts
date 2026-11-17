@@ -56,6 +56,12 @@ export function pageMetadata({ title, description, path }: PageMetadataInput): M
   };
 }
 
+/**
+ * Site path of the logo in the Organization structured data: the dark mark (1254 px square PNG,
+ * transparent), because search engines show it on white.
+ */
+export const organizationLogoPath = "/brand/smartxdreams-dark-1x1-transparent.png";
+
 /** schema.org Organization for SmartxDreams. */
 export function organizationJsonLd(): Record<string, unknown> {
   return {
@@ -64,7 +70,7 @@ export function organizationJsonLd(): Record<string, unknown> {
     "@id": `${siteUrl}/#organization`,
     name: company.name,
     url: absoluteUrl("/"),
-    logo: absoluteUrl("/brand/logo-mark.png"),
+    logo: absoluteUrl(organizationLogoPath),
     description: company.description,
   };
 }

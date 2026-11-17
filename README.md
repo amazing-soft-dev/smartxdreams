@@ -55,7 +55,7 @@ Versions are pinned exactly in `package.json`.
 
 ```
 src/app/        Routes and layouts (App Router)
-public/         Static assets (brand logos, favicons)
+public/         Static assets: brand symbol and icon sets (see docs/brand.md), photos
 next.config.ts  Next.js configuration
 ```
 

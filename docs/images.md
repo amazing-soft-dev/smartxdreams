@@ -21,6 +21,15 @@ Photos come from **Unsplash** and **Pexels** only. Product hero visuals are code
 4. Use it once, with `<Photo slot="<slot>" sizes="..." />`.
 5. Run `npm run images` (WebP variants for the static export) and `npm run check:images`.
 
+## Variants for the static export
+
+The server build resizes photos on request with the Next.js optimizer. The static export (`NEXT_OUTPUT=export`) has no server, so `npm run images` pre-builds WebP variants into `public/_img` (generated, not committed) and `src/lib/image-loader.ts` picks one per request.
+
+- Widths come from `widths` in `src/lib/image-config.json`: **320, 640, 1024, 1600 and 2400 px**. The build script, the loader, `npm run verify:out` and the export's `deviceSizes` all read that list, so a width is added or removed in that file only.
+- The loader serves the smallest variant at least as wide as the browser asks for, and the 2400 px one above that. A smaller original is never upscaled.
+- The 320 px variant is for small images: thumbnails such as the photo credits (64 px, so 128 px on a 2x screen) and narrow cards. Without it they would each download the 640 px file.
+- `src/lib/image-loader.test.ts` covers the rounding.
+
 ## What `npm run check:images` enforces
 
 - Every file in `public/images` has exactly one registry entry with a credit, and every entry points to a file that exists.
@@ -30,6 +39,8 @@ Photos come from **Unsplash** and **Pexels** only. Product hero visuals are code
 ## Credits
 
 `<PhotoCredits />` lists every registered photo with its photographer and source. It is shown on the About page.
+
+Each credit shows a 64 × 48 px thumbnail of the photo it credits, so readers can match a credit to a picture even when the photo lives on another page. The thumbnail is rendered by `<Photo slot={photo.slot} />` from the registry entry, so it gets the blur preview and lazy loading like any other photo. It does not count as a use for `npm run check:images` (only a literal `slot="<id>"` does), and it is hidden from screen readers: the photo's alt text belongs where the photo is used, and here the credit text is what matters.
 
 ## License log
 
