@@ -6,6 +6,8 @@ import {
   limbHeightAt,
   planetCircle,
   planetUniform,
+  SUN_FRONT,
+  sunDirection,
 } from "./layout";
 
 describe("planetCircle", () => {
@@ -81,10 +83,35 @@ describe("planetUniform", () => {
   });
 });
 
+describe("sunDirection", () => {
+  it("is a unit vector in front of the planet, pointing at the limb angle", () => {
+    for (const { sunAngle } of EARTH_BREAKPOINTS) {
+      const [x, y, z] = sunDirection(sunAngle);
+      expect(Math.hypot(x, y, z)).toBeCloseTo(1, 9);
+      expect(z).toBe(SUN_FRONT);
+      expect((Math.atan2(y, x) * 180) / Math.PI).toBeCloseTo(sunAngle, 9);
+    }
+  });
+
+  it("rises on the visible part of the limb on desktop", () => {
+    // The flare must land inside a 1.36 H wide desktop hero, below its top edge.
+    const { planet, sunAngle } = earthLayoutFor(1475);
+    const c = planetCircle(planet);
+    const a = (sunAngle * Math.PI) / 180;
+    const fromRight = c.right - Math.cos(a) * c.radius; // centre is at x = -right from the right edge
+    const height = Math.sin(a) * c.radius - c.bottom;
+    expect(fromRight).toBeGreaterThan(0);
+    expect(fromRight).toBeLessThan(1.36);
+    expect(height).toBeGreaterThan(0);
+    expect(height).toBeLessThan(1);
+  });
+});
+
 describe("earthLayoutCss", () => {
   it("writes one rule per breakpoint, the first without a media query", () => {
     const css = earthLayoutCss(".x");
     expect(css.startsWith(".x{--earth-right:")).toBe(true);
+    expect(css).toContain("--earth-sun-x:");
     expect(css.match(/@media/g)).toHaveLength(EARTH_BREAKPOINTS.length - 1);
     expect(css).toContain("@media (min-width:1024px){.x{");
   });
