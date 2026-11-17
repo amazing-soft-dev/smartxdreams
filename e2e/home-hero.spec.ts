@@ -13,6 +13,29 @@ const overlaps = (a: Box, b: Box) =>
   a.x < b.x + b.width && b.x < a.x + a.width && a.y < b.y + b.height && b.y < a.y + a.height;
 
 test.describe("Home hero layout", () => {
+  test("fills the viewport, with the cards band below the fold, at common window sizes", async ({ page }, testInfo) => {
+    // Desktop windows from 4:3 to 16:9; the phone project keeps its own screen.
+    const sizes =
+      testInfo.project.name === "mobile"
+        ? [null]
+        : [
+            { width: 1306, height: 768 },
+            { width: 1440, height: 900 },
+            { width: 1920, height: 1080 },
+            { width: 1024, height: 768 },
+          ];
+    for (const size of sizes) {
+      if (size) await page.setViewportSize(size);
+      await page.goto("/");
+      const viewport = page.viewportSize()!;
+      const heroBox = (await page.locator(hero).boundingBox())!;
+      const bandBox = (await page.locator(`${hero} + [data-nav-theme]`).boundingBox())!;
+      const at = `${viewport.width} x ${viewport.height}`;
+      expect(heroBox.height, at).toBeGreaterThanOrEqual(viewport.height);
+      expect(bandBox.y, at).toBeGreaterThanOrEqual(viewport.height - 1);
+    }
+  });
+
   test("keeps the copy clear of the cloud symbol, and the symbol in the hero above the cards", async ({ page }) => {
     await page.goto("/");
     const plate = await page.locator(`${hero} canvas[data-earth-plate="planet"]`).boundingBox();
