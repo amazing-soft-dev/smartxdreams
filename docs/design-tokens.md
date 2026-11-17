@@ -10,6 +10,7 @@ The UI palette below was first sampled from the original logo. The current symbo
 |---|---|---|
 | `ink` | `#0F1226` | Text on light surfaces, dark heroes, transition panels |
 | `ink-800` / `-700` / `-600` | `#1B1F3A` / `#2A2F52` / `#3D4370` | Raised dark surfaces |
+| `space` | `#070117` | Night sky behind the Home hero's planet ([sky.md](sky.md)) |
 | `canvas` | `#F5F2EE` | Page background |
 | `canvas-200` | `#ECE7E1` | Alternate light section |
 | `violet-500` | `#6D4AFF` | Brand violet: accents, links, focus ring |
