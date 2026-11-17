@@ -34,8 +34,10 @@ export function HomeHero() {
       data-nav-theme="dark"
       className="relative isolate flex min-h-[calc(100svh+28px)] md:min-h-[calc(100svh+36px)] items-start overflow-hidden bg-space pt-28 pb-[min(88vw,360px)] text-white md:pt-36 md:pb-16 lg:items-center lg:pt-28 lg:pb-24"
     >
-      {/* The still sky and plate first; the three.js plate loads on top when the device allows it. */}
-      <EarthField />
+      {/* The still sky and plate first; the three.js plate loads on top when the device allows it. The backdrop
+          is placed against the visible hero, above the strip the cards band covers (28 px, 36 px from md); the
+          plate runs on into that strip, so the band's rounded corners show it. */}
+      <EarthField className="bottom-[28px] md:bottom-[36px]" />
       {/* Desktop: a soft wash of the sky's own colour behind the copy column, so the sunrise and the glow on the
           limb, which rise close to the description's last lines, never cut its contrast. Phones and tablets keep
           the copy above the planet, on clear sky. */}
