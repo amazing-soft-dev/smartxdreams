@@ -1,12 +1,12 @@
 /*
- * The Earth backdrop without WebGL. The root is a size container the size of the hero, so 100cqh is one hero
- * height; plateLayoutCss() (plate-layout.ts) defines --plate-height, --plate-left and --plate-bottom on it,
- * the plate's rectangle exactly as plateRect() computes it for the scene.
+ * The Earth backdrop without WebGL. The root is a size container the size of the visible hero (above the
+ * strip the cards band covers), so 100cqh is one hero height. plateLayoutCss() (plate-layout.ts) defines
+ * --plate-height, --plate-left and --plate-bottom on it, the plate's rectangle exactly as plateRect() computes
+ * it for the scene. It does not clip: the plate runs on below it, under the band, and the hero clips it.
  */
 .root {
   position: absolute;
   inset: 0;
-  overflow: hidden;
   container-type: size;
 }
 

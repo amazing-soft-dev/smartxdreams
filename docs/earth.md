@@ -20,17 +20,17 @@ Place `<EarthField />` inside a positioned container the size of the hero (on Ho
 
 ## Hero composition (`HomeHero`, `HomeCards`)
 
-The Home hero is laid out like the generalcontextlabs.com hero: the copy over the sky, the planet rising beside or below it, and nothing covering the SmartxDreams symbol in the clouds.
+The Home hero fills the screen at every width (at least 100svh plus the 28 or 36 px the cards band rises over it), so the band starts below the fold. It is laid out like the generalcontextlabs.com hero: the copy over the sky, the planet rising beside or below it, and nothing covering the SmartxDreams symbol in the clouds.
 
 | Width | Hero | Copy | Planet and symbol |
 |---|---|---|---|
-| under 768 px | copy height plus a band of min(88vw, 360 px) below it | across the top | rises in the band below the copy; symbol 0.12 H, low on the right |
+| under 768 px | at least the viewport; copy height plus a band of min(88vw, 360 px) below it if that is taller | across the top | rises in the band below the copy; symbol 0.12 H, low on the right |
 | 768–1023 px | at least the viewport | across the top | fills the lower half; symbol 0.22 H |
-| 1024 px and up | clamp(660 px, 50vw, 100svh), about twice as wide as tall | left column (44vw, at most 620 px), centred vertically | rises from under the copy to the right edge; symbol 0.28 H at the bottom right |
+| 1024 px and up | at least the viewport, so its shape is the window's (4:3 to ultrawide) | left column (44vw, at most 620 px), centred vertically | rises from under the copy to the right edge; symbol 0.28 H at the bottom right |
 
 - **Placement:** `PLATE_BREAKPOINTS` in `plate-layout.ts`. On desktop the plate sits low on the right: its left edge may start partway across the hero, since the planet along that edge is below the hero's bottom and only sky shows beside it (see [Placement](#placement-plate-layoutts)).
 - **Scrim:** on desktop a soft radial wash of the sky's colour sits behind the copy column, so the sunrise and the limb's glow never cut the description's contrast.
-- **Cards:** the six product mockups (`HeroWave`) live in `HomeCards`, a dark band right under the hero that rises 16 px over its bottom edge with rounded top corners, like the reference's page surface, so the planet runs under it instead of stopping at a hard line. It declares `data-nav-theme="dark"`.
+- **Cards:** the six product mockups (`HeroWave`) live in `HomeCards`, a dark band right under the hero that rises over its bottom edge by exactly its corner radius (28 px, 36 px from md), like the reference's page surface, so its corners show the hero, never the page background, and the planet runs under it instead of stopping at a hard line. The backdrop is placed against the visible hero, above that strip (`EarthField` stops 28 or 36 px short of the hero's bottom), and the plate runs on into it. It declares `data-nav-theme="dark"`.
 
 `e2e/home-hero.spec.ts` checks, on desktop and mobile, that the headline, description and button never overlap the symbol, that the symbol is inside the hero and above the band, that the cards are in the band and not the hero, and that "How we build" still links to the process section. `plate-layout.test.ts` checks the placement over the hero shapes each breakpoint has to handle.
 

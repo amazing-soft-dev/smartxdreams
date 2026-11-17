@@ -13,6 +13,29 @@ const overlaps = (a: Box, b: Box) =>
   a.x < b.x + b.width && b.x < a.x + a.width && a.y < b.y + b.height && b.y < a.y + a.height;
 
 test.describe("Home hero layout", () => {
+  test("fills the viewport, with the cards band below the fold, at common window sizes", async ({ page }, testInfo) => {
+    // Desktop windows from 4:3 to 16:9; the phone project keeps its own screen.
+    const sizes =
+      testInfo.project.name === "mobile"
+        ? [null]
+        : [
+            { width: 1306, height: 768 },
+            { width: 1440, height: 900 },
+            { width: 1920, height: 1080 },
+            { width: 1024, height: 768 },
+          ];
+    for (const size of sizes) {
+      if (size) await page.setViewportSize(size);
+      await page.goto("/");
+      const viewport = page.viewportSize()!;
+      const heroBox = (await page.locator(hero).boundingBox())!;
+      const bandBox = (await page.locator(`${hero} + [data-nav-theme]`).boundingBox())!;
+      const at = `${viewport.width} x ${viewport.height}`;
+      expect(heroBox.height, at).toBeGreaterThanOrEqual(viewport.height);
+      expect(bandBox.y, at).toBeGreaterThanOrEqual(viewport.height - 1);
+    }
+  });
+
   test("keeps the copy clear of the cloud symbol, and the symbol in the hero above the cards", async ({ page }) => {
     await page.goto("/");
     const plate = await page.locator(`${hero} canvas[data-earth-plate="planet"]`).boundingBox();
@@ -36,10 +59,30 @@ test.describe("Home hero layout", () => {
     }
 
     const heroBox = (await page.locator(hero).boundingBox())!;
+    const bandBox = (await page.locator(`${hero} + [data-nav-theme]`).boundingBox())!;
     expect(symbol.x).toBeGreaterThanOrEqual(heroBox.x);
     expect(symbol.x + symbol.width).toBeLessThanOrEqual(heroBox.x + heroBox.width);
-    // Above the cards band, which rises 16 px over the hero's bottom edge.
-    expect(symbol.y + symbol.height).toBeLessThanOrEqual(heroBox.y + heroBox.height - 16);
+    // Above the cards band, which rises over the hero's bottom edge.
+    expect(symbol.y + symbol.height).toBeLessThanOrEqual(bandBox.y);
+  });
+
+  test("shows the hero, never the page background, at the band's rounded corners", async ({ page }) => {
+    await page.goto("/");
+    const band = page.locator(`${hero} + [data-nav-theme]`);
+    const { radius, marginTop } = await band.evaluate((el) => {
+      const style = getComputedStyle(el);
+      return { radius: parseFloat(style.borderTopLeftRadius), marginTop: parseFloat(style.marginTop) };
+    });
+    expect(radius).toBeGreaterThan(0);
+    // The band rises over the hero by exactly its corner radius...
+    expect(marginTop).toBeCloseTo(-radius, 0);
+    // ...so the hero reaches down past the band's top by at least that much, filling the corners.
+    const heroBox = (await page.locator(hero).boundingBox())!;
+    const bandBox = (await band.boundingBox())!;
+    expect(heroBox.y + heroBox.height - bandBox.y).toBeGreaterThanOrEqual(radius - 0.5);
+    // And the backdrop's plate runs on under the band, so the right corner shows the planet, not empty sky.
+    const plate = (await page.locator(`${hero} canvas[data-earth-plate="planet"]`).boundingBox())!;
+    expect(plate.y + plate.height).toBeGreaterThanOrEqual(bandBox.y + radius);
   });
 
   test("puts the product cards in a dark band directly under the hero", async ({ page }) => {
@@ -51,7 +94,8 @@ test.describe("Home hero layout", () => {
     await expect(page.locator(`${hero} [data-lenis-prevent]`)).toHaveCount(0);
     const heroBox = (await page.locator(hero).boundingBox())!;
     const bandBox = (await band.boundingBox())!;
-    expect(Math.abs(bandBox.y - (heroBox.y + heroBox.height))).toBeLessThanOrEqual(20);
+    // The band rises over the hero by its corner radius (28 or 36 px).
+    expect(Math.abs(bandBox.y - (heroBox.y + heroBox.height))).toBeLessThanOrEqual(40);
   });
 
   test("still links 'How we build' to the process section", async ({ page }, testInfo) => {
