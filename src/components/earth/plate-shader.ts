@@ -75,9 +75,12 @@ export const FULL_MOTION = 0.065;
 
 /**
  * How strongly the fluid wake moves the plate: one cell of displacement moves it by this fraction of a cell's
- * width on screen (about 4 px on a 1460 px canvas), so a drag pushes the clouds up to about 10 px.
+ * width on screen (about 3.4 px on a 1440 px canvas), so a drag pushes the clouds up to about 9 px.
  */
-export const WAKE_GAIN = 0.35;
+export const WAKE_GAIN = 0.3;
+
+/** The wake is read as the average of five taps this many cells apart, so it bends the picture smoothly. */
+export const WAKE_BLUR = 1.5;
 
 /**
  * The cyclone turns counter-clockwise (as seen, like a northern-hemisphere storm) and its clouds drift in
@@ -128,6 +131,7 @@ const float FULL_MOTION = ${glslFloat(FULL_MOTION)};
 const vec2 FLUID_CELLS = vec2(${glslFloat(FLUID_WIDTH)}, ${glslFloat(FLUID_HEIGHT)});
 const float MAX_DISPLACEMENT = ${glslFloat(MAX_DISPLACEMENT)};
 const float WAKE_GAIN = ${glslFloat(WAKE_GAIN)};
+const float WAKE_BLUR = ${glslFloat(WAKE_BLUR)};
 
 // The painted cyclone's eye and reach, in plate heights (plate.ts).
 const vec2 CYCLONE = vec2(${glslFloat(LANDMARKS.cyclone.u * PLATE_ASPECT)}, ${glslFloat(LANDMARKS.cyclone.v)});
@@ -183,20 +187,47 @@ vec2 swirl(vec2 q, float phase) {
   return vec2(c * r.x - sn * r.y, sn * r.x + c * r.y) * grow - r;
 }
 
-// The pointer wake at this pixel, in plate heights (x right, y down): the fluid's displacement in cells,
-// turned into a fraction of the canvas and then into plate heights.
-vec2 wake() {
-  vec2 cells = (texture2D(uFlow, vUv).rg * 255.0 - 128.0) / 127.0 * MAX_DISPLACEMENT;
+// The fluid's displacement at a point of the canvas (0..1, y up), in cells.
+vec2 flowAt(vec2 at) {
+  return (texture2D(uFlow, at).rg * 255.0 - 128.0) / 127.0 * MAX_DISPLACEMENT;
+}
+
+// The pointer wake at a point of the canvas, in plate heights (x right, y down): the fluid's displacement,
+// softened over five taps so it bends the picture smoothly rather than stretching it into streaks, turned
+// into a fraction of the canvas and then into plate heights.
+vec2 wakeAt(vec2 at) {
+  vec2 step = WAKE_BLUR / FLUID_CELLS;
+  vec2 cells = (flowAt(at) * 2.0 + flowAt(at + vec2(step.x, 0.0)) + flowAt(at - vec2(step.x, 0.0))
+    + flowAt(at + vec2(0.0, step.y)) + flowAt(at - vec2(0.0, step.y))) / 6.0;
   vec2 canvas = cells / FLUID_CELLS * WAKE_GAIN;
   vec2 hero = vec2(canvas.x * uResolution.x / uResolution.y, -canvas.y);
   return hero / uPlateRect.w;
+}
+
+// Where plate point q (plate heights) is on the canvas (0..1, y up).
+vec2 canvasAt(vec2 q) {
+  vec2 hero = vec2(uPlateRect.x + q.x / PLATE_ASPECT * uPlateRect.z, uPlateRect.y + (1.0 - q.y) * uPlateRect.w);
+  return vec2(hero.x / (uResolution.x / uResolution.y), hero.y);
+}
+
+// The wake at this pixel. Over the cloud symbol it is the wake averaged across the symbol, so the symbol is
+// carried as one piece and keeps its shape, while the clouds around it flow; the two blend over the same soft
+// ellipse that calms the weather bands.
+vec2 wake(vec2 q) {
+  vec2 local = wakeAt(vUv);
+  float calm = symbolCalm(q);
+  if (calm < 0.001) return local;
+  vec2 whole = (wakeAt(canvasAt(SYMBOL)) * 2.0
+    + wakeAt(canvasAt(SYMBOL + vec2(SYMBOL_HALF.x * 0.6, 0.0))) + wakeAt(canvasAt(SYMBOL - vec2(SYMBOL_HALF.x * 0.6, 0.0)))
+    + wakeAt(canvasAt(SYMBOL + vec2(0.0, SYMBOL_HALF.y * 0.6))) + wakeAt(canvasAt(SYMBOL - vec2(0.0, SYMBOL_HALF.y * 0.6)))) / 6.0;
+  return mix(local, whole, calm);
 }
 
 // Where the content at q comes from, relative to q, eased in from the calm band and capped so it never
 // reaches across it. Sampling against the wake moves the content along it. 'extra' is the cyclone's swirl.
 vec2 motion(vec2 q, float dist, vec2 extra) {
   if (dist <= CALM_LIMB) return vec2(0.0);
-  vec2 delta = (orbital() + weather(q) + extra - wake()) * smoothstep(CALM_LIMB, FULL_MOTION, dist);
+  vec2 delta = (orbital() + weather(q) + extra - wake(q)) * smoothstep(CALM_LIMB, FULL_MOTION, dist);
   float limit = (dist - CALM_LIMB) * 0.5;
   float travel = length(delta);
   return travel > limit ? delta * (limit / travel) : delta;
