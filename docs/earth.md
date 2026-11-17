@@ -59,7 +59,7 @@ Plate coordinates: `u` 0..1 left to right, `v` 0..1 top to bottom. The plate is 
 | Landmark | Plate px | Use |
 |---|---|---|
 | Sunrise | about (730, 285) | the hot point on the limb |
-| Cyclone | eye about (1545, 262), spiral about 120 px | turns in place in the scene |
+| Cyclone | eye about (1545, 262), spiral about 120 px | spins in place in the scene |
 | Cloud symbol | about x 1065–1470, y 310–635 | placed per breakpoint; kept legible |
 
 If the art changes, run the script, update `HORIZON`, re-measure the landmarks, and run `npm test`.
@@ -96,9 +96,11 @@ Motion moves where the plate is sampled, in plate heights (the limb distance's u
 |---|---|---|
 | Orbital drift | 12 px and 4.5 px on sines of 0.055 and 0.043 rad/s | everywhere on the planet |
 | Weather bands | up to 28 px and 12 px, 0.22 and 0.18 rad/s | static noise patches, calmed over the cloud symbol |
-| Cyclone | 0.19 rad plus a 0.035 rad overtone, 0.16 and 0.23 rad/s | around the painted eye, fading out past its reach |
+| Cyclone | turns counter-clockwise (as seen) at 0.16 rad/s at the eye, clouds drifting in 3%/s | around the painted eye, fading out past its reach |
 
 The cloud symbol keeps its shape: the bands fade out over a soft ellipse around it, so it rides the orbital drift as one piece. `plate-shader.test.ts` checks that the generated GLSL uses `plate.ts`'s horizon and landmarks and that the bands suit the landmarks.
+
+**How the cyclone turns:** a real storm turns one way and its bands spiral in, so the cyclone spins continuously instead of rocking. Turning the picture without end would wind the spiral tighter forever, so, as flow-map water shaders do, two layers swirl the plate half a 4 s cycle apart (`CYCLONE_CYCLE`): each turns a small, bounded amount from the middle of its cycle (`CYCLONE_SPIN`, `CYCLONE_INFLOW`), and they are crossfaded with weights 1 - |2p - 1| (`swirlLayers()` mirrors them) so neither restart shows. Only pixels within the cyclone's reach take the second texture sample.
 
 ### Pointer wake (`fluid.ts`, `earth-pointer.ts`)
 

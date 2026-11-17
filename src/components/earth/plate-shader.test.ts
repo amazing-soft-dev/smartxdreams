@@ -1,6 +1,17 @@
 import { describe, expect, it } from "vitest";
 import { HORIZON, horizonDistance, LANDMARKS, PLATE_ASPECT } from "./plate";
-import { CALM_LIMB, FULL_MOTION, GLOW_BAND, glslFloat, horizonChunk, plateFragmentShader } from "./plate-shader";
+import {
+  CALM_LIMB,
+  CYCLONE_CYCLE,
+  CYCLONE_INFLOW,
+  CYCLONE_SPIN,
+  FULL_MOTION,
+  GLOW_BAND,
+  glslFloat,
+  horizonChunk,
+  plateFragmentShader,
+  swirlLayers,
+} from "./plate-shader";
 
 describe("glslFloat", () => {
   it("always writes a decimal point, so GLSL reads a float", () => {
@@ -49,5 +60,35 @@ describe("motion and glow bands", () => {
   it("keep the painted glow around the sunrise, which sits within the glow band of the limb", () => {
     expect(GLOW_BAND).toBeGreaterThan(0);
     expect(Math.abs(horizonDistance(LANDMARKS.sunrise.u, LANDMARKS.sunrise.v))).toBeLessThan(GLOW_BAND + FULL_MOTION);
+  });
+});
+
+describe("cyclone swirl", () => {
+  it("crossfades two layers whose weights always add up to 1", () => {
+    for (let t = 0; t < CYCLONE_CYCLE * 3; t += 0.137) {
+      const [a, b] = swirlLayers(t);
+      expect(a.weight + b.weight).toBeCloseTo(1, 9);
+      expect(Math.abs(a.phase - b.phase)).toBeCloseTo(0.5, 9);
+    }
+  });
+
+  it("hides each layer's restart: a layer has no weight as it starts again, full weight halfway", () => {
+    const [atRestart] = swirlLayers(0);
+    expect(atRestart.phase).toBe(0);
+    expect(atRestart.weight).toBe(0);
+    const [halfway] = swirlLayers(CYCLONE_CYCLE / 2);
+    expect(halfway.weight).toBeCloseTo(1, 9);
+  });
+
+  it("keeps each layer's turn small, so the crossfaded layers barely differ", () => {
+    // Half a cycle either side of a layer's middle, at the eye.
+    expect(CYCLONE_SPIN * (CYCLONE_CYCLE / 2)).toBeLessThan(0.35);
+    expect(CYCLONE_INFLOW * (CYCLONE_CYCLE / 2)).toBeLessThan(0.1);
+  });
+
+  it("writes the swirl into the shader and no longer rocks the storm", () => {
+    expect(plateFragmentShader).toContain(`const float CYCLONE_SPIN = ${glslFloat(CYCLONE_SPIN)};`);
+    expect(plateFragmentShader).toContain("vec2 swirl(vec2 q, float phase)");
+    expect(plateFragmentShader).not.toContain("sin(uTime * 0.16)");
   });
 });
