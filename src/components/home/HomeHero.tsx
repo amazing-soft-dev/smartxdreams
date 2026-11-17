@@ -34,6 +34,13 @@ export function HomeHero() {
     >
       {/* The still sky and plate first; the three.js plate loads on top when the device allows it. */}
       <EarthField />
+      {/* Desktop: a soft wash of the sky's own colour behind the copy column, so the sunrise and the glow on the
+          limb, which rise close to the description's last lines, never cut its contrast. Phones and tablets keep
+          the copy above the planet, on clear sky. */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 -z-10 hidden bg-[radial-gradient(40%_60%_at_20%_50%,rgb(7_1_23/0.65),rgb(7_1_23/0.3)_60%,rgb(7_1_23/0)_100%)] lg:block"
+      />
       <Container>
         <div className="max-w-xl lg:max-w-[min(44vw,620px)]">
           <Reveal aboveFold preset="left60" delay={0.2}>
