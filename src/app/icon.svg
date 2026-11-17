@@ -1,11 +1,29 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="38 82 380 328" role="img" aria-label="SmartxDreams">
-  <!-- Rebuilt from logo-mark.png: ink rounded square, violet circle, coral where they overlap. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="160 112.5 280 280" role="img" aria-label="SmartxDreams">
+  <!--
+    The SmartxDreams stroke symbol, the same geometry as src/lib/brand-symbol.ts, on a square viewBox around
+    the strokes so it fills a favicon. Light-background strokes by default; the dark-background strokes
+    when the browser or OS is in dark mode.
+  -->
+  <style>
+    .s { stroke: #2B2170; }
+    .d { stroke: #6E56F0; }
+    @media (prefers-color-scheme: dark) {
+      .s { stroke: #A99BFF; }
+      .d { stroke: #E6E1FF; }
+    }
+  </style>
   <defs>
-    <clipPath id="sxd-square">
-      <rect x="38" y="82" width="253" height="254" rx="38" />
-    </clipPath>
+    <clipPath id="over-d"><circle cx="353.56" cy="252.5" r="36" /></clipPath>
+    <clipPath id="over-s"><circle cx="246.44" cy="252.5" r="36" /></clipPath>
+    <mask id="cut-d" maskUnits="userSpaceOnUse" x="105" y="57.5" width="390" height="390">
+      <rect x="105" y="57.5" width="390" height="390" fill="#fff" />
+      <path d="M384 125H300A75 75 0 1 0 375 200" fill="none" stroke="#000" stroke-width="32" clip-path="url(#over-d)" />
+    </mask>
+    <mask id="cut-s" maskUnits="userSpaceOnUse" x="105" y="57.5" width="390" height="390">
+      <rect x="105" y="57.5" width="390" height="390" fill="#fff" />
+      <path d="M225 380V305A75 75 0 1 1 300 380Z" fill="none" stroke="#000" stroke-width="32" clip-path="url(#over-s)" />
+    </mask>
   </defs>
-  <rect x="38" y="82" width="253" height="254" rx="38" fill="#0F1226" />
-  <circle cx="291" cy="283.5" r="126.5" fill="#6D4AFF" />
-  <circle cx="291" cy="283.5" r="126.5" fill="#FF6B3D" clip-path="url(#sxd-square)" />
+  <path class="d" d="M225 380V305A75 75 0 1 1 300 380Z" fill="none" stroke-width="18" mask="url(#cut-d)" />
+  <path class="s" d="M384 125H300A75 75 0 1 0 375 200" fill="none" stroke-width="18" mask="url(#cut-s)" />
 </svg>

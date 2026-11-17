@@ -1,12 +1,12 @@
 // Verifies the static export in out/ (run after NEXT_OUTPUT=export npm run build):
 // - the home and 404 HTML pages exist
 // - sitemap.xml and robots.txt exist once their routes exist in src/app
-// - a favicon exists
+// - the favicon, SVG icon, Apple touch icon and manifest exist, and so does every icon the manifest lists
 // - every file in public/ was copied (except photo sources, which ship as WebP variants)
 // - every photo has all of its WebP variants
 // - out/api does not exist (there is no server in the static export)
 
-import { access, readdir } from "node:fs/promises";
+import { access, readdir, readFile } from "node:fs/promises";
 import path from "node:path";
 import config from "../src/lib/image-config.json" with { type: "json" };
 
@@ -41,9 +41,14 @@ const appRoute = async (name) =>
 if (await appRoute("sitemap")) await expect("sitemap.xml", "src/app/sitemap exists");
 if (await appRoute("robots")) await expect("robots.txt", "src/app/robots exists");
 
-const icons = ["favicon.ico", "icon.png", "icon.svg", "favicon_io/favicon.ico"];
-if (!(await Promise.all(icons.map((i) => exists(path.join(out, i))))).some(Boolean)) {
-  problems.push(`no favicon in out/ (looked for ${icons.join(", ")})`);
+// App icons from src/app, and every icon the manifest lists.
+await expect("favicon.ico", "favicon, src/app/favicon.ico");
+await expect("icon.svg", "SVG favicon, src/app/icon.svg");
+await expect("apple-icon.png", "Apple touch icon, src/app/apple-icon.png");
+await expect("manifest.webmanifest", "web app manifest, src/app/manifest.ts");
+if (await exists(path.join(out, "manifest.webmanifest"))) {
+  const manifest = JSON.parse(await readFile(path.join(out, "manifest.webmanifest"), "utf8"));
+  for (const icon of manifest.icons ?? []) await expect(icon.src.replace(/^\//, ""), "icon listed in the manifest");
 }
 
 const publicDir = path.join(root, "public");

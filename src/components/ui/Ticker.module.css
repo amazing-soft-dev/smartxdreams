@@ -1,0 +1,50 @@
+.viewport {
+  overflow: hidden;
+}
+
+.track {
+  display: flex;
+  width: max-content;
+  animation: ticker var(--ticker-duration) linear infinite;
+}
+
+.group {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: var(--ticker-gap);
+  padding-right: var(--ticker-gap);
+}
+
+.item {
+  flex-shrink: 0;
+}
+
+/* Moving by exactly half the track (one copy) makes the loop seamless. */
+@keyframes ticker {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+/* Soft edges: items fade in and out instead of being cut at the container edge. */
+.viewport {
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 12%, #000 88%, transparent 100%);
+  mask-image: linear-gradient(90deg, transparent 0, #000 12%, #000 88%, transparent 100%);
+}
+
+/* Pause while the visitor points at or tabs into it, so a name can be read. */
+.viewport:hover .track,
+.viewport:focus-within .track {
+  animation-play-state: paused;
+}
+
+/* Reduced motion: no movement; the first copy shows as a static row. */
+@media (prefers-reduced-motion: reduce) {
+  .track {
+    animation: none;
+  }
+}

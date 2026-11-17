@@ -1,7 +1,44 @@
-# SmartxDreams company website: updated plan (awaiting approval)
+# SmartxDreams company website: updated plan, revision 3 (awaiting approval)
 
-> **Status: plan only.** Nothing has been implemented, no issues or branches exist yet, and this file is untracked (not committed).
-> Repo: `amazing-soft-dev/smartxdreams` (public, currently only `main` with an "Initial commit", plus your untracked `public/` assets).
+> **Status: plan only. I haven't changed the repo for this revision.** This file is edited in the working tree and not committed.
+> Repo: `amazing-soft-dev/smartxdreams` (public).
+
+---
+
+## 0. Revision 3: workflows first, then the site
+
+You asked for the GitHub workflows to be **created and proven before any site code**, plus **three.js for the homepage star-field (`AstraField`)**. I checked the real repo state first (read-only), because it has moved since revision 2.
+
+### 0.1 Current repo state (verified with `gh`/`git`, not assumed)
+
+| Item | State |
+|---|---|
+| Issues | **#1–#64 exist** (#1 closed, #2–#64 open). PRs #65 and #66 are merged, so the next free number is **#67** |
+| `dev`, `main` | Both exist. `dev` and `main` currently contain only: `.gitignore`, `LICENSE`, `README.md`, `SMARTXDREAMS-PLAN.md`, `package-lock.json` and 9 files in `public/` (two logos + favicon set) |
+| ⚠️ Scaffold | Issue #1's scaffold was merged, then **commit `cd50005` "chore: remove unused configuration and initial project files" deleted `package.json`, `tsconfig.json`, `eslint.config.mjs`, `next.config.ts`, `src/app/*` and most of the README**. Only `package-lock.json` is left. The lockfile pins Next 16.4.6, React 19.3.1, ESLint 10.15.0 and **TypeScript 6.0.3** |
+| `.github/` | **Doesn't exist** on any branch: no workflows, no rulesets, no Dependabot |
+| Rulesets | **None** (direct pushes to `dev` and `main` are currently possible) |
+| Secrets | **No `GH_TOKEN`** repository secret |
+| Actions settings | Actions enabled; default workflow permissions **read-only**; "create and approve pull requests" **off** |
+| Merge settings | Merge commits, squash and rebase are all allowed; auto-merge off; head branches are not auto-deleted |
+
+I'm treating that scaffold removal as **intentional**, i.e. a clean slate so workflows come first. If it was an accident, tell me and I'll restore it in step 5 below exactly as it was.
+
+### 0.2 The new order
+
+```
+PHASE 0: Pipeline (no site code)          PHASE 1+: Site
+ #3 workflows  → #68 happy-path probe  →   #67 restore scaffold (rides the pipeline)
+ (+ you: GH_TOKEN, settings)  #69 red-CI probe       → #2, #4 … #73 in dependency order
+                              #70 guard checks
+                              ── GATE: all pass ──┘
+```
+
+1. **You** add the `GH_TOKEN` secret and turn on "Allow GitHub Actions to create and approve pull requests" (§7.1). I can't create a token for you, and I won't copy the token in this machine's environment into repo secrets without your say-so.
+2. **#3** writes the three workflows, Dependabot config and ruleset JSON, with a *bootstrap mode* so CI can pass with no app yet (§7.2). It lands by hand because `merge-passing-pr` doesn't exist on `main` yet.
+3. **#68, #69, #70** prove the pipeline end to end, including the failure and abuse paths (§7.3).
+4. **Gate:** every check in §7.4 passes → you import the rulesets → I re-run the guard checks. If anything fails, a `fix/` or `ci/` issue repairs it and the check re-runs. **If all pass, I continue automatically**; I only stop earlier if I'm stuck.
+5. **#67** restores the scaffold *through the proven pipeline* and deletes the bootstrap flag, so CI turns strict. Then the site issues (#2, #4–#64, #71–#73) follow.
 
 ---
 
@@ -120,7 +157,20 @@ src/
   lib/                      env (zod), validation (zod), rate-limit, resend, seo
 ```
 
-Dependencies beyond your stack: **Lenis**, **zod**, an MDX loader. All are justified by the choices above. Versions in your stack note (Next 16.4, React 19.3, TypeScript `^7`) are pinned to whatever `npm` resolves at scaffold time. If TypeScript 7 breaks `eslint-config-next`, I'll fall back to the newest compatible release and say so in the commit.
+Dependencies beyond your stack: **Lenis**, **zod**, an MDX loader. All are justified by the choices above. **three.js** is now in your stack (for `AstraField`, §5.2).
+
+**Versions** (latest on npm today, checked): Next 16.4.6 · React 19.3.1 (lockfile) · TypeScript **7.0.2** (the old lockfile has 6.0.3, so the restore in #67 uses `^7` and re-checks `eslint-config-next`; if it breaks, I fall back to 6.x and say so in the commit) · Tailwind 4.3.5 · ESLint 10.15.0 · three 0.187.0 (+ `@types/three`) · Motion 14.14.0 · Lenis 1.3.27 · Resend 6.38.1 · zod 4.6.7 · sharp 0.35.5. The React Compiler options (`reactCompiler`, `turbopackRustReactCompiler`) are verified against the installed Next at restore time; a flag that doesn't exist is dropped with a note.
+
+The pasted stack lists `/api/hire`, `/api/cv`, `/api/salary-guide` and AI-training routes. **Those aren't SmartxDreams routes**; we build only `/api/contact` and `/api/waitlist`.
+
+### 5.2 AstraField: homepage star-field (three.js)
+
+A star-field behind the Home hero, with our palette:
+- **Rendering:** `THREE.Points` with a small custom shader (size attenuation, soft round sprites, twinkle), about 4–6k stars, white with a few violet and coral stars. A slow drift and pointer parallax.
+- **Product constellations:** six faint star clusters, one per product. Hovering a product card or a hero chip brightens that constellation's lines (`LineSegments`) and dims the rest. This ties the visual to the six products.
+- **Loading:** imperative three.js in a client component, loaded with `next/dynamic` (`ssr: false`) after the headline paints, so it can't hurt LCP. Budget: **≤ 200 KB gzipped** extra on Home only.
+- **Fallbacks:** a static CSS star gradient for reduced motion, no WebGL, save-data, and low-power devices; pauses off-screen and on hidden tabs; DPR capped at 1.75; full `dispose()` on unmount; two WebGL contexts (AstraField + smoke footer) never render at the same time.
+- **Accessibility:** decorative (`aria-hidden`), no information carried only by the animation, content readable over it (contrast checked on the darkest and brightest star areas).
 
 ### 5.1 Imagery: sourcing photos from Unsplash and Pexels
 
@@ -168,7 +218,9 @@ When we reach the image issues, I will search both sites in the built-in browser
 
 ---
 
-## 6. The 64 issues (60 original + 4 imagery)
+## 6. The 73 issues (#1–#64 exist; #67–#73 are new in this revision)
+
+Issue numbers below are the **real GitHub numbers** (the issues already exist). A lone "01/02/…" in a *Depends* column means that issue number.
 
 **Conventions**
 - Each issue gets its own branch **from `origin/dev`**: `<prefix>/<issue-number>-<slug>`. Allowed prefixes are only `feat/ fix/ docs/ ci/ build/`, so tests and refactors use `feat/` or `build/`. Branch names below show `N` for the number GitHub assigns.
@@ -183,13 +235,22 @@ Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>
 - Issues use a template: **Goal · Scope · Acceptance criteria · Out of scope · Depends on**. About 3–6 commits per branch, about 240 in total.
 - I never push to `dev` or `main`; I push only issue branches, and the workflows do the rest.
 
-### A. Foundation (9)
+### Phase 0: Pipeline first (no site code)
 
 | # | Branch | Issue | Planned commits | Depends |
 |---|---|---|---|---|
-| 01 | `build/N-nextjs-scaffold` | Scaffold Next.js app | `build: init Next.js App Router with src/ and Turbopack` · `build(ts): strict tsconfig and path alias` · `build(lint): ESLint flat config, zero warnings` · `build(scripts): lint and typecheck scripts` · `docs: README quickstart` | none |
-| 02 | `build/N-static-export-images` | Static export and image pipeline | `build(next): NEXT_OUTPUT=export switch in next.config` · `build(images): sharp script for responsive WebP` · `build(images): custom loader for static export` · `build(images): check:images script (each photo used once, passes with zero photos)` · `build(ci): verify-out script (HTML, sitemap, icons, no out/api)` | 01 |
-| 03 | `ci/N-github-workflows` | Pipeline: workflows, Dependabot, rulesets | `ci: CI workflow (lint+typecheck, server+static builds, "CI passed" gate)` · `ci: open-pull-request workflow using GH_TOKEN` · `ci: merge-passing-pr with --match-head-commit` · `ci: dependabot for npm and actions` · `ci: rulesets for dev and main in .github/rulesets` · `docs: pipeline guide` | 02 |
+| 03 | `ci/3-github-workflows` | Pipeline: workflows, Dependabot, rulesets | `ci: CI workflow with detect-app, bootstrap mode, actionlint and "CI passed" gate` · `ci: CI lint/typecheck job (runs only when the app exists)` · `ci: CI server and static build jobs with verify-out step` · `ci: open-pull-request workflow (prefix + issue-number rules, GH_TOKEN, dev→main body with Closes)` · `ci: merge-passing-pr with --match-head-commit and eligible-pair checks` · `ci: dependabot for npm and github-actions` · `ci: rulesets for dev and main in .github/rulesets (not yet applied)` · `docs: pipeline guide and token setup` | none (you: §7.1) |
+| 68 | `docs/68-pipeline-probe-happy-path` | Probe 1: happy path end to end | `docs: pipeline probe note describing the expected sequence` · `docs: record run links in the issue (not in the repo)` | 03 on `main` |
+| 69 | `fix/69-pipeline-probe-red-ci` | Probe 2: red CI, recovery and cancel | `ci: probe commit that makes CI fail (removes the bootstrap flag)` · `ci: probe fix commit that restores it` | 68 |
+| 70 | `ci/70-pipeline-guards` | Probe 3: rules and abuse paths | `docs: guard-check log and findings in docs/pipeline.md` · `ci: fixes for any defect found (one commit per defect)` | 69, rulesets imported |
+| 67 | `fix/67-restore-scaffold` | Restore Next.js scaffold, make CI strict | `build: restore package.json with scripts (lint, typecheck, build)` · `build(ts): tsconfig strict, TypeScript ^7, eslint-config-next check` · `build(next): next.config.ts with reactCompiler and static-export switch` · `build(lint): ESLint flat config, zero warnings` · `feat(app): minimal layout and placeholder page with the logo` · `docs: README quickstart` · `ci: delete .github/ci-bootstrap so CI is strict` | 70 passed |
+
+### A. Foundation (remaining)
+
+| # | Branch | Issue | Planned commits | Depends |
+|---|---|---|---|---|
+| 01 | *(closed)* | Scaffold Next.js app | Landed earlier; the files were later removed (§0.1). **#67 restores them** | n/a |
+| 02 | `build/2-static-export-images` | Static export and image pipeline | `build(next): NEXT_OUTPUT=export switch in next.config` · `build(images): sharp script for responsive WebP` · `build(images): custom loader for static export` · `build(images): check:images script (each photo used once, passes with zero photos)` · `build(ci): verify-out script (HTML, sitemap, icons, no out/api)` | 67 |
 | 04 | `feat/N-design-tokens` | Brand tokens, fonts, base styles | `feat(tokens): ink/violet/coral scales and canvas in @theme` · `feat(type): Inter Tight via next/font and fluid scale` · `feat(tokens): radius, shadow, easing and spring tokens` · `feat(styles): base layer, focus ring, reduced-motion defaults` · `docs: contrast table for every color pairing` | 01 |
 | 05 | `feat/N-content-model` | Content model and `site.ts` | `feat(content): Product, NavItem, Faq, Post types` · `feat(content): site.ts with nav, footer, company copy` · `feat(content): per-product files skeleton (6)` · `feat(content): selectors (productBySlug, byAudience)` | 01 |
 | 06 | `feat/N-brand-assets` | Brand assets and favicons | `feat(brand): rename logos to logo-mark.png / logo-full.png` · `feat(brand): SVG mark rebuilt from the logo shapes` · `feat(brand): Logo component with light/dark wordmark` · `feat(brand): favicon set, apple-touch, webmanifest name and theme color` · `build(brand): remove duplicate favicon set and zips (after approval)` | 04 |
@@ -228,7 +289,7 @@ Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>
 
 | # | Branch | Issue | Planned commits | Depends |
 |---|---|---|---|---|
-| 27 | `feat/N-home-hero` | Hero with selection-box headline | `feat(home): hero layout and glow` · `feat(home): selection-box overlay cycling words` · `feat(home): label chip swap at 60%` · `feat(home): entrance animation springs` · `feat(home): single h1 and CTA` | 10, 12, 13 |
+| 27 | `feat/N-home-hero` | Hero with selection-box headline | `feat(home): hero layout and glow` · `feat(home): selection-box overlay cycling words` · `feat(home): label chip swap at 60%` · `feat(home): entrance animation springs` · `feat(home): single h1 and CTA` · `feat(home): mount AstraField behind the hero` | 10, 12, 13, 72 |
 | 28 | `feat/N-home-mockup-wave` | Hero mockup wave | `feat(mockups): shared mockup frame` · `feat(mockups): 6 compact hero cards (job feed, autofill, report, cost bar, bill, questionnaire)` · `feat(home): staggered drop-in wave` · `feat(home): mobile horizontal snap carousel (hero ≤ 900 px)` | 27, 13 |
 | 29 | `feat/N-home-product-grid` | Product grid | `feat(home): bento grid of 6 products from content` · `feat(home): card hover and focus states` · `feat(home): audience tags` · `feat(home): links to product pages` | 05, 13 |
 | 30 | `feat/N-home-statement` | Statement reveal | `feat(home): statement rows with word blur-in` · `feat(home): caret and avatar-chip pops` · `feat(home): reduced-motion static text` | 12 |
@@ -271,6 +332,16 @@ Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>
 | 52 | `feat/N-api-waitlist` | `POST /api/waitlist` | `feat(api): route with product tag` · `feat(api): double-opt-in email` · `feat(api): duplicate handling` · `feat(api): consent field stored` | 50 |
 | 53 | `feat/N-waitlist-form` | Waitlist form component | `feat(forms): WaitlistForm with states` · `feat(forms): accessible errors and live region` · `feat(forms): static-export fallback (mailto/disabled message)` · `feat(forms): wire into product pages and CTA` | 52, 34, 25 |
 
+### J. AstraField: three.js star-field (3, new)
+
+Runs after the smoke footer (#22) and **before the Home hero (#27)**, which consumes it. See §5.2.
+
+| # | Branch | Issue | Planned commits | Depends |
+|---|---|---|---|---|
+| 71 | `build/71-three-setup` | three.js setup and lazy loader | `build: add three and @types/three` · `feat(webgl): capability and low-power detection hook` · `feat(webgl): dynamic-import wrapper with idle/in-view loading` · `feat(webgl): renderer lifecycle (resize, DPR cap, pause, dispose)` · `feat(webgl): static CSS star fallback component` | 67, 22 |
+| 72 | `feat/72-astrafield-stars` | AstraField: star points and shader | `feat(astra): star buffer generation with palette and seeded random` · `feat(astra): points shader (soft sprites, twinkle, size attenuation)` · `feat(astra): slow drift and depth fade` · `feat(astra): pointer parallax with damping` · `feat(astra): reduced-motion and save-data paths` | 71 |
+| 73 | `feat/73-astrafield-constellations` | AstraField: product constellations and budgets | `feat(astra): six constellation layouts and line segments` · `feat(astra): active-product highlight API (hover and focus)` · `feat(astra): context-sharing rule with the smoke footer` · `build(astra): bundle budget (≤200 KB gz) and perf check` · `docs: AstraField usage` | 72, 29 |
+
 ### I. Imagery (4)
 
 Added after the Unsplash/Pexels decision. These run **after the shell (C) and before the pages that use the photos** so each page issue can reference a named image.
@@ -298,21 +369,72 @@ Pages that consume them (27–33, 35–40, 43, 47, 49, 26, 44) get one small ext
 
 ---
 
-## 7. Pipeline bootstrap (your step) and what to expect
+## 7. Pipeline: build it, prove it, then use it
 
-You chose to set up `dev` and the rules first. Order:
+### 7.1 Your setup steps (before I push #3)
 
-1. Create `dev` from `main` and add the `GH_TOKEN` repository secret. The **Actions → "Allow GitHub Actions to create pull requests"** setting must be on.
-2. **Do not import the rulesets yet.** They require the "CI passed" check, which doesn't exist until issue 03 lands.
-3. Issues **01, 02 and 03 land by hand**: they have no CI yet, and `merge-passing-pr` is read from the default branch, where it doesn't exist. I'll open those three PRs into `dev` and you merge them.
-4. After 03 is on `dev`, the first `dev` → `main` PR also needs a manual merge. After that `main` has the workflows.
-5. **Now import the rulesets** (blocking direct pushes, force-pushes, deletion; required check "CI passed"; merge commits only). From here on everything is automatic: push branch → PR → CI → merge.
+| Step | Where | Why |
+|---|---|---|
+| a. Create a **fine-grained PAT** for this repo: Contents, Pull requests, Issues = read/write; Workflows = read/write; Metadata = read. Save it as the repository secret **`GH_TOKEN`** | Settings → Secrets and variables → Actions | The default `GITHUB_TOKEN` can't start the next workflow after a merge (§7.2). I don't create or read tokens |
+| b. Turn on **"Allow GitHub Actions to create and approve pull requests"** (and keep default workflow permissions read-only) | Settings → Actions → General | Lets the open-PR workflow work; today it's off |
+| c. Leave **rulesets unimported** for now | Settings → Rules | The "CI passed" check doesn't exist yet |
+| d. Later (when I ask): import the two ruleset JSONs from `.github/rulesets/`; connect Vercel with Production = `main` | Rules / Vercel | After the gate; Vercel isn't needed until launch (#60) |
+
+### 7.2 What #3 builds (mirrors your described pipeline)
+
+| Workflow | Behavior |
+|---|---|
+| **Open pull request** | On push to a branch named `feat|fix|docs|ci|build/<issue-number>-…` → opens a PR into `dev` (skips if one is open). A branch without a valid prefix or number is ignored. On push to `dev` → opens or updates `dev` → `main`, with a body that collects `Closes #N` from branch names and commit lines since `main`. Uses `GH_TOKEN` |
+| **CI** | Triggers: every PR, pushes to `dev`/`main`, manual dispatch; older runs of the same ref are cancelled. Jobs: **detect-app** → **Lint and type check** (`npm ci`, lint, typecheck, `check:images`) · **Build** server + static (static sets `NEXT_OUTPUT=export`, builds WebP, checks `out/` has HTML, sitemap, icons, images and **no `out/api`**) · **actionlint** on workflow files · **CI passed**, the single required check, which posts/updates one PR summary comment |
+| **Merge passing PR** | Runs only after a successful CI `workflow_run` for a PR; merge-commits when the head is still the validated SHA (`--match-head-commit`). Eligible pairs only: prefix branch → `dev`, and `dev` → `main` |
+| **Dependabot** | Weekly npm and github-actions PRs; **not** auto-opened or merged by the workflows |
+
+**Hardening I'm adding** (cheap and safe): least-privilege `permissions:` per job; actions pinned to a major tag (Dependabot keeps them fresh); `concurrency` groups; fork PRs never receive `GH_TOKEN`; Node from setup-node `latest`, with the version printed in the summary; and **no Actions deploy** (Vercel deploys from `main` through its Git connection).
+
+**Bootstrap mode.** There's no `package.json` right now, so `npm ci` can't run. CI's **detect-app** step handles that:
+- `package.json` exists → lint/type/build jobs run for real.
+- `package.json` is missing **and** `.github/ci-bootstrap` exists → those jobs are *skipped*, and "CI passed" still goes green. This lets us prove the PR/merge mechanics with no site code.
+- `package.json` is missing **and** the flag is absent → **CI fails**. This is the guard that would have caught commit `cd50005` deleting the scaffold.
+
+**#67 deletes the flag**, so from then on CI is strict and the bootstrap path can't be used by accident.
+
+**Manual merges (unavoidable once):** `merge-passing-pr` is read from the default branch, so it can't act until it's on `main`. So: #3's PR → `dev` is merged by you; the resulting first `dev` → `main` PR is merged by you; after that, everything is automatic. You merge, I don't.
+
+### 7.3 Pipeline probes (the proof)
+
+| Probe | What I do | Expected |
+|---|---|---|
+| **#68 happy path** | Push `docs/68-…` with a doc-only change | PR auto-opened into `dev` → CI green with one summary comment → auto-merged as a **merge commit** → `dev` push opens `dev` → `main` with `Closes #68` in the body → CI green → merged → **#68 closes by itself** |
+| **#69 red CI** | Push `fix/69-…` whose commit removes the bootstrap flag | CI **fails**, "CI passed" fails, **no merge**. I push the fix; the stale run is **cancelled**; the new run passes and merges. This proves the failure path, recovery and concurrency cancel |
+| **#70 guards** | After rulesets are imported | See §7.4 items 9–13 |
+
+### 7.4 Gate checklist (all must pass before any site code)
+
+| # | Check | Pass criterion |
+|---|---|---|
+| 1 | Prefixed branch opens a PR | `feat|fix|docs|ci|build/<n>-…` each opens a PR into `dev` (sampled: `docs/`, `fix/`, `ci/`) |
+| 2 | Bad branch ignored | `wip/…` and a prefixed branch with no issue number get **no** PR |
+| 3 | CI summary comment | Exactly one comment, updated, not duplicated |
+| 4 | Green merges automatically | Merge commit on `dev`, branch head validated |
+| 5 | `dev` push opens/updates `dev` → `main` | PR exists with correct `Closes` lines; no duplicate PR |
+| 6 | `dev` → `main` merges after green CI | `main` has the merge commit; linked issues close |
+| 7 | Red CI never merges | PR stays open; "CI passed" red |
+| 8 | Newer push cancels older run | Stale run shows *cancelled* |
+| 9 | Direct push to `dev` and `main` rejected | Rejected by ruleset (I try with a harmless commit) |
+| 10 | Force-push and branch deletion rejected | Rejected on both |
+| 11 | Merge without green "CI passed" blocked | Ruleset/required check blocks it |
+| 12 | Non-merge-commit methods blocked | Squash/rebase merge options rejected by ruleset |
+| 13 | Non-eligible pairs untouched | A feature → `main` PR isn't auto-merged |
+| 14 | Head-moved race | Push a second commit right after CI starts: no merge on the old SHA (`--match-head-commit`) |
+| 15 | Next workflow starts after a bot merge | The `dev` push run exists after step 4, which proves `GH_TOKEN` works |
+
+Each check gets a run/PR link in a comment on #68/#69/#70 (not in the repo). A failed check creates a `ci/` fix branch off `dev` with its own commit, and re-runs the check.
 
 ### Execution order
 
 Dependent issues must wait for their dependency to merge, because every branch starts from `origin/dev`. The order is:
 
-`01 → 02 → 03` · `04 ∥ 05 ∥ 08 ∥ 24` · `06 → 07 → 09` · primitives `10–17` · shell `18–26` · **imagery `61 → 62 ∥ 63 ∥ 64`** · Home `27–33` · products `34–42` · company/blog `43–49` · API `50–53` · quality `54–60`.
+`3 → 68 → 69 → [rulesets imported] → 70 → GATE → 67 → 2` · `4 ∥ 5 ∥ 8 ∥ 24` · `6 → 7 → 9` · primitives `10–17` · shell `18–26` · **AstraField `71 → 72`** · **imagery `61 → 62 ∥ 63 ∥ 64`** · Home `27–33` (`73` after `29`) · products `34–42` · company/blog `43–49` · API `50–53` · quality `54–60`.
 
 Parallel branches are fine when they touch different files. `site.ts` and `globals.css` are edited only by 04 and 05, and each product has its own content file to avoid conflicts.
 
@@ -322,7 +444,14 @@ Parallel branches are fine when they touch different files. `site.ts` and `globa
 
 | Risk | Mitigation |
 |---|---|
-| Ruleset blocks bootstrap | Rulesets are imported only after issue 03 (§7) |
+| Ruleset blocks bootstrap | Rulesets are imported only after #3 and probes #68/#69 pass (§7) |
+| Scaffold was deleted (`cd50005`) and CI could not have caught it | Strict CI (no `package.json` → fail) after #67; bootstrap flag only until then |
+| `GH_TOKEN` PAT leaks or expires | Fine-grained, single repo, expiry noted in `docs/pipeline.md`; never exposed to fork PRs; I never print it |
+| PAT owner can bypass rules | Rulesets have **no bypass list**, so even admins and the PAT go through PRs (verified in #70) |
+| Auto-merge with no human review | Intentional per your design; the safety net is the required "CI passed", `--match-head-commit`, and the guard checks |
+| Static export vs. WebGL | AstraField and the smoke footer render only on the client; the static build ships the CSS fallback HTML |
+| three.js weight | Lazy-loaded, ≤ 200 KB gz budget (#73), Home only |
+| Latest-Node drift in CI | Node version is printed in the CI summary; if a new Node breaks the build, pin in a `ci/` fix |
 | Pasted pipeline doc belongs to another project (bridgewide.org, hire/CV/salary APIs) | Only the workflow mechanics are reused; routes and domain are replaced. **I need the real SmartxDreams domain** (default `NEXT_PUBLIC_SITE_URL` placeholder) |
 | Static export has no `/api` | Forms degrade to a clear message in the static build; the server build (Vercel) sends via Resend |
 | Waitlist emails are personal data | Consent checkbox, privacy page, minimal fields, no tracking pixels, honeypot |
@@ -351,7 +480,9 @@ Parallel branches are fine when they touch different files. `site.ts` and `globa
 
 ## 9. What happens after you approve
 
-1. I create issues **01–64** (labels `epic:*`, `product:*`), one at a time, in the order above, and record the real numbers.
-2. I work through them in order: branch from fresh `origin/dev`, commit in the planned steps (each with the three trailers), push, let the workflows open the PR, wait for CI and merge, then start the next dependent issue.
-3. I stop and ask you at each manual gate: the PRs for 01–03, the first `dev` → `main` merge and the ruleset import.
-4. Deleting your duplicate favicon set and zips (issue 06) happens only after you say yes.
+1. I create the 7 new issues **#67–#73** (labels `epic:*`) and update #2 and #3 to match this plan. The other 62 issues already exist.
+2. I tell you when to do the §7.1 setup (token + settings), then push **#3** (`ci/3-github-workflows`) with its commits. Each commit carries the three trailers.
+3. **Your manual merges:** the #3 PR into `dev`, then the first `dev` → `main` PR. I stop and wait for those.
+4. I run probes **#68 → #69**, then ask you to import the rulesets, then run **#70**. I report the §7.4 checklist.
+5. **If all 15 checks pass I continue on my own** with #67, then #2 and the rest in the order above. Each issue: fresh branch from `origin/dev`, the planned commits, push, let the workflows open the PR, wait for CI and the merge, then start the next dependent issue. If a check fails I fix it through a `ci/` issue first.
+6. Deleting your duplicate favicon set and zips (issue #6) happens only after you say yes.

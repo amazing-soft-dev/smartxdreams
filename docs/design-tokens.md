@@ -1,6 +1,8 @@
 # Design tokens
 
-Tokens live in `src/app/globals.css` (`@theme`, Tailwind CSS v4) and, for JavaScript motion, in `src/styles/motion.ts`. Brand colors are sampled from the logo files in `public/`.
+Tokens live in `src/app/globals.css` (`@theme`, Tailwind CSS v4) and, for JavaScript motion, in `src/styles/motion.ts`.
+
+The UI palette below was first sampled from the original logo. The current symbol has its own colours (navy `#2B2170`, violet `#6E56F0`, lavender `#A99BFF` and `#E6E1FF`), which are used only inside the logo and the app icons and are listed in [brand.md](brand.md). Do not use them as UI colours, and do not change these tokens to match the logo without a design review: every contrast ratio below depends on them.
 
 ## Colors
 
@@ -8,6 +10,7 @@ Tokens live in `src/app/globals.css` (`@theme`, Tailwind CSS v4) and, for JavaSc
 |---|---|---|
 | `ink` | `#0F1226` | Text on light surfaces, dark heroes, transition panels |
 | `ink-800` / `-700` / `-600` | `#1B1F3A` / `#2A2F52` / `#3D4370` | Raised dark surfaces |
+| `space` | `#070117` | Night sky behind the Home hero's planet ([sky.md](sky.md)) |
 | `canvas` | `#F5F2EE` | Page background |
 | `canvas-200` | `#ECE7E1` | Alternate light section |
 | `violet-500` | `#6D4AFF` | Brand violet: accents, links, focus ring |

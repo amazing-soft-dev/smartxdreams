@@ -1,6 +1,6 @@
 "use client";
 
-import Lenis from "lenis";
+import type Lenis from "lenis";
 import "lenis/dist/lenis.css";
 import { usePathname } from "next/navigation";
 import { type ReactNode, useEffect, useSyncExternalStore } from "react";
@@ -8,6 +8,9 @@ import { type ReactNode, useEffect, useSyncExternalStore } from "react";
 /**
  * Smooth scrolling with Lenis. Lenis eases the native scroll position over time (not per frame), so it
  * behaves the same on 60 Hz and 120 Hz screens and keeps native scrollbars, find-in-page and anchors.
+ *
+ * Lenis is downloaded only when it will run: desktop pointers without a reduced-motion preference. Phones,
+ * tablets and reduced-motion visitors never load it.
  *
  * The instance lives in a tiny external store so any component can read it with useLenis()
  * (for example to stop scrolling while a menu is open) without re-rendering the whole tree.
@@ -38,8 +41,9 @@ export function useLenis(): Lenis | null {
 /** Ease-out-expo: fast start, long gentle stop. */
 const easeOutExpo = (t: number) => (t === 1 ? 1 : 1 - 2 ** (-10 * t));
 
-function createLenis() {
-  return new Lenis({
+async function createLenis(): Promise<Lenis> {
+  const { default: LenisClass } = await import("lenis");
+  return new LenisClass({
     duration: 1.1,
     easing: easeOutExpo,
     autoRaf: true,
@@ -58,21 +62,30 @@ export function SmoothScroll({ children }: { children: ReactNode }) {
   useEffect(() => {
     const query = window.matchMedia(DISABLE_QUERY);
     let lenis: Lenis | null = null;
+    let loading = false;
+    let disposed = false;
 
     const apply = () => {
       if (query.matches && lenis) {
         lenis.destroy();
         lenis = null;
         setInstance(null);
-      } else if (!query.matches && !lenis) {
-        lenis = createLenis();
-        setInstance(lenis);
+      } else if (!query.matches && !lenis && !loading) {
+        loading = true;
+        void createLenis().then((created) => {
+          loading = false;
+          // The page may have unmounted, or the preference flipped, while the chunk was loading.
+          if (disposed || query.matches) return created.destroy();
+          lenis = created;
+          setInstance(created);
+        });
       }
     };
 
     apply();
     query.addEventListener("change", apply);
     return () => {
+      disposed = true;
       query.removeEventListener("change", apply);
       lenis?.destroy();
       setInstance(null);

@@ -1,5 +1,5 @@
 // Pre-builds responsive WebP variants of every photo in public/images for the static export.
-// public/images/home/desk.jpg -> public/_img/home/desk-640.webp, -1024, -1600, -2400.
+// public/images/home/desk.jpg -> public/_img/home/desk-320.webp, -640, -1024, -1600, -2400.
 // Variants are never upscaled; a smaller original is written at its own width under each name.
 // Unchanged photos are skipped, so repeated runs are fast.
 
