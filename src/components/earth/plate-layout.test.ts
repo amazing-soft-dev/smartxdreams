@@ -1,6 +1,14 @@
 import { describe, expect, it } from "vitest";
 import { horizonDistance, LANDMARKS } from "./plate";
-import { heroToPlate, PLATE_BREAKPOINTS, plateBreakpointFor, plateRect, plateToHero, plateUniform } from "./plate-layout";
+import {
+  heroToPlate,
+  PLATE_BREAKPOINTS,
+  plateBreakpointFor,
+  plateLayoutCss,
+  plateRect,
+  plateToHero,
+  plateUniform,
+} from "./plate-layout";
 
 /**
  * Hero shapes (width / height) each breakpoint must handle: phones are tall, tablets run from portrait to
@@ -118,5 +126,28 @@ describe("plateBreakpointFor", () => {
     expect(plateBreakpointFor(640).minWidth).toBe(640);
     expect(plateBreakpointFor(1023).minWidth).toBe(640);
     expect(plateBreakpointFor(1024).minWidth).toBe(1024);
+  });
+});
+
+describe("plateLayoutCss", () => {
+  const css = plateLayoutCss(".x");
+
+  it("writes the constants and the plate rectangle once", () => {
+    for (const name of ["su", "sv", "sh", "aspect", "height", "left", "bottom"]) {
+      expect(css.match(new RegExp(`--plate-${name}:`, "g")), name).toHaveLength(1);
+    }
+  });
+
+  it("writes each breakpoint's symbol target, the first without a media query", () => {
+    expect(css.match(/@media/g)).toHaveLength(PLATE_BREAKPOINTS.length - 1);
+    for (const { minWidth, symbol } of PLATE_BREAKPOINTS) {
+      const rule = `.x{--plate-symbol-right:${symbol.right};--plate-symbol-bottom:${symbol.bottom};--plate-symbol-height:${symbol.height}}`;
+      expect(css).toContain(minWidth === 0 ? rule : `@media (min-width:${minWidth}px){${rule}}`);
+    }
+  });
+
+  it("compares the same four lengths as plateRect()", () => {
+    const height = /--plate-height:max\((.*?)\);--plate-left/.exec(css)?.[1] ?? "";
+    expect(height.split("calc(")).toHaveLength(5);
   });
 });

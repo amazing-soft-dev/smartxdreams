@@ -74,3 +74,39 @@ export function plateToHero(rect: PlateRect, u: number, v: number): { x: number;
 export function plateUniform(rect: PlateRect): [number, number, number, number] {
   return [rect.left, rect.bottom, rect.width, rect.height];
 }
+
+const round = (n: number) => Number(n.toFixed(5));
+
+/**
+ * The placement for the CSS fallback, on `selector`: the symbol landmark and the plate's aspect as constants,
+ * each breakpoint's symbol target in a media query, and plateRect() itself written in CSS, so the fallback
+ * needs no JavaScript to line up with the scene:
+ *
+ * - `--plate-height`: the plate's height, the largest of the four lengths plateRect() compares
+ * - `--plate-left`, `--plate-bottom`: its bottom-left corner
+ *
+ * They use container query units, so the element must sit in a size container the size of the hero
+ * (100cqh is one hero height, 100cqw the hero's width).
+ */
+export function plateLayoutCss(selector: string): string {
+  const { u, v, height } = LANDMARKS.symbol;
+  const base = [
+    `--plate-su:${round(u)}`,
+    `--plate-sv:${round(v)}`,
+    `--plate-sh:${round(height)}`,
+    `--plate-aspect:${round(PLATE_ASPECT)}`,
+    // plateRect(), term by term: the symbol at its target height, then the left, right and bottom edges covered.
+    "--plate-height:max(" +
+      "calc(var(--plate-symbol-height) / var(--plate-sh) * 100cqh)," +
+      "calc((100cqw - var(--plate-symbol-right) * 100cqh) / var(--plate-su) / var(--plate-aspect))," +
+      "calc(var(--plate-symbol-right) * 100cqh / (1 - var(--plate-su)) / var(--plate-aspect))," +
+      "calc(var(--plate-symbol-bottom) * 100cqh / (1 - var(--plate-sv))))",
+    "--plate-left:calc(100cqw - var(--plate-symbol-right) * 100cqh - var(--plate-su) * var(--plate-aspect) * var(--plate-height))",
+    "--plate-bottom:calc(var(--plate-symbol-bottom) * 100cqh - (1 - var(--plate-sv)) * var(--plate-height))",
+  ].join(";");
+  const targets = PLATE_BREAKPOINTS.map(({ minWidth, symbol }) => {
+    const rule = `${selector}{--plate-symbol-right:${symbol.right};--plate-symbol-bottom:${symbol.bottom};--plate-symbol-height:${symbol.height}}`;
+    return minWidth === 0 ? rule : `@media (min-width:${minWidth}px){${rule}}`;
+  });
+  return `${selector}{${base}}${targets.join("")}`;
+}
