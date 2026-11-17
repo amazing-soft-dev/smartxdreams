@@ -12,6 +12,8 @@
   --color-ink-800: #1b1f3a;
   --color-ink-700: #2a2f52;
   --color-ink-600: #3d4370;
+  /* Space: the night sky behind the Home hero's planet (StarfieldSky). */
+  --color-space: #070117;
 
   /* Light surfaces. */
   --color-canvas: #f5f2ee;

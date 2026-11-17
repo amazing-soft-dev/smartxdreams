@@ -22,6 +22,20 @@ export const TWINKLE_MAX_DELAY = 2;
  */
 export const DEPTH_LAYERS = 3;
 
+/**
+ * The size pulse: r = size + (0.5 + 0.5·sin(t/2000 + i) − 0.5)·0.25·size, which is
+ * size·(1 + 0.125·sin(t/2000 + i)). It runs as a CSS scale keyframe of one sine period, 2000·2π ms, and each
+ * star starts i radians into it.
+ */
+export const PULSE_AMOUNT = 0.125;
+export const PULSE_MS_PER_RADIAN = 2000;
+export const PULSE_PERIOD_MS = Math.round(2 * Math.PI * PULSE_MS_PER_RADIAN);
+
+/** Negative animation delay that starts star i at phase i of the pulse, in ms. */
+export function pulseDelayMs(i: number): number {
+  return -Math.round((i % (2 * Math.PI)) * PULSE_MS_PER_RADIAN);
+}
+
 export type Star = {
   /** Index in the generated list. Also the phase of the size pulse, in radians. */
   i: number;
