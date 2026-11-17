@@ -77,12 +77,20 @@ export const LANDMARKS = {
 } as const;
 
 /**
- * The limb as an SVG path in plate pixels, closed along the bottom: the planet's outline for a clip path.
- * Sampled every `step` px; the cubic is smooth enough that straight segments are invisible.
+ * How far (plate heights) the painted atmosphere glow is kept outside the limb before it fades out. Shared by
+ * the shader and the fallback.
  */
-export function horizonPath(step = 32): string {
+export const GLOW_BAND = 0.06;
+
+/**
+ * The limb as an SVG path in plate pixels, closed along the bottom: the planet's outline for a clip path.
+ * Sampled every `step` px; the cubic is smooth enough that straight segments are invisible. `lift` raises the
+ * whole outline by that many plate heights (the glow band's outline).
+ */
+export function horizonPath(step = 32, lift = 0): string {
+  const y = (u: number) => ((horizonV(u) - lift) * PLATE.height).toFixed(1);
   const points: string[] = [];
-  for (let x = 0; x < PLATE.width; x += step) points.push(`${x} ${(horizonV(x / PLATE.width) * PLATE.height).toFixed(1)}`);
-  points.push(`${PLATE.width} ${(horizonV(1) * PLATE.height).toFixed(1)}`);
+  for (let x = 0; x < PLATE.width; x += step) points.push(`${x} ${y(x / PLATE.width)}`);
+  points.push(`${PLATE.width} ${y(1)}`);
   return `M${points.join("L")}L${PLATE.width} ${PLATE.height}L0 ${PLATE.height}Z`;
 }

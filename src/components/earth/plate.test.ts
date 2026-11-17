@@ -100,6 +100,12 @@ describe("variants", () => {
 });
 
 describe("horizonPath", () => {
+  it("lifts the whole outline for the glow band", () => {
+    const lifted = horizonPath(32, 0.06);
+    expect(lifted.startsWith(`M0 ${((horizonV(0) - 0.06) * PLATE.height).toFixed(1)}`)).toBe(true);
+    expect(lifted.endsWith(`L${PLATE.width} ${PLATE.height}L0 ${PLATE.height}Z`)).toBe(true);
+  });
+
   it("runs along the limb from the left edge to the right and closes along the bottom", () => {
     const path = horizonPath();
     expect(path.startsWith(`M0 ${(horizonV(0) * PLATE.height).toFixed(1)}`)).toBe(true);
