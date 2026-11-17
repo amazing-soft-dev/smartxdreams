@@ -18,7 +18,8 @@ const targets: SelectionTarget[] = [
 /**
  * The Home hero, laid out like the generalcontextlabs.com hero: the copy left-aligned over the starfield sky,
  * the painted Earth with the SmartxDreams symbol in its clouds filling the right (see EarthField and
- * docs/earth.md). On phones and tablets the copy sits across the top and the planet rises below it.
+ * docs/earth.md). On phones and tablets the copy sits across the top and the planet rises below it; on phones
+ * the hero keeps a band below the copy (88vw, at most 360 px) for the planet, whatever the copy's length.
  *
  * The desktop hero is about twice as wide as it is tall (50vw, at least 660 px, at most the viewport), which is
  * the shape the plate's placement is designed for; it grows if the copy needs more room. Text is the largest
@@ -30,7 +31,7 @@ export function HomeHero() {
       aria-labelledby="home-hero-title"
       data-surface="dark"
       data-nav-theme="dark"
-      className="relative isolate flex min-h-[max(680px,100svh)] items-start overflow-hidden bg-space pt-28 pb-16 text-white md:min-h-[max(720px,100svh)] md:pt-36 lg:min-h-[clamp(660px,50vw,100svh)] lg:items-center lg:pt-28 lg:pb-24"
+      className="relative isolate flex items-start overflow-hidden bg-space pt-28 pb-[min(88vw,360px)] text-white md:min-h-[max(720px,100svh)] md:pt-36 md:pb-16 lg:min-h-[clamp(660px,50vw,100svh)] lg:items-center lg:pt-28 lg:pb-24"
     >
       {/* The still sky and plate first; the three.js plate loads on top when the device allows it. */}
       <EarthField />

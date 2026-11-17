@@ -29,7 +29,8 @@ export type PlateBreakpoint = {
  * bottom of the copy column to the right edge, so the limb passes under the copy instead of through it.
  */
 export const PLATE_BREAKPOINTS: readonly PlateBreakpoint[] = [
-  { minWidth: 0, symbol: { right: 0.2, bottom: 0.2, height: 0.16 } },
+  // Phone: the hero keeps a band below the copy for the planet (HomeHero), and the symbol sits in it.
+  { minWidth: 0, symbol: { right: 0.2, bottom: 0.11, height: 0.12 } },
   { minWidth: 640, symbol: { right: 0.3, bottom: 0.25, height: 0.22 } },
   { minWidth: 1024, symbol: { right: 0.42, bottom: 0.17, height: 0.28 } },
 ];
