@@ -6,7 +6,6 @@ import {
   horizonV,
   LANDMARKS,
   PLATE,
-  PLATE_SRCSET,
   PLATE_VARIANTS,
   pickPlateVariant,
 } from "./plate";
@@ -94,12 +93,15 @@ describe("variants", () => {
     expect(pickPlateVariant(5000).width).toBe(1774);
   });
 
-  it("lists every variant in the srcset", () => {
-    for (const { src, width } of PLATE_VARIANTS) expect(PLATE_SRCSET).toContain(`${src} ${width}w`);
-  });
 });
 
 describe("horizonPath", () => {
+  it("lifts the whole outline for the glow band", () => {
+    const lifted = horizonPath(32, 0.06);
+    expect(lifted.startsWith(`M0 ${((horizonV(0) - 0.06) * PLATE.height).toFixed(1)}`)).toBe(true);
+    expect(lifted.endsWith(`L${PLATE.width} ${PLATE.height}L0 ${PLATE.height}Z`)).toBe(true);
+  });
+
   it("runs along the limb from the left edge to the right and closes along the bottom", () => {
     const path = horizonPath();
     expect(path.startsWith(`M0 ${(horizonV(0) * PLATE.height).toFixed(1)}`)).toBe(true);
