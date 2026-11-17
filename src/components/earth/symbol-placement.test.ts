@@ -1,6 +1,14 @@
 import { describe, expect, it } from "vitest";
 import { SYMBOL } from "@/lib/brand-symbol";
-import { EARTH_BREAKPOINTS, earthLayoutCss, earthLayoutFor, limbHeightAt, planetCircle, symbolUniform } from "./layout";
+import {
+  EARTH_BREAKPOINTS,
+  earthLayoutCss,
+  earthLayoutFor,
+  limbHeightAt,
+  planetCircle,
+  stormUniform,
+  symbolUniform,
+} from "./layout";
 import { CLOUD_SOFTNESS, CLOUD_STROKE_SCALE, SYMBOL_MASK_SIZE, symbolMaskTransform } from "./symbol-mask";
 
 /** Half the artwork's width and height, in H, for a placement height (ignoring the small tilt). */
@@ -76,5 +84,29 @@ describe("symbolMaskTransform", () => {
     expect(t.coverage).toBeCloseTo((SYMBOL.box.height * t.scale) / 512, 9);
     expect(t.coverage).toBeGreaterThan(0.5);
     expect(t.coverage).toBeLessThan(1);
+  });
+});
+
+describe("cyclone placement", () => {
+  it("sits on the planet, clear of the cloud symbol, at every breakpoint", () => {
+    for (const { planet, symbol, storm } of EARTH_BREAKPOINTS) {
+      const circle = planetCircle(planet);
+      // The whole cyclone is under the limb.
+      for (const fromRight of [storm.right - storm.radius, storm.right, storm.right + storm.radius]) {
+        expect(storm.bottom + storm.radius).toBeLessThan(limbHeightAt(circle, Math.max(fromRight, 0))!);
+      }
+      // Its disc does not touch the symbol's box.
+      const { w, h } = halfSize(symbol.height);
+      const dx = Math.max(Math.abs(storm.right - symbol.right) - w, 0);
+      const dy = Math.max(Math.abs(storm.bottom - symbol.bottom) - h, 0);
+      expect(Math.hypot(dx, dy)).toBeGreaterThan(storm.radius);
+    }
+  });
+
+  it("is a uniform measured from the bottom-left", () => {
+    const [x, y, r] = stormUniform({ right: 0.1, bottom: 0.8, radius: 0.07 }, 1.5);
+    expect(x).toBeCloseTo(1.4, 9);
+    expect(y).toBe(0.8);
+    expect(r).toBe(0.07);
   });
 });

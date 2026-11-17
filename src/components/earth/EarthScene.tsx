@@ -17,7 +17,7 @@ import {
 import { SCENE_PRIORITY } from "@/components/webgl/scene-budget";
 import { useThreeRenderer } from "@/components/webgl/useThreeRenderer";
 import { composeFragmentShader, earthVertexShader, planetFragmentShader } from "./earth-shader";
-import { earthLayoutFor, planetCircle, planetUniform, sunDirection, symbolUniform } from "./layout";
+import { earthLayoutFor, planetCircle, planetUniform, stormUniform, sunDirection, symbolUniform } from "./layout";
 import { drawSymbolMask, symbolMaskTransform } from "./symbol-mask";
 
 /**
@@ -44,6 +44,7 @@ export default function EarthScene() {
           uResolution: { value: new Vector2(1, 1) },
           uPlanet: { value: new Vector3() },
           uSun: { value: new Vector3(0, 0, 1) },
+          uStorm: { value: new Vector3(0, 0, 1) },
         },
         depthTest: false,
         depthWrite: false,
@@ -71,6 +72,7 @@ export default function EarthScene() {
           uPlanet: planetMaterial.uniforms.uPlanet!,
           uSun: planetMaterial.uniforms.uSun!,
           uResolution: planetMaterial.uniforms.uResolution!,
+          uStorm: planetMaterial.uniforms.uStorm!,
           uTime: { value: 0 },
         },
         depthTest: false,
@@ -106,6 +108,7 @@ export default function EarthScene() {
           const layout = earthLayoutFor(window.innerWidth);
           planetMaterial.uniforms.uPlanet!.value.set(...planetUniform(planetCircle(layout.planet), width / height));
           planetMaterial.uniforms.uSun!.value.set(...sunDirection(layout.sunAngle));
+          planetMaterial.uniforms.uStorm!.value.set(...stormUniform(layout.storm, width / height));
           planetMaterial.uniforms.uResolution!.value.set(width, height);
           if (symbolMask) composeMaterial.uniforms.uSymbolPlace!.value.set(...symbolUniform(layout.symbol, width / height, coverage));
           dirty = true;

@@ -80,6 +80,7 @@ export const planetFragmentShader = /* glsl */ `
 uniform vec2 uResolution;  // canvas size in CSS px
 uniform vec3 uPlanet;      // centre x, centre y and radius, in hero heights from the bottom-left
 uniform vec3 uSun;         // unit vector toward the sun in view space: x right, y up, z toward the viewer
+uniform vec3 uStorm;       // cyclone centre x, centre y and radius, in hero heights from the bottom-left
 
 varying vec2 vUv;
 
@@ -146,6 +147,18 @@ vec3 surface(vec3 n) {
   return mix(color, mix(AIR, VIOLET, 0.35), rim * 0.45);
 }
 
+// Cover of a cyclone at p: spiral arms wound around a clear eye, broken up by noise. Painted in screen space
+// around uStorm, so the compose pass can turn it in place.
+float cyclone(vec2 p) {
+  vec2 v = (p - uStorm.xy) / uStorm.z;
+  float r = length(v);
+  if (r > 1.0) return 0.0;
+  float arms = 0.5 + 0.5 * sin(2.0 * atan(v.y, v.x) - 7.0 * log(r + 0.02));
+  float body = (1.0 - smoothstep(0.5, 1.0, r)) * smoothstep(0.07, 0.18, r);
+  float breakup = fbm(vec3(v * 3.2, 9.0));
+  return smoothstep(0.32, 0.78, arms * body + body * 0.25 + (breakup - 0.5) * 0.45);
+}
+
 void main() {
   vec2 p = vUv * vec2(uResolution.x / uResolution.y, 1.0);
   vec2 d = p - uPlanet.xy;
@@ -186,6 +199,11 @@ void main() {
     vec2 xy = d / uPlanet.z;
     vec3 n = vec3(xy, sqrt(max(1.0 - dot(xy, xy), 0.0)));
     vec3 planet = surface(n);
+    float storm = cyclone(p);
+    if (storm > 0.0) {
+      float lit = smoothstep(-0.1, 0.8, max(dot(n, uSun), 0.0));
+      planet = mix(planet, mix(CLOUD_SHADE, CLOUD_SUN, lit * (0.7 + 0.3 * storm)), storm * 0.92);
+    }
     planet += glow * pow(1.0 - n.z, 4.0) * (0.15 + 0.35 * warm) + flare * 0.45;
     color = mix(sky, planet, 1.0 - smoothstep(1.0 - aa, 1.0 + aa, r));
   }
@@ -201,6 +219,7 @@ uniform vec4 uSymbolPlace;     // centre x, centre y and mask side (hero heights
 uniform vec3 uPlanet;
 uniform vec3 uSun;
 uniform vec2 uResolution;
+uniform vec3 uStorm;           // cyclone centre x, centre y and radius (hero heights from the bottom-left)
 uniform float uTime;           // seconds the scene has been running
 
 varying vec2 vUv;
@@ -224,6 +243,16 @@ vec2 ambient(vec2 p) {
                     12.0 * (sin(uTime * 0.18 + p.x * 2.5) - sin(p.x * 2.5)));
   float weather = smoothstep(0.35, 0.7, noise3(vec3(p * 2.2, 4.0)));
   return (orbital + bands * weather) / uResolution.y;
+}
+
+// The cyclone turns back and forth in place, most at its heart, not at all past its edge. Returns where the
+// content at p comes from, relative to p.
+vec2 storm(vec2 p) {
+  vec2 r = p - uStorm.xy;
+  float heart = 1.0 - smoothstep(0.4, 1.15, length(r) / uStorm.z);
+  float a = (0.19 * sin(uTime * 0.16) + 0.035 * sin(uTime * 0.23)) * heart;
+  float c = cos(a), s = sin(a);
+  return vec2(c * r.x - s * r.y, s * r.x + c * r.y) - r;
 }
 
 // The symbol lies on the curved surface and is seen at a slant, so it is drawn a little shorter than wide.
@@ -261,7 +290,7 @@ void main() {
   float inside = uPlanet.z - length(p - uPlanet.xy);
   vec2 delta = vec2(0.0);
   if (inside > CALM_LIMB) {
-    delta = ambient(p) * smoothstep(CALM_LIMB, FULL_MOTION, inside);
+    delta = (ambient(p) + storm(p)) * smoothstep(CALM_LIMB, FULL_MOTION, inside);
     float limit = (inside - CALM_LIMB) * 0.5;
     float travel = length(delta);
     if (travel > limit) delta *= limit / travel;
