@@ -21,9 +21,10 @@ const targets: SelectionTarget[] = [
  * docs/earth.md). On phones and tablets the copy sits across the top and the planet rises below it; on phones
  * the hero keeps a band below the copy (88vw, at most 360 px) for the planet, whatever the copy's length.
  *
- * The desktop hero is about twice as wide as it is tall (50vw, at least 660 px, at most the viewport), which is
- * the shape the plate's placement is designed for; it grows if the copy needs more room. Text is the largest
- * element on screen, so it is also the Largest Contentful Paint.
+ * The hero fills the screen at every width (at least 100svh, plus the 1 rem the cards band rises over it),
+ * growing only if the copy needs more room, so the cards band always starts below the fold. The plate's placement handles every window shape this
+ * gives, from 4:3 laptops to ultrawides. Text is the largest element on screen, so it is also the Largest
+ * Contentful Paint.
  */
 export function HomeHero() {
   return (
@@ -31,7 +32,7 @@ export function HomeHero() {
       aria-labelledby="home-hero-title"
       data-surface="dark"
       data-nav-theme="dark"
-      className="relative isolate flex items-start overflow-hidden bg-space pt-28 pb-[min(88vw,360px)] text-white md:min-h-[max(720px,100svh)] md:pt-36 md:pb-16 lg:min-h-[clamp(660px,50vw,100svh)] lg:items-center lg:pt-28 lg:pb-24"
+      className="relative isolate flex min-h-[calc(100svh+1rem)] items-start overflow-hidden bg-space pt-28 pb-[min(88vw,360px)] text-white md:pt-36 md:pb-16 lg:items-center lg:pt-28 lg:pb-24"
     >
       {/* The still sky and plate first; the three.js plate loads on top when the device allows it. */}
       <EarthField />
@@ -40,7 +41,7 @@ export function HomeHero() {
           the copy above the planet, on clear sky. */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0 -z-10 hidden bg-[radial-gradient(40%_60%_at_20%_50%,rgb(7_1_23/0.65),rgb(7_1_23/0.3)_60%,rgb(7_1_23/0)_100%)] lg:block"
+        className="pointer-events-none absolute inset-0 -z-10 hidden bg-[radial-gradient(48%_62%_at_20%_52%,rgb(7_1_23/0.7),rgb(7_1_23/0.35)_60%,rgb(7_1_23/0)_100%)] lg:block"
       />
       <Container>
         <div className="max-w-xl lg:max-w-[min(44vw,620px)]">
