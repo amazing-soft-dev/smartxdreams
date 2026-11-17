@@ -29,8 +29,8 @@ const FADE_IN_MS = 700;
 /** Below this peak displacement (cells) the wake counts as settled and the simulation stops stepping. */
 const SETTLED = 0.02;
 
-/** The hero's ink (#0F1226), premultiplied, painted outside the planet until the starfield sky lies beneath. */
-const INK_SKY = new Vector4(0x0f / 255, 0x12 / 255, 0x26 / 255, 1);
+/** Nothing outside the planet and its glow: the starfield sky in the fallback underneath shows through. */
+const CLEAR_SKY = new Vector4(0, 0, 0, 0);
 
 /**
  * The three.js Earth backdrop: the painted plate from public/brand/earth, masked to the planet's oval.
@@ -71,7 +71,7 @@ export default function EarthScene() {
           uPlateRect: { value: new Vector4(0, 0, 1, 1) },
           uResolution: { value: new Vector2(1, 1) },
           uReady: { value: 0 },
-          uSky: { value: INK_SKY },
+          uSky: { value: CLEAR_SKY },
           uTime: { value: 0 },
           uFlow: { value: flow },
         },

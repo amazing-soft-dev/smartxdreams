@@ -1,4 +1,5 @@
 import { preload } from "react-dom";
+import { StarfieldSky } from "@/components/sky/StarfieldSky";
 import { cx } from "@/lib/cx";
 import styles from "./EarthFallback.module.css";
 import { GLOW_BAND, horizonPath, PLATE, PLATE_SRCSET, PLATE_VARIANTS } from "./plate";
@@ -33,10 +34,11 @@ const LAYOUT_CSS =
 const DEFAULT_PLATE = PLATE_VARIANTS[1];
 
 /**
- * The Earth backdrop without WebGL: the painted plate placed exactly as the scene places it, cut to the
- * planet's oval, with its painted atmosphere glow kept just outside the limb. It is painted with the page, so
- * the hero is never empty, and it is all that shows for reduced motion, data saver, low-power devices and
- * missing WebGL 2. Decorative.
+ * The Earth backdrop without WebGL: the starfield sky, and over it the painted plate placed exactly as the
+ * scene places it, cut to the planet's oval, with its painted atmosphere glow kept just outside the limb. It
+ * is painted with the page, so the hero is never empty, and it is all that shows for reduced motion, data
+ * saver, low-power devices and missing WebGL 2. The scene draws over it and is transparent outside the planet,
+ * so the sky here is the sky in both cases. Decorative.
  *
  * The glow is the plate drawn again through a soft band above the limb with `screen` blending: the painted sky
  * is black, so it adds nothing, and the glow lightens the sky behind it, as the scene's brightness-as-coverage
@@ -48,6 +50,7 @@ export function EarthFallback({ className }: { className?: string }) {
   return (
     <div data-earth-fallback="" aria-hidden="true" className={cx(styles.root, className)}>
       <style>{LAYOUT_CSS}</style>
+      <StarfieldSky />
       {/* eslint-disable-next-line @next/next/no-img-element -- a masked, blended layer; next/image adds nothing here. */}
       <img
         src={DEFAULT_PLATE.src}

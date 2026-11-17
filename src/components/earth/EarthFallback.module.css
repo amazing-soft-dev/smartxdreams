@@ -8,7 +8,6 @@
   inset: 0;
   overflow: hidden;
   container-type: size;
-  background: #0f1226; /* the hero's ink, as the scene paints outside the planet */
 }
 
 /* The plate, twice as wide as tall, placed by the layout. The masks are drawn in plate pixels and stretched. */
