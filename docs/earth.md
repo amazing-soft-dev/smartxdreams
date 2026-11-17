@@ -20,13 +20,13 @@ Place `<EarthField />` inside a positioned container the size of the hero (on Ho
 
 ## Hero composition (`HomeHero`, `HomeCards`)
 
-The Home hero is laid out like the generalcontextlabs.com hero: the copy over the sky, the planet rising beside or below it, and nothing covering the SmartxDreams symbol in the clouds.
+The Home hero fills the screen at every width (at least 100svh plus the 1 rem the cards band rises over it), so the band starts below the fold. It is laid out like the generalcontextlabs.com hero: the copy over the sky, the planet rising beside or below it, and nothing covering the SmartxDreams symbol in the clouds.
 
 | Width | Hero | Copy | Planet and symbol |
 |---|---|---|---|
-| under 768 px | copy height plus a band of min(88vw, 360 px) below it | across the top | rises in the band below the copy; symbol 0.12 H, low on the right |
+| under 768 px | at least the viewport; copy height plus a band of min(88vw, 360 px) below it if that is taller | across the top | rises in the band below the copy; symbol 0.12 H, low on the right |
 | 768–1023 px | at least the viewport | across the top | fills the lower half; symbol 0.22 H |
-| 1024 px and up | clamp(660 px, 50vw, 100svh), about twice as wide as tall | left column (44vw, at most 620 px), centred vertically | rises from under the copy to the right edge; symbol 0.28 H at the bottom right |
+| 1024 px and up | at least the viewport, so its shape is the window's (4:3 to ultrawide) | left column (44vw, at most 620 px), centred vertically | rises from under the copy to the right edge; symbol 0.28 H at the bottom right |
 
 - **Placement:** `PLATE_BREAKPOINTS` in `plate-layout.ts`. On desktop the plate sits low on the right: its left edge may start partway across the hero, since the planet along that edge is below the hero's bottom and only sky shows beside it (see [Placement](#placement-plate-layoutts)).
 - **Scrim:** on desktop a soft radial wash of the sky's colour sits behind the copy column, so the sunrise and the limb's glow never cut the description's contrast.
