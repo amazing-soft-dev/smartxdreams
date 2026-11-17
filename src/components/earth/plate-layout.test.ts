@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { horizonDistance, LANDMARKS } from "./plate";
+import { horizonDistance, horizonV, LANDMARKS } from "./plate";
 import {
   heroToPlate,
   PLATE_BREAKPOINTS,
@@ -15,7 +15,7 @@ import {
  * landscape, and the desktop hero is between a 1024 × 660 laptop and an ultrawide.
  */
 const ASPECTS: Record<number, number[]> = {
-  0: [0.4, 0.46, 0.55, 0.62],
+  0: [0.3, 0.36, 0.4, 0.46, 0.55, 0.62],
   640: [0.6, 0.69, 1, 1.4],
   1024: [1.5, 1.55, 1.94, 2, 2.4],
 };
@@ -34,14 +34,28 @@ function symbolBox(aspect: number, minWidth: number) {
 }
 
 describe("plateRect", () => {
-  it("covers the hero's left, right and bottom edges at every breakpoint and shape", () => {
+  it("never cuts the planet off: right and bottom covered, and the left covered or only sky", () => {
     for (const { minWidth, symbol } of PLATE_BREAKPOINTS) {
       for (const aspect of ASPECTS[minWidth]!) {
         const rect = plateRect(symbol, aspect);
-        expect(rect.left, `${minWidth} @ ${aspect}`).toBeLessThanOrEqual(EPS);
-        expect(rect.left + rect.width, `${minWidth} @ ${aspect}`).toBeGreaterThanOrEqual(aspect - EPS);
-        expect(rect.bottom, `${minWidth} @ ${aspect}`).toBeLessThanOrEqual(EPS);
+        const at = `${minWidth} @ ${aspect}`;
+        expect(rect.left + rect.width, at).toBeGreaterThanOrEqual(aspect - EPS);
+        expect(rect.bottom, at).toBeLessThanOrEqual(EPS);
+        // Either the plate reaches the hero's left edge, or the planet along the plate's own left edge (from the
+        // limb down) is below the hero, so only sky shows beside it.
+        const limbAtLeftEdge = plateToHero(rect, 0, horizonV(0)).y;
+        expect(rect.left <= EPS || limbAtLeftEdge <= EPS, at).toBe(true);
       }
+    }
+  });
+
+  it("passes the limb under the desktop copy column, not through it", () => {
+    // The copy column is the left 40% (44vw, capped at 620 px); its last line sits about 0.25 H up.
+    for (const aspect of [1.9, 1.94, 2, 2.4]) {
+      const rect = plateRect(plateBreakpointFor(1475).symbol, aspect);
+      const { u } = { u: (aspect * 0.4 - rect.left) / rect.width };
+      const limb = u < 0 ? -Infinity : plateToHero(rect, u, horizonV(u)).y;
+      expect(limb, `@ ${aspect}`).toBeLessThan(0.26);
     }
   });
 
@@ -146,8 +160,10 @@ describe("plateLayoutCss", () => {
     }
   });
 
-  it("compares the same four lengths as plateRect()", () => {
+  it("compares the same lengths as plateRect(), the two left-edge options with min()", () => {
     const height = /--plate-height:max\((.*?)\);--plate-left/.exec(css)?.[1] ?? "";
-    expect(height.split("calc(")).toHaveLength(5);
+    expect(height.split("calc(")).toHaveLength(6);
+    expect(height.match(/min\(/g)).toHaveLength(1);
+    expect(css).toContain(`--plate-limb-left:${Number(horizonV(0).toFixed(5))}`);
   });
 });

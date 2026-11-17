@@ -14,7 +14,7 @@
  */
 
 import { FLUID_HEIGHT, FLUID_WIDTH, MAX_DISPLACEMENT } from "./fluid";
-import { HORIZON, LANDMARKS, PLATE_ASPECT } from "./plate";
+import { GLOW_BAND, HORIZON, LANDMARKS, PLATE_ASPECT } from "./plate";
 
 /** A GLSL float literal: always with a decimal point, and with a sign when negative. */
 export function glslFloat(value: number): string {
@@ -79,8 +79,7 @@ export const FULL_MOTION = 0.065;
  */
 export const WAKE_GAIN = 0.35;
 
-/** How far (plate heights) the painted atmosphere glow is kept outside the limb before it fades out. */
-export const GLOW_BAND = 0.06;
+export { GLOW_BAND };
 
 export const plateFragmentShader = /* glsl */ `
 uniform sampler2D uPlate;
