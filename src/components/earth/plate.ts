@@ -26,9 +26,6 @@ export function pickPlateVariant(pixels: number): PlateVariant {
   return PLATE_VARIANTS.find((variant) => variant.width >= pixels) ?? PLATE_VARIANTS[PLATE_VARIANTS.length - 1]!;
 }
 
-/** `srcset` for an <img> or a preload: every variant with its width. */
-export const PLATE_SRCSET = PLATE_VARIANTS.map((variant) => `${variant.src} ${variant.width}w`).join(", ");
-
 /**
  * The limb as a cubic: v = h0 + h1·u + h2·u² + h3·u³ is where the atmosphere starts in each column. Fitted by
  * scripts/measure-earth-plate.mjs (192 of 222 columns, within 6 px over the full width); run it again if the

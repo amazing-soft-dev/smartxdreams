@@ -6,7 +6,6 @@ import {
   horizonV,
   LANDMARKS,
   PLATE,
-  PLATE_SRCSET,
   PLATE_VARIANTS,
   pickPlateVariant,
 } from "./plate";
@@ -94,9 +93,6 @@ describe("variants", () => {
     expect(pickPlateVariant(5000).width).toBe(1774);
   });
 
-  it("lists every variant in the srcset", () => {
-    for (const { src, width } of PLATE_VARIANTS) expect(PLATE_SRCSET).toContain(`${src} ${width}w`);
-  });
 });
 
 describe("horizonPath", () => {
