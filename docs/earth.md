@@ -57,6 +57,28 @@ Each breakpoint names where the cloud symbol's centre goes and how tall it is, i
 
 `plate-layout.test.ts` checks every breakpoint over the hero shapes it must handle (tall phones, portrait to landscape tablets, a 1024 × 660 laptop up to an ultrawide): the plate covers the edges, the symbol is wholly on screen and on the planet, clear of the copy, and the cyclone's eye is on screen on desktop.
 
+## The plate scene (`plate-shader.ts`, `EarthScene.tsx`)
+
+`EarthScene` draws the painted plate in one full-screen pass. Every pixel is mapped into the plate with `uPlateRect` (from `plateRect()` for the breakpoint in force) and measured against the limb with the same cubic as `plate.ts`, generated into the GLSL from `HORIZON`:
+
+- **On the planet:** the plate's colour, sampled where the motion says.
+- **Just outside the limb** (`GLOW_BAND`, 0.06 plate heights): only the painted atmosphere glow, with its brightness as coverage (the painted sky is black), fading out across the band. This also drops the painted stars beyond it.
+- **Elsewhere**, and until the texture has loaded: `uSky`. For now that is the hero's ink, so the old CSS planet underneath cannot show through; it becomes transparent once the starfield sky lies beneath the scene.
+
+The texture is the narrowest WebP variant that covers the plate's device pixels (DPR capped at 2); a resize that needs more loads a sharper one. It is sampled as stored, without mipmaps or colour conversion. The canvas fades in over 700 ms once the plate is on screen.
+
+### Motion
+
+Motion moves where the plate is sampled, in plate heights (the limb distance's units), so the limb and its glow never move: it is off within `CALM_LIMB` (0.018) inside the limb, eases in by `FULL_MOTION` (0.065), and its travel is capped at half the distance to the calm band.
+
+| Motion | Values | Where |
+|---|---|---|
+| Orbital drift | 12 px and 4.5 px on sines of 0.055 and 0.043 rad/s | everywhere on the planet |
+| Weather bands | up to 28 px and 12 px, 0.22 and 0.18 rad/s | static noise patches, calmed over the cloud symbol |
+| Cyclone | 0.19 rad plus a 0.035 rad overtone, 0.16 and 0.23 rad/s | around the painted eye, fading out past its reach |
+
+The cloud symbol keeps its shape: the bands fade out over a soft ellipse around it, so it rides the orbital drift as one piece. `plate-shader.test.ts` checks that the generated GLSL uses `plate.ts`'s horizon and landmarks and that the bands suit the landmarks.
+
 ## Layout
 
 `layout.ts` places the planet per breakpoint (`EARTH_BREAKPOINTS`), the way a designer would: the height where the limb meets the hero's right edge (`edgeY`), how far from the right edge it meets the bottom (`baseX`), and how far past the right edge the centre sits (`overhang`). `planetCircle()` solves that into a centre and radius. Each breakpoint also names the limb angle where the sun rises (`sunAngle`, degrees counter-clockwise from "right").
