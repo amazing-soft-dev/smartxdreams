@@ -28,6 +28,24 @@ These are logo colours only. The UI palette (`violet-500` `#6D4AFF`, `coral-500`
 
 The two SVGs differ only in the two stroke colours. The gaps where the strokes cross are cut with `<mask>` and `<clipPath>`; keep those if you redraw the symbol, or the weave turns into a plain overlap.
 
+### Earth plate (`public/brand/earth/`)
+
+A painted view of the Earth from orbit, with the sun rising on the upper-left limb, a cyclone at the top right and the SmartxDreams symbol drawn in clouds right of centre. It is the Home hero backdrop's texture: the WebGL scene animates it, and the CSS fallback shows it still. Supplied by the SmartxDreams team on 2026-11-17 as a 1774 x 887 PNG.
+
+| File | Size | Use |
+|---|---|---|
+| `earth-plate-1774.webp` | 1774 x 887, quality 82 | Master; large and high-density screens |
+| `earth-plate-1200.webp` | 1200 x 600, quality 80 | Laptops and tablets; the fallback's default |
+| `earth-plate-768.webp` | 768 x 384, quality 78 | Phones |
+
+It is brand artwork, not a stock photo, so it lives here and not in `public/images` (which holds only credited Unsplash and Pexels photos used through `<Photo>`; see [images.md](images.md)). To regenerate the variants from a new master PNG:
+
+```bash
+node -e "const s=require('sharp');for(const [w,q] of [[1774,82],[1200,80],[768,78]])s(process.argv[1]).resize({width:w}).webp({quality:q,effort:6,smartSubsample:true}).toFile('public/brand/earth/earth-plate-'+w+'.webp')" path/to/master.png
+```
+
+Keep each file under 800 KB (the photo budget). If the new art moves the limb, the sun, the cyclone or the symbol, measure them again for the hero layout.
+
 ### Icon sets (`public/brand/smartxdreams-symbol-{light,dark}-bg/`)
 
 Generated from the masters, one folder per colourway:
