@@ -10,11 +10,11 @@ export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
 /**
- * The dark-background symbol master (1024 px square). The strokes fill only part of it: they span
- * x 291-732 and y 153-870, so the card shows that box and crops the padding around it.
+ * The white mark for dark surfaces (1254 px square, transparent). The artwork fills only part of it
+ * (x 198-1056, y 312-1057), so the card shows that box and crops the padding around it.
  */
-const SYMBOL_FILE = path.join(process.cwd(), "public", "brand", "smartxdreams-symbol-dark-bg.png");
-const SYMBOL_BOX = { size: 1024, x: 291, y: 153, width: 442, height: 718 } as const;
+const SYMBOL_FILE = path.join(process.cwd(), "public", "brand", "smartxdreams-white-1x1-transparent.png");
+const SYMBOL_BOX = { size: 1254, x: 198, y: 312, width: 859, height: 746 } as const;
 const SYMBOL_HEIGHT = 84;
 
 /** Default social card: ink background, the brand symbol, the name and the tagline. */

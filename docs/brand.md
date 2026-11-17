@@ -21,12 +21,10 @@ These are logo colours only. The UI palette (`violet-500` `#6D4AFF`, `coral-500`
 
 | File | Colourway | Format | Used by |
 |---|---|---|---|
-| `smartxdreams-symbol-light-bg.svg` | light-bg | SVG, viewBox `105 57.5 390 390` | Source for the `Logo` component and `src/app/icon.svg` |
-| `smartxdreams-symbol-dark-bg.svg` | dark-bg | SVG, same geometry | Source for the `Logo` component and `src/app/icon.svg` |
-| `smartxdreams-symbol-light-bg.png` | light-bg | PNG 1024 x 1024, transparent | Organization logo in the JSON-LD (`organizationLogoPath` in `src/lib/seo.ts`) |
-| `smartxdreams-symbol-dark-bg.png` | dark-bg | PNG 1024 x 1024, transparent | Social card (`src/app/opengraph-image.tsx`) |
+| `smartxdreams-dark-1x1-transparent.png` | dark mark, for light surfaces | PNG 1254 x 1254, transparent | Organization logo in the JSON-LD (`organizationLogoPath` in `src/lib/seo.ts`) |
+| `smartxdreams-white-1x1-transparent.png` | white mark, for dark surfaces | PNG 1254 x 1254, transparent | Social card (`src/app/opengraph-image.tsx`) |
 
-The two SVGs differ only in the two stroke colours. The gaps where the strokes cross are cut with `<mask>` and `<clipPath>`; keep those if you redraw the symbol, or the weave turns into a plain overlap.
+The header, footer and page transition still draw the stroke symbol in code (`src/lib/brand-symbol.ts` and `src/app/icon.svg`), not from these PNGs. The gaps where those strokes cross are cut with `<mask>` and `<clipPath>`; keep those if you redraw that symbol, or the weave turns into a plain overlap.
 
 ### Earth plate (`public/brand/earth/`)
 
@@ -46,9 +44,9 @@ node -e "const s=require('sharp');for(const [w,q] of [[1774,82],[1200,80],[768,7
 
 Keep each file under 800 KB (the photo budget). If the new art moves the limb, the sun, the cyclone or the symbol, measure them again for the hero layout.
 
-### Icon sets (`public/brand/smartxdreams-symbol-{light,dark}-bg/`)
+### Icon sets (`public/brand/smartxdreams-{dark,white}-1x1-transparent/`)
 
-Generated from the masters, one folder per colourway:
+Generated from the raster masters, one folder per colourway:
 
 | File | Size |
 |---|---|
@@ -67,11 +65,11 @@ The generator also writes a `site.webmanifest`. Do not add it: its name is empty
 | Header on a dark hero, mobile menu, footer | `<Logo tone="light">` | dark-bg |
 | Page transition | `<Logo variant="mark" tone="light">` | dark-bg |
 | Browser tab (Chrome, Edge, Firefox) | `src/app/icon.svg` | light-bg, dark-bg in dark mode |
-| Browser tab fallback | `src/app/favicon.ico` (copy of the light-bg `favicon.ico`) | light-bg |
-| iOS home screen | `src/app/apple-icon.png` (copy of the dark-bg `apple-touch-icon.png`) | dark-bg: iOS fills transparency with black |
-| Installed app (manifest) | light-bg `android-chrome-192x192.png` and `-512x512.png`, plus `/icon.svg` | light-bg, on `background_color` `#F5F2EE` |
-| Link previews | `/opengraph-image` | dark-bg on ink |
-| Search results (Organization JSON-LD) | `smartxdreams-symbol-light-bg.png` | light-bg |
+| Browser tab fallback | `src/app/favicon.ico` (copy of the dark-mark `favicon.ico`) | dark mark |
+| iOS home screen | `src/app/apple-icon.png` (copy of the white-mark `apple-touch-icon.png`) | white mark: iOS fills transparency with black |
+| Installed app (manifest) | dark-mark `android-chrome-192x192.png` and `-512x512.png`, plus `/icon.svg` | dark mark, on `background_color` `#F5F2EE` |
+| Link previews | `/opengraph-image` | white mark on ink |
+| Search results (Organization JSON-LD) | `smartxdreams-dark-1x1-transparent.png` | dark mark on white |
 
 ## The `Logo` component
 
@@ -106,8 +104,8 @@ The wordmark is "Smart**x**Dreams" in Inter Tight, weight 600, at 0.6 x `height`
 
 ## Changing the symbol
 
-1. Replace the four masters in `public/brand/` and both icon-set folders, keeping the file names.
-2. If the geometry changed, update `SYMBOL` in `src/lib/brand-symbol.ts` (used by `Logo`; the cloud symbol in the [Earth plate](#earth-plate-publicbrandearth) is painted and would need new art), the paths in `src/app/icon.svg`, and `SYMBOL_BOX` in `src/app/opengraph-image.tsx` (the strokes' bounding box in the 1024 px PNG).
-3. Copy the light-bg `favicon.ico` to `src/app/favicon.ico` and the dark-bg `apple-touch-icon.png` to `src/app/apple-icon.png`.
+1. Replace the two raster masters in `public/brand/` and both icon-set folders, keeping the file names.
+2. If the stroke symbol's geometry changed, update `SYMBOL` in `src/lib/brand-symbol.ts` (used by `Logo`; the cloud symbol in the [Earth plate](#earth-plate-publicbrandearth) is painted and would need new art) and the paths in `src/app/icon.svg`. If the raster mark's bounds changed, update `SYMBOL_BOX` in `src/app/opengraph-image.tsx` (the artwork's bounding box in the 1254 px PNG).
+3. Copy the dark-mark `favicon.ico` to `src/app/favicon.ico` and the white-mark `apple-touch-icon.png` to `src/app/apple-icon.png`.
 4. If the colours changed, update `SYMBOL_COLORS` and `WORDMARK_COLORS` in `Logo.tsx`, the `<style>` in `icon.svg`, and the tables on this page.
 5. Run `npm test` (Logo, manifest and Organization logo tests) and, for the static export, `NEXT_OUTPUT=export npm run build && npm run verify:out`.

@@ -1,5 +1,5 @@
 /**
- * Geometry of the SmartxDreams symbol (public/brand/smartxdreams-symbol-*-bg.svg): an S (top) and a D (bottom)
+ * Geometry of the SmartxDreams stroke symbol (also drawn by src/app/icon.svg): an S (top) and a D (bottom)
  * drawn as two 18-unit strokes that pass over and under each other. Kept apart from the Logo component so any
  * code that needs the mark's geometry draws the same symbol.
  *

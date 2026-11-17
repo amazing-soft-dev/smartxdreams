@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="160 112.5 280 280" role="img" aria-label="SmartxDreams">
   <!--
-    The SmartxDreams symbol from public/brand/smartxdreams-symbol-*-bg.svg, on a square viewBox around
+    The SmartxDreams stroke symbol, the same geometry as src/lib/brand-symbol.ts, on a square viewBox around
     the strokes so it fills a favicon. Light-background strokes by default; the dark-background strokes
     when the browser or OS is in dark mode.
   -->
