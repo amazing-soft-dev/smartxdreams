@@ -96,6 +96,10 @@ const float FULL_MOTION = ${glslFloat(FULL_MOTION)};
 const vec2 CYCLONE = vec2(${glslFloat(LANDMARKS.cyclone.u * PLATE_ASPECT)}, ${glslFloat(LANDMARKS.cyclone.v)});
 const float CYCLONE_REACH = ${glslFloat(LANDMARKS.cyclone.radius)};
 
+// The cloud symbol's centre and half-size, in plate heights (plate.ts).
+const vec2 SYMBOL = vec2(${glslFloat(LANDMARKS.symbol.u * PLATE_ASPECT)}, ${glslFloat(LANDMARKS.symbol.v)});
+const vec2 SYMBOL_HALF = vec2(${glslFloat((LANDMARKS.symbol.width * PLATE_ASPECT) / 2)}, ${glslFloat(LANDMARKS.symbol.height / 2)});
+
 // Motion works in plate heights, x right and y down: q = (u * PLATE_ASPECT, v).
 
 // Converts screen pixels to plate heights at the current size.
@@ -111,11 +115,17 @@ vec2 orbital() {
   return vec2(12.0 * sin(uTime * 0.055), 4.5 * sin(uTime * 0.043)) * pxToPlate();
 }
 
+// The bands vary across the picture, so over the cloud symbol they would slowly bend the S and the D out of
+// shape. They fade out over a soft ellipse around it, and the symbol rides the orbital drift as one piece.
+float symbolCalm(vec2 q) {
+  return 1.0 - smoothstep(0.85, 1.35, length((q - SYMBOL) / SYMBOL_HALF));
+}
+
 vec2 weather(vec2 q) {
   vec2 bands = vec2(28.0 * (sin(uTime * 0.22 + q.y * 3.0) - sin(q.y * 3.0)),
                     12.0 * (sin(uTime * 0.18 + q.x * 3.0) - sin(q.x * 3.0)));
   float patches = smoothstep(0.35, 0.7, noise3(vec3(q * 2.4, 4.0)));
-  return bands * patches * pxToPlate();
+  return bands * patches * (1.0 - symbolCalm(q)) * pxToPlate();
 }
 
 // The painted cyclone turns back and forth in place (0.19 rad, with a small overtone), most at its eye and
