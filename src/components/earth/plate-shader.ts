@@ -13,6 +13,7 @@
  * conversion), and the output is premultiplied alpha.
  */
 
+import { FLUID_HEIGHT, FLUID_WIDTH, MAX_DISPLACEMENT } from "./fluid";
 import { HORIZON, LANDMARKS, PLATE_ASPECT } from "./plate";
 
 /** A GLSL float literal: always with a decimal point, and with a sign when negative. */
@@ -72,6 +73,12 @@ float noise3(vec3 p) {
 export const CALM_LIMB = 0.018;
 export const FULL_MOTION = 0.065;
 
+/**
+ * How strongly the fluid wake moves the plate: one cell of displacement moves it by this fraction of a cell's
+ * width on screen (about 4 px on a 1460 px canvas), so a drag pushes the clouds up to about 10 px.
+ */
+export const WAKE_GAIN = 0.35;
+
 /** How far (plate heights) the painted atmosphere glow is kept outside the limb before it fades out. */
 export const GLOW_BAND = 0.06;
 
@@ -82,6 +89,7 @@ uniform vec2 uResolution;   // canvas size in CSS px
 uniform float uReady;       // 1 once the plate texture has loaded
 uniform vec4 uSky;          // what shows outside the planet and its glow (premultiplied; alpha 0 lets the page show)
 uniform float uTime;        // seconds the scene has been running
+uniform sampler2D uFlow;    // the fluid wake's displacement over the canvas (fluid.ts): red x, green y, 0.5 = still
 
 varying vec2 vUv;
 
@@ -91,6 +99,9 @@ ${noiseChunk}
 const float GLOW_BAND = ${glslFloat(GLOW_BAND)};
 const float CALM_LIMB = ${glslFloat(CALM_LIMB)};
 const float FULL_MOTION = ${glslFloat(FULL_MOTION)};
+const vec2 FLUID_CELLS = vec2(${glslFloat(FLUID_WIDTH)}, ${glslFloat(FLUID_HEIGHT)});
+const float MAX_DISPLACEMENT = ${glslFloat(MAX_DISPLACEMENT)};
+const float WAKE_GAIN = ${glslFloat(WAKE_GAIN)};
 
 // The painted cyclone's eye and reach, in plate heights (plate.ts).
 const vec2 CYCLONE = vec2(${glslFloat(LANDMARKS.cyclone.u * PLATE_ASPECT)}, ${glslFloat(LANDMARKS.cyclone.v)});
@@ -138,11 +149,20 @@ vec2 storm(vec2 q) {
   return vec2(c * r.x - s * r.y, s * r.x + c * r.y) - r;
 }
 
+// The pointer wake at this pixel, in plate heights (x right, y down): the fluid's displacement in cells,
+// turned into a fraction of the canvas and then into plate heights.
+vec2 wake() {
+  vec2 cells = (texture2D(uFlow, vUv).rg * 255.0 - 128.0) / 127.0 * MAX_DISPLACEMENT;
+  vec2 canvas = cells / FLUID_CELLS * WAKE_GAIN;
+  vec2 hero = vec2(canvas.x * uResolution.x / uResolution.y, -canvas.y);
+  return hero / uPlateRect.w;
+}
+
 // Where the content at q comes from, relative to q, eased in from the calm band and capped so it never
-// reaches across it.
+// reaches across it. Sampling against the wake moves the content along it.
 vec2 motion(vec2 q, float dist) {
   if (dist <= CALM_LIMB) return vec2(0.0);
-  vec2 delta = (orbital() + weather(q) + storm(q)) * smoothstep(CALM_LIMB, FULL_MOTION, dist);
+  vec2 delta = (orbital() + weather(q) + storm(q) - wake()) * smoothstep(CALM_LIMB, FULL_MOTION, dist);
   float limit = (dist - CALM_LIMB) * 0.5;
   float travel = length(delta);
   return travel > limit ? delta * (limit / travel) : delta;

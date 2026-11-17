@@ -79,6 +79,18 @@ Motion moves where the plate is sampled, in plate heights (the limb distance's u
 
 The cloud symbol keeps its shape: the bands fade out over a soft ellipse around it, so it rides the orbital drift as one piece. `plate-shader.test.ts` checks that the generated GLSL uses `plate.ts`'s horizon and landmarks and that the bands suit the landmarks.
 
+### Pointer wake (`fluid.ts`, `earth-pointer.ts`)
+
+When a mouse moves over the Earth, and only the Earth, the painted plate flows under it like fluid and settles back, as on the reference. The sky never reacts.
+
+- **Who stirs it** (`earth-pointer.ts`): a fine pointer that can hover (`(hover: hover) and (pointer: fine)`); not touch or coarse pointers; not over links, buttons, form fields, summaries or anything marked `data-earth-ignore`; and only over the planet, past the limb's still band (`isOnEarth()`). A long move is split into steps of at most 10 px (`splatCount()`), so a quick sweep leaves a continuous wake.
+- **The fluid** (`fluid.ts`, our own implementation of Stam's stable fluids): a 128 × 64 grid over the canvas. Each step advects and damps the velocity, adds vorticity confinement, projects it divergence-free (20 Jacobi iterations, warm-started, with the two-cell Laplacian that matches the central differences), then carries a displacement field along the flow, feeds it, and lets it decay. Velocity is clamped to 45 cells/s and displacement to 8 cells, and a step is at most 1/30 s.
+- **Feel:** a drag peaks at about 2.6 cells and is under a tenth of a cell 2.5 s later. On screen one cell moves the plate by `WAKE_GAIN` (0.35) of a cell's width, about 4 px on a 1460 px canvas, so a drag pushes the clouds up to about 10 px.
+- **Cost:** the scene uploads the displacement as a 128 × 64 texture only while the wake moves; once the peak falls below 0.02 cells the solver resets and stops stepping.
+- **Limb and symbol:** the wake joins the drift, weather and cyclone inside the same limb-safe motion, so the limb never moves. The cloud symbol is not calmed against it: its strands part and settle back.
+
+Measured in Chromium as the mean pixel change over the cloud symbol: idle 0.89; after a sweep across the Earth 9.67; after a sweep across the sky 0.86 (no reaction); three seconds after an Earth sweep, within about one of the ambient drift over the same time.
+
 ## Layout
 
 `layout.ts` places the planet per breakpoint (`EARTH_BREAKPOINTS`), the way a designer would: the height where the limb meets the hero's right edge (`edgeY`), how far from the right edge it meets the bottom (`baseX`), and how far past the right edge the centre sits (`overhang`). `planetCircle()` solves that into a centre and radius. Each breakpoint also names the limb angle where the sun rises (`sunAngle`, degrees counter-clockwise from "right").
@@ -123,7 +135,7 @@ All motion happens in `composeFragmentShader` by moving where the baked picture 
 | Orbital drift | the whole globe | 12 px and 4.5 px on sines of 0.055 and 0.043 rad/s |
 | Weather bands | broad flow across a few static patches of weather | up to 28 px and 12 px, 0.22 and 0.18 rad/s |
 | Cyclone | turns back and forth in place, most at its heart | 0.19 rad plus a 0.035 rad overtone, 0.16 and 0.23 rad/s |
-| Pointer wake | clouds near a moving mouse, pushed along its path | see `wake.ts`: push = velocity x 60 ms, max 0.03 H, 0.07 H reach, gone in about 2 s |
+| Pointer wake | the plate under a moving mouse, over the Earth only | a stable-fluid simulation; see [Pointer wake](#pointer-wake-fluidts-earth-pointerts) |
 
 - **The limb never moves.** Motion is off within 0.018 H of the limb, eases in to full strength by 0.065 H, and its travel is capped at half the distance to that band, so no sky or glow is ever pulled across it. The copy never moves either: it is not part of the canvas.
 - **The cloud symbol** rides the weather at its centre as one piece (the bands would otherwise bend the S and D out of shape), but the wake does part its strands, which then settle back.
