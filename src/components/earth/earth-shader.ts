@@ -201,11 +201,30 @@ uniform vec4 uSymbolPlace;     // centre x, centre y and mask side (hero heights
 uniform vec3 uPlanet;
 uniform vec3 uSun;
 uniform vec2 uResolution;
+uniform float uTime;           // seconds the scene has been running
 
 varying vec2 vUv;
 
 ${noise}
 ${palette}
+
+// How far (hero heights) motion starts inside the limb, and where it reaches full strength. The limb, its
+// glow and the sky never move; motion eases in within this band.
+const float CALM_LIMB = 0.018;
+const float FULL_MOTION = 0.065;
+
+// Slow movement of the whole globe and its weather, in hero heights; zero at t = 0.
+vec2 ambient(vec2 p) {
+  // A shared orbital drift, small at every size, so the planet feels alive without moving the copy.
+  vec2 orbital = vec2(12.0 * sin(uTime * 0.055), 4.5 * sin(uTime * 0.043));
+  // Weather bands sliding across the oceans: broad, coherent flow that varies with latitude and longitude,
+  // strongest in a few static patches of weather (not a ripple, and not tied to pixel brightness, which
+  // would tear fine coast and cloud detail).
+  vec2 bands = vec2(28.0 * (sin(uTime * 0.22 + p.y * 2.5) - sin(p.y * 2.5)),
+                    12.0 * (sin(uTime * 0.18 + p.x * 2.5) - sin(p.x * 2.5)));
+  float weather = smoothstep(0.35, 0.7, noise3(vec3(p * 2.2, 4.0)));
+  return (orbital + bands * weather) / uResolution.y;
+}
 
 // The symbol lies on the curved surface and is seen at a slant, so it is drawn a little shorter than wide.
 const float FORESHORTEN = 0.86;
@@ -234,14 +253,29 @@ float density(vec2 p) {
 }
 
 void main() {
-  vec3 base = texture2D(uBase, vUv).rgb;
-  vec2 p = vUv * vec2(uResolution.x / uResolution.y, 1.0);
+  float aspect = uResolution.x / uResolution.y;
+  vec2 p = vUv * vec2(aspect, 1.0);
 
-  // Skip everything far from the symbol: one cheap distance test for most of the screen.
+  // Motion only inside the limb, and never far enough to pull sky or glow across it: the travel is capped
+  // at half the distance to the calm band.
+  float inside = uPlanet.z - length(p - uPlanet.xy);
+  vec2 delta = vec2(0.0);
+  if (inside > CALM_LIMB) {
+    delta = ambient(p) * smoothstep(CALM_LIMB, FULL_MOTION, inside);
+    float limit = (inside - CALM_LIMB) * 0.5;
+    float travel = length(delta);
+    if (travel > limit) delta *= limit / travel;
+  }
+  vec3 base = texture2D(uBase, (p + delta) / vec2(aspect, 1.0)).rgb;
+
+  // Skip the symbol far from it: one cheap distance test for most of the screen.
   if (length(p - uSymbolPlace.xy) > uSymbolPlace.z * 0.85) {
     gl_FragColor = vec4(base, 1.0);
     return;
   }
+  // The symbol rides the weather at its centre as one piece: shearing it with the bands would slowly bend
+  // the S and the D out of shape.
+  p += ambient(uSymbolPlace.xy);
 
   // Only on the planet, fading out just inside the limb.
   float r = length(p - uPlanet.xy) / uPlanet.z;

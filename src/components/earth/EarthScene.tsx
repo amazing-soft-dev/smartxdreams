@@ -24,8 +24,9 @@ import { drawSymbolMask, symbolMaskTransform } from "./symbol-mask";
  * The three.js Earth backdrop. Loaded only through LazyScene, so three.js is a separate chunk.
  *
  * The planet shader is costly, so it runs once per canvas size into a render target (the "bake"), and every
- * frame only draws that texture. The bake runs again after a resize, a breakpoint change or a restored WebGL
- * context (a lost context takes the render target's contents with it).
+ * frame only draws that texture, moved by the weather, and the cloud symbol. The bake runs again after a
+ * resize, a breakpoint change or a restored WebGL context (a lost context takes the render target's contents
+ * with it).
  */
 export default function EarthScene() {
   const hostRef = useRef<HTMLDivElement>(null);
@@ -70,6 +71,7 @@ export default function EarthScene() {
           uPlanet: planetMaterial.uniforms.uPlanet!,
           uSun: planetMaterial.uniforms.uSun!,
           uResolution: planetMaterial.uniforms.uResolution!,
+          uTime: { value: 0 },
         },
         depthTest: false,
         depthWrite: false,
@@ -95,8 +97,9 @@ export default function EarthScene() {
       return {
         scene,
         camera,
-        update: () => {
+        update: (elapsed) => {
           if (dirty) bake();
+          composeMaterial.uniforms.uTime!.value = elapsed;
         },
         resize: (width, height) => {
           // The breakpoint follows the viewport, like the CSS fallback's media queries.
