@@ -23,6 +23,9 @@ export type PlanetSpec = {
  */
 export type SymbolPlacement = { right: number; bottom: number; height: number; tilt: number };
 
+/** A cyclone over the ocean: centre (`right`, `bottom`) and radius, in H. */
+export type StormPlacement = { right: number; bottom: number; radius: number };
+
 /** The same planet as a circle: centre at (width/H - right, -bottom), radius `radius`, all in H. */
 export type PlanetCircle = { right: number; bottom: number; radius: number };
 
@@ -37,6 +40,8 @@ export type EarthBreakpoint = {
   sunAngle: number;
   /** The cloud symbol, at the bottom right of the planet, clear of the copy and the product cards. */
   symbol: SymbolPlacement;
+  /** The cyclone, somewhere on the planet the copy, the cards and the symbol leave visible. */
+  storm: StormPlacement;
 };
 
 /**
@@ -53,6 +58,7 @@ export const EARTH_BREAKPOINTS: readonly EarthBreakpoint[] = [
     planet: { edgeY: 0.42, baseX: 1.2, overhang: 0.3 },
     sunAngle: 94,
     symbol: { right: 0.04, bottom: 0.335, height: 0.085, tilt: -6 },
+    storm: { right: 0.25, bottom: 0.12, radius: 0.06 },
   },
   // Tablet: the symbol sits in the open ocean below the card carousel.
   {
@@ -60,6 +66,7 @@ export const EARTH_BREAKPOINTS: readonly EarthBreakpoint[] = [
     planet: { edgeY: 0.82, baseX: 0.95, overhang: 0.2 },
     sunAngle: 108,
     symbol: { right: 0.14, bottom: 0.11, height: 0.17, tilt: -10 },
+    storm: { right: 0.5, bottom: 0.1, radius: 0.07 },
   },
   // Desktop: sunrise just under the header, above the headline; the symbol to the right of the headline,
   // above the cards.
@@ -68,6 +75,7 @@ export const EARTH_BREAKPOINTS: readonly EarthBreakpoint[] = [
     planet: { edgeY: 1.02, baseX: 0.92, overhang: 0.08 },
     sunAngle: 118,
     symbol: { right: 0.15, bottom: 0.62, height: 0.27, tilt: -12 },
+    storm: { right: 0.1, bottom: 0.84, radius: 0.075 },
   },
 ];
 
@@ -131,6 +139,11 @@ export function symbolUniform(
   coverage: number,
 ): [number, number, number, number] {
   return [aspect - symbol.right, symbol.bottom, symbol.height / coverage, (symbol.tilt * Math.PI) / 180];
+}
+
+/** Shader uniform for the cyclone: centre x and y (H, origin bottom-left) and radius. */
+export function stormUniform(storm: StormPlacement, aspect: number): [number, number, number] {
+  return [aspect - storm.right, storm.bottom, storm.radius];
 }
 
 const round = (n: number) => Number(n.toFixed(4));

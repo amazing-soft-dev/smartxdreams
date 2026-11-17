@@ -22,6 +22,8 @@ void main() {
 }
 `;
 
+import { WAKE_GUSTS, WAKE_RADIUS } from "./wake";
+
 /** Value noise and fractal noise in 3D. Sampling on the sphere's surface avoids seams and pole pinching. */
 const noise = /* glsl */ `
 float hash13(vec3 p) {
@@ -80,6 +82,7 @@ export const planetFragmentShader = /* glsl */ `
 uniform vec2 uResolution;  // canvas size in CSS px
 uniform vec3 uPlanet;      // centre x, centre y and radius, in hero heights from the bottom-left
 uniform vec3 uSun;         // unit vector toward the sun in view space: x right, y up, z toward the viewer
+uniform vec3 uStorm;       // cyclone centre x, centre y and radius, in hero heights from the bottom-left
 
 varying vec2 vUv;
 
@@ -146,6 +149,18 @@ vec3 surface(vec3 n) {
   return mix(color, mix(AIR, VIOLET, 0.35), rim * 0.45);
 }
 
+// Cover of a cyclone at p: spiral arms wound around a clear eye, broken up by noise. Painted in screen space
+// around uStorm, so the compose pass can turn it in place.
+float cyclone(vec2 p) {
+  vec2 v = (p - uStorm.xy) / uStorm.z;
+  float r = length(v);
+  if (r > 1.0) return 0.0;
+  float arms = 0.5 + 0.5 * sin(2.0 * atan(v.y, v.x) - 7.0 * log(r + 0.02));
+  float body = (1.0 - smoothstep(0.5, 1.0, r)) * smoothstep(0.07, 0.18, r);
+  float breakup = fbm(vec3(v * 3.2, 9.0));
+  return smoothstep(0.32, 0.78, arms * body + body * 0.25 + (breakup - 0.5) * 0.45);
+}
+
 void main() {
   vec2 p = vUv * vec2(uResolution.x / uResolution.y, 1.0);
   vec2 d = p - uPlanet.xy;
@@ -186,6 +201,11 @@ void main() {
     vec2 xy = d / uPlanet.z;
     vec3 n = vec3(xy, sqrt(max(1.0 - dot(xy, xy), 0.0)));
     vec3 planet = surface(n);
+    float storm = cyclone(p);
+    if (storm > 0.0) {
+      float lit = smoothstep(-0.1, 0.8, max(dot(n, uSun), 0.0));
+      planet = mix(planet, mix(CLOUD_SHADE, CLOUD_SUN, lit * (0.7 + 0.3 * storm)), storm * 0.92);
+    }
     planet += glow * pow(1.0 - n.z, 4.0) * (0.15 + 0.35 * warm) + flare * 0.45;
     color = mix(sky, planet, 1.0 - smoothstep(1.0 - aa, 1.0 + aa, r));
   }
@@ -201,11 +221,53 @@ uniform vec4 uSymbolPlace;     // centre x, centre y and mask side (hero heights
 uniform vec3 uPlanet;
 uniform vec3 uSun;
 uniform vec2 uResolution;
+uniform vec3 uStorm;           // cyclone centre x, centre y and radius (hero heights from the bottom-left)
+uniform float uTime;           // seconds the scene has been running
+uniform vec4 uWake[${WAKE_GUSTS}];      // pointer gusts: x, y, push x, push y (hero heights; see wake.ts)
 
 varying vec2 vUv;
 
 ${noise}
 ${palette}
+
+// How far (hero heights) motion starts inside the limb, and where it reaches full strength. The limb, its
+// glow and the sky never move; motion eases in within this band.
+const float CALM_LIMB = 0.018;
+const float FULL_MOTION = 0.065;
+
+// Slow movement of the whole globe and its weather, in hero heights; zero at t = 0.
+vec2 ambient(vec2 p) {
+  // A shared orbital drift, small at every size, so the planet feels alive without moving the copy.
+  vec2 orbital = vec2(12.0 * sin(uTime * 0.055), 4.5 * sin(uTime * 0.043));
+  // Weather bands sliding across the oceans: broad, coherent flow that varies with latitude and longitude,
+  // strongest in a few static patches of weather (not a ripple, and not tied to pixel brightness, which
+  // would tear fine coast and cloud detail).
+  vec2 bands = vec2(28.0 * (sin(uTime * 0.22 + p.y * 2.5) - sin(p.y * 2.5)),
+                    12.0 * (sin(uTime * 0.18 + p.x * 2.5) - sin(p.x * 2.5)));
+  float weather = smoothstep(0.35, 0.7, noise3(vec3(p * 2.2, 4.0)));
+  return (orbital + bands * weather) / uResolution.y;
+}
+
+// The cyclone turns back and forth in place, most at its heart, not at all past its edge. Returns where the
+// content at p comes from, relative to p.
+vec2 storm(vec2 p) {
+  vec2 r = p - uStorm.xy;
+  float heart = 1.0 - smoothstep(0.4, 1.15, length(r) / uStorm.z);
+  float a = (0.19 * sin(uTime * 0.16) + 0.035 * sin(uTime * 0.23)) * heart;
+  float c = cos(a), s = sin(a);
+  return vec2(c * r.x - s * r.y, s * r.x + c * r.y) - r;
+}
+
+// The pointer wake: each gust pushes what is near it along the pointer's direction (a Gaussian bump).
+// Returns the push at p; content there moves by it.
+vec2 wake(vec2 p) {
+  vec2 push = vec2(0.0);
+  for (int i = 0; i < ${WAKE_GUSTS}; i++) {
+    vec2 r = p - uWake[i].xy;
+    push += uWake[i].zw * exp(-dot(r, r) / (${WAKE_RADIUS.toFixed(4)} * ${WAKE_RADIUS.toFixed(4)}));
+  }
+  return push;
+}
 
 // The symbol lies on the curved surface and is seen at a slant, so it is drawn a little shorter than wide.
 const float FORESHORTEN = 0.86;
@@ -234,14 +296,32 @@ float density(vec2 p) {
 }
 
 void main() {
-  vec3 base = texture2D(uBase, vUv).rgb;
-  vec2 p = vUv * vec2(uResolution.x / uResolution.y, 1.0);
+  float aspect = uResolution.x / uResolution.y;
+  vec2 p = vUv * vec2(aspect, 1.0);
 
-  // Skip everything far from the symbol: one cheap distance test for most of the screen.
+  // Motion only inside the limb, and never far enough to pull sky or glow across it: the travel is capped
+  // at half the distance to the calm band.
+  float inside = uPlanet.z - length(p - uPlanet.xy);
+  vec2 delta = vec2(0.0);
+  if (inside > CALM_LIMB) {
+    // Sampling against the push moves the content along it.
+    delta = (ambient(p) + storm(p) - wake(p)) * smoothstep(CALM_LIMB, FULL_MOTION, inside);
+    float limit = (inside - CALM_LIMB) * 0.5;
+    float travel = length(delta);
+    if (travel > limit) delta *= limit / travel;
+  }
+  vec3 base = texture2D(uBase, (p + delta) / vec2(aspect, 1.0)).rgb;
+
+  // Skip the symbol far from it: one cheap distance test for most of the screen.
   if (length(p - uSymbolPlace.xy) > uSymbolPlace.z * 0.85) {
     gl_FragColor = vec4(base, 1.0);
     return;
   }
+  // The symbol rides the weather at its centre as one piece: shearing it with the bands would slowly bend
+  // the S and the D out of shape.
+  p += ambient(uSymbolPlace.xy);
+  // The wake does part its strands, though: they bend around the pointer and settle back.
+  p -= wake(p);
 
   // Only on the planet, fading out just inside the limb.
   float r = length(p - uPlanet.xy) / uPlanet.z;
