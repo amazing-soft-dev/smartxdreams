@@ -20,7 +20,7 @@ Place `<EarthField />` inside a positioned container the size of the hero. It is
 
 ## How it loads
 
-1. `EarthFallback` renders with the page: the starfield sky and the plate, still, placed exactly where the scene will draw it. The hero is never empty, and the plate starts downloading early (`preload()` with the srcset).
+1. `EarthFallback` renders with the page: the starfield sky at once, and the plate, still, drawn into two canvases placed exactly where the scene will draw it, as soon as it has loaded.
 2. `LazyScene` imports `EarthScene`, and three.js with it, only when `useSceneSupport` allows it, the hero is near the viewport, and the browser is idle. The scene loads the same plate variant, fades in over 700 ms once it is on screen, and is transparent outside the planet, so the fallback's sky stays the sky.
 3. It never runs for reduced motion, data saver, low-power devices or missing WebGL 2: the still fallback stays.
 
@@ -99,12 +99,14 @@ Measured in Chromium as the mean pixel change over the cloud symbol: idle 0.89; 
 What shows without WebGL, and under the scene everywhere:
 
 - **Sky:** `<StarfieldSky />`, filling the hero.
-- **Plate:** two `<img>` elements with the plate's `srcset` and `PLATE_SIZES` (roughly how wide the plate is drawn per breakpoint, since it reaches past the hero's left edge), so the browser picks the variant the scene's `pickPlateVariant()` would, and the scene reuses the download. They are placed by `plateLayoutCss()` (`plateRect()` in CSS, container query units).
-  - The planet: the plate masked to the limb's outline (`horizonPath()` as an SVG data URL, stretched to the plate's box).
-  - The glow: the plate masked to a soft band reaching `GLOW_BAND` above the limb, blended with `screen`: the painted sky is black, so it adds nothing, and the glow lightens the stars behind it, as the shader's brightness-as-coverage does.
-- **Preload:** `preload()` from `react-dom` starts the plate in the head with the same `imageSrcSet` and `imageSizes`, at high priority.
+- **Plate:** two canvases, placed by `plateLayoutCss()` (`plateRect()` in CSS, container query units), into which the plate is drawn once it has loaded:
+  - the planet: the plate clipped to the limb (`Path2D` of `horizonPath()`);
+  - the glow: the plate kept inside a soft band reaching `GLOW_BAND` above the limb, blended with `screen`: the painted sky is black, so it adds nothing, and the glow lightens the stars behind it, as the shader's brightness-as-coverage does.
+- **Variant:** `pickPlateVariant()` for the plate's device pixels (DPR capped at 2), loaded with the same CORS mode as three.js's loader, so the scene reuses the cached file. A resize that needs more loads a sharper one. The canvases never hold more pixels than the plate itself.
 
-With the canvas hidden the fallback is indistinguishable from the scene. `e2e/earth.spec.ts` checks the fallback's sky and plate, that reduced motion creates no canvas and stops the stars, and that the scene fades in where WebGL 2 is available.
+**Why canvases, not images:** a canvas is never a Largest Contentful Paint candidate. Drawn as an `<img>`, the large decorative plate became Home's LCP on a throttled phone (3.47 s in CI, over the 2.5 s budget), taking it from the description paragraph. With canvases the paragraph is the LCP again (`e2e/vitals.spec.ts`).
+
+With the scene's canvas hidden, the fallback is indistinguishable from the scene. `e2e/earth.spec.ts` checks the sky and that both plate canvases are drawn, that reduced motion creates no scene canvas, stops the stars and still draws the plate, and that the scene fades in where WebGL 2 is available.
 
 ## Sharing the GPU
 
