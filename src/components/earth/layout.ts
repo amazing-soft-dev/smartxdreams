@@ -36,11 +36,12 @@ export type EarthBreakpoint = {
  * in the frame; on desktop it rises to the top right, clear of the headline's left half.
  */
 export const EARTH_BREAKPOINTS: readonly EarthBreakpoint[] = [
-  // Phone: the sun just past the right edge, so only its glow reaches in beside the copy.
-  { minWidth: 0, planet: { edgeY: 0.62, baseX: 0.95, overhang: 0.35 }, sunAngle: 100 },
+  // Phone: a low, wide arc that passes under the description and behind the button, with the sun just past
+  // the right edge so only its glow reaches in.
+  { minWidth: 0, planet: { edgeY: 0.34, baseX: 1.2, overhang: 0.3 }, sunAngle: 94 },
   { minWidth: 640, planet: { edgeY: 0.82, baseX: 0.95, overhang: 0.2 }, sunAngle: 108 },
-  // Desktop: between the header and the headline.
-  { minWidth: 1024, planet: { edgeY: 1.02, baseX: 0.92, overhang: 0.08 }, sunAngle: 125 },
+  // Desktop: just under the header, above the headline.
+  { minWidth: 1024, planet: { edgeY: 1.02, baseX: 0.92, overhang: 0.08 }, sunAngle: 118 },
 ];
 
 /**

@@ -1,8 +1,7 @@
-import { AstraField } from "@/components/astra/AstraField";
+import { EarthField } from "@/components/earth/EarthField";
 import { Reveal } from "@/components/motion/Reveal";
 import { Button } from "@/components/ui/Button";
 import { Container } from "@/components/ui/Container";
-import { Glow } from "@/components/ui/Glow";
 import { Tag } from "@/components/ui/Tag";
 import { company } from "@/content/site";
 import { HeroWave } from "./HeroWave";
@@ -18,7 +17,7 @@ const targets: SelectionTarget[] = [
 ];
 
 /**
- * The Home hero: a full-height dark stage with a violet and coral glow, the studio tag, the headline and
+ * The Home hero: a full-height dark stage with the Earth seen from orbit, the studio tag, the headline and
  * the description. Text is the largest element on screen, so it is also the Largest Contentful Paint.
  */
 export function HomeHero() {
@@ -29,10 +28,13 @@ export function HomeHero() {
       data-nav-theme="dark"
       className="relative isolate flex items-center overflow-hidden bg-ink pt-24 pb-10 text-white md:min-h-[100svh] md:pt-40 md:pb-20"
     >
-      {/* Static CSS stars first; the three.js sky loads on top when the device allows it. */}
-      <AstraField />
-      <Glow color="violet" size={1100} opacity={0.45} className="-top-1/3 left-1/2 -translate-x-1/2" />
-      <Glow color="coral" size={700} opacity={0.3} className="-bottom-1/3 left-[15%]" />
+      {/* The CSS planet first; the three.js planet loads on top when the device allows it. */}
+      <EarthField />
+      {/* Ink scrim behind the copy, so the headline and description read over the planet and its glow. */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(58%_34%_at_50%_40%,rgb(15_18_38/0.8),rgb(15_18_38/0.45)_55%,rgb(15_18_38/0)_100%)]"
+      />
       <Container className="flex flex-col items-center text-center">
         <Reveal aboveFold preset="left60" delay={0.2}>
           <Tag tone="dark">{company.tagline}</Tag>
