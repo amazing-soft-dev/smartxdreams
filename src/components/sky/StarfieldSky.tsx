@@ -3,7 +3,8 @@
 import { type CSSProperties, useEffect, useId, useRef } from "react";
 import { cx } from "@/lib/cx";
 import { createShootingStarLoop, SHOOTING_STAR } from "./shooting-stars";
-import { createStars, DEPTH_LAYERS, PULSE_PERIOD_MS, pulseDelayMs, type Star } from "./stars";
+import { parallaxOffset, scrollProgress, visibleStarCount } from "./scroll";
+import { createStars, DEPTH_LAYERS, layerDepth, PULSE_PERIOD_MS, pulseDelayMs, type Star } from "./stars";
 import styles from "./StarfieldSky.module.css";
 
 /** The seeded sky, built once at module load: the same stars on the server and the client. */
@@ -23,6 +24,7 @@ const ROOT_STYLE = { "--sky-pulse-period": `${PULSE_PERIOD_MS}ms` } as CSSProper
  */
 export function StarfieldSky({ className }: { className?: string }) {
   const rootRef = useRef<HTMLDivElement>(null);
+  const svgRef = useRef<SVGSVGElement>(null);
   const shootingRef = useRef<SVGGElement>(null);
   const blurId = `sky-blur-${useId().replace(/[^\w-]/g, "")}`;
 
@@ -54,6 +56,54 @@ export function StarfieldSky({ className }: { className?: string }) {
     };
   }, [blurId]);
 
+  // Scroll: each depth layer drifts down by its parallax offset, and the sky thins from all its stars at the
+  // top of the page to 40 % at the bottom. A passive listener schedules at most one update per frame.
+  useEffect(() => {
+    const svg = svgRef.current;
+    if (!svg) return;
+    const layers = Array.from(svg.querySelectorAll<SVGGElement>("[data-sky-layer]"));
+    const stars: SVGCircleElement[] = [];
+    for (const circle of svg.querySelectorAll<SVGCircleElement>("[data-star]")) {
+      stars[Number(circle.dataset.star)] = circle;
+    }
+    let height = svg.getBoundingClientRect().height;
+    let shown = stars.length;
+    let frame = 0;
+
+    const update = () => {
+      frame = 0;
+      const scrollY = window.scrollY;
+      for (const g of layers) {
+        const offset = (parallaxOffset(scrollY, layerDepth(Number(g.dataset.skyLayer))) / 100) * height;
+        g.setAttribute("transform", `translate(0 ${offset.toFixed(2)})`);
+      }
+      const progress = scrollProgress(scrollY, document.documentElement.scrollHeight, window.innerHeight);
+      const count = visibleStarCount(stars.length, progress);
+      for (let i = Math.min(count, shown); i < Math.max(count, shown); i++) {
+        stars[i]!.style.display = i < count ? "" : "none";
+      }
+      shown = count;
+    };
+    const schedule = () => {
+      if (!frame) frame = requestAnimationFrame(update);
+    };
+    const resize = new ResizeObserver(() => {
+      height = svg.getBoundingClientRect().height;
+      schedule();
+    });
+
+    update();
+    resize.observe(svg);
+    window.addEventListener("scroll", schedule, { passive: true });
+    return () => {
+      cancelAnimationFrame(frame);
+      resize.disconnect();
+      window.removeEventListener("scroll", schedule);
+      for (const g of layers) g.removeAttribute("transform");
+      for (const star of stars) star.style.display = "";
+    };
+  }, []);
+
   return (
     <div
       ref={rootRef}
@@ -62,7 +112,7 @@ export function StarfieldSky({ className }: { className?: string }) {
       className={cx("pointer-events-none absolute inset-0 overflow-hidden bg-space", className)}
       style={ROOT_STYLE}
     >
-      <svg className={styles.svg} width="100%" height="100%" focusable="false">
+      <svg ref={svgRef} className={styles.svg} width="100%" height="100%" focusable="false">
         <defs>
           {/* blur(0.5px) for the shooting stars, over the whole sky so thin, flat trails are never clipped. */}
           <filter id={blurId} filterUnits="userSpaceOnUse" x="-10%" y="-10%" width="120%" height="120%">
