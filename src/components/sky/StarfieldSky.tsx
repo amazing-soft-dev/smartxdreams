@@ -1,5 +1,6 @@
 "use client";
 
+import { useReducedMotion } from "motion/react";
 import { type CSSProperties, useEffect, useId, useRef } from "react";
 import { cx } from "@/lib/cx";
 import { createShootingStarLoop, SHOOTING_STAR } from "./shooting-stars";
@@ -19,21 +20,24 @@ const ROOT_STYLE = { "--sky-pulse-period": `${PULSE_PERIOD_MS}ms` } as CSSProper
 /**
  * The night sky around the planet, after the Framer "Starfield" component: 200 seeded stars on `space`
  * (#070117) that twinkle and gently swell and shrink, now and then a shooting star, and a faint violet haze.
- * Place it inside a positioned container; it fills it. Decorative: hidden from assistive technology and never
- * takes the pointer.
+ * Far stars drift with the page scroll and the sky thins toward the bottom of the page. Reduced motion gets a
+ * still sky. Place it inside a positioned container; it fills it. Decorative: hidden from assistive technology
+ * and never takes the pointer.
  */
 export function StarfieldSky({ className }: { className?: string }) {
   const rootRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
   const shootingRef = useRef<SVGGElement>(null);
   const blurId = `sky-blur-${useId().replace(/[^\w-]/g, "")}`;
+  // Reduced motion: a still sky. No shooting stars or scroll response here; the CSS stops twinkle and pulse.
+  const reduced = useReducedMotion();
 
   // Shooting stars: one rAF loop that runs only while the sky is on screen and the tab is visible. The same
   // check pauses the CSS twinkle and pulse.
   useEffect(() => {
     const root = rootRef.current;
     const layer = shootingRef.current;
-    if (!root || !layer) return;
+    if (reduced || !root || !layer) return;
     const loop = createShootingStarLoop(layer, { filter: `url(#${blurId})` });
     let onScreen = false;
     const sync = () => {
@@ -54,13 +58,13 @@ export function StarfieldSky({ className }: { className?: string }) {
       loop.dispose();
       root.removeAttribute("data-paused");
     };
-  }, [blurId]);
+  }, [blurId, reduced]);
 
   // Scroll: each depth layer drifts down by its parallax offset, and the sky thins from all its stars at the
   // top of the page to 40 % at the bottom. A passive listener schedules at most one update per frame.
   useEffect(() => {
     const svg = svgRef.current;
-    if (!svg) return;
+    if (reduced || !svg) return;
     const layers = Array.from(svg.querySelectorAll<SVGGElement>("[data-sky-layer]"));
     const stars: SVGCircleElement[] = [];
     for (const circle of svg.querySelectorAll<SVGCircleElement>("[data-star]")) {
@@ -102,7 +106,7 @@ export function StarfieldSky({ className }: { className?: string }) {
       for (const g of layers) g.removeAttribute("transform");
       for (const star of stars) star.style.display = "";
     };
-  }, []);
+  }, [reduced]);
 
   return (
     <div
