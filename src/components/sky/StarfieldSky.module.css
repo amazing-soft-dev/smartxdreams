@@ -17,6 +17,11 @@
     pulse var(--sky-pulse-period) linear infinite;
 }
 
+/* Off screen or in a hidden tab, the shooting-star loop stops and the stars hold still. */
+[data-paused] > .svg .star {
+  animation-play-state: paused;
+}
+
 /* Opacity 1 -> 0.3 -> 1, as the reference's `twinkle`. */
 @keyframes twinkle {
   0%,
