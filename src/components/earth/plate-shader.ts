@@ -13,7 +13,7 @@
  * conversion), and the output is premultiplied alpha.
  */
 
-import { HORIZON, PLATE_ASPECT } from "./plate";
+import { HORIZON, LANDMARKS, PLATE_ASPECT } from "./plate";
 
 /** A GLSL float literal: always with a decimal point, and with a sign when negative. */
 export function glslFloat(value: number): string {
@@ -92,6 +92,10 @@ const float GLOW_BAND = ${glslFloat(GLOW_BAND)};
 const float CALM_LIMB = ${glslFloat(CALM_LIMB)};
 const float FULL_MOTION = ${glslFloat(FULL_MOTION)};
 
+// The painted cyclone's eye and reach, in plate heights (plate.ts).
+const vec2 CYCLONE = vec2(${glslFloat(LANDMARKS.cyclone.u * PLATE_ASPECT)}, ${glslFloat(LANDMARKS.cyclone.v)});
+const float CYCLONE_REACH = ${glslFloat(LANDMARKS.cyclone.radius)};
+
 // Motion works in plate heights, x right and y down: q = (u * PLATE_ASPECT, v).
 
 // Converts screen pixels to plate heights at the current size.
@@ -114,11 +118,21 @@ vec2 weather(vec2 q) {
   return bands * patches * pxToPlate();
 }
 
+// The painted cyclone turns back and forth in place (0.19 rad, with a small overtone), most at its eye and
+// not at all past its reach. Returns where the content at q comes from, relative to q.
+vec2 storm(vec2 q) {
+  vec2 r = q - CYCLONE;
+  float heart = 1.0 - smoothstep(0.4, 1.15, length(r) / CYCLONE_REACH);
+  float a = (0.19 * sin(uTime * 0.16) + 0.035 * sin(uTime * 0.23)) * heart;
+  float c = cos(a), s = sin(a);
+  return vec2(c * r.x - s * r.y, s * r.x + c * r.y) - r;
+}
+
 // Where the content at q comes from, relative to q, eased in from the calm band and capped so it never
 // reaches across it.
 vec2 motion(vec2 q, float dist) {
   if (dist <= CALM_LIMB) return vec2(0.0);
-  vec2 delta = (orbital() + weather(q)) * smoothstep(CALM_LIMB, FULL_MOTION, dist);
+  vec2 delta = (orbital() + weather(q) + storm(q)) * smoothstep(CALM_LIMB, FULL_MOTION, dist);
   float limit = (dist - CALM_LIMB) * 0.5;
   float travel = length(delta);
   return travel > limit ? delta * (limit / travel) : delta;
