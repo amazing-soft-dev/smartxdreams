@@ -23,8 +23,9 @@ statically generated page (gzipped) and fails when any budget is exceeded:
 - **Fonts:** Inter Tight variable, self-hosted, Latin subset preloaded. `display: swap` with a
   metric-matched fallback, so the swap does not shift text.
 - **Lenis:** downloaded only on fine pointers without a reduced-motion preference.
-- **AstraField (three.js):** only on capable devices, when the hero is near the viewport and the browser is
-  idle. Until then, and on other devices, a server-rendered static star field.
+- **Earth backdrop (three.js):** only on capable devices, when the hero is near the viewport and the browser
+  is idle. Until then, and on other devices, a server-rendered CSS planet. The costly planet shader runs once
+  per canvas size into a texture; each frame only draws that texture. See [earth.md](earth.md).
 - **Footer smoke (WebGL):** requested only when the footer is within 600 px of the viewport, and paused
   off-screen. If the browser drops its WebGL context, it pauses and the static gradient shows; when the
   context comes back it rebuilds its shader program and carries on.
