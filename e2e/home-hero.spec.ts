@@ -59,10 +59,30 @@ test.describe("Home hero layout", () => {
     }
 
     const heroBox = (await page.locator(hero).boundingBox())!;
+    const bandBox = (await page.locator(`${hero} + [data-nav-theme]`).boundingBox())!;
     expect(symbol.x).toBeGreaterThanOrEqual(heroBox.x);
     expect(symbol.x + symbol.width).toBeLessThanOrEqual(heroBox.x + heroBox.width);
-    // Above the cards band, which rises 16 px over the hero's bottom edge.
-    expect(symbol.y + symbol.height).toBeLessThanOrEqual(heroBox.y + heroBox.height - 16);
+    // Above the cards band, which rises over the hero's bottom edge.
+    expect(symbol.y + symbol.height).toBeLessThanOrEqual(bandBox.y);
+  });
+
+  test("shows the hero, never the page background, at the band's rounded corners", async ({ page }) => {
+    await page.goto("/");
+    const band = page.locator(`${hero} + [data-nav-theme]`);
+    const { radius, marginTop } = await band.evaluate((el) => {
+      const style = getComputedStyle(el);
+      return { radius: parseFloat(style.borderTopLeftRadius), marginTop: parseFloat(style.marginTop) };
+    });
+    expect(radius).toBeGreaterThan(0);
+    // The band rises over the hero by exactly its corner radius...
+    expect(marginTop).toBeCloseTo(-radius, 0);
+    // ...so the hero reaches down past the band's top by at least that much, filling the corners.
+    const heroBox = (await page.locator(hero).boundingBox())!;
+    const bandBox = (await band.boundingBox())!;
+    expect(heroBox.y + heroBox.height - bandBox.y).toBeGreaterThanOrEqual(radius - 0.5);
+    // And the backdrop's plate runs on under the band, so the right corner shows the planet, not empty sky.
+    const plate = (await page.locator(`${hero} canvas[data-earth-plate="planet"]`).boundingBox())!;
+    expect(plate.y + plate.height).toBeGreaterThanOrEqual(bandBox.y + radius);
   });
 
   test("puts the product cards in a dark band directly under the hero", async ({ page }) => {
@@ -74,7 +94,8 @@ test.describe("Home hero layout", () => {
     await expect(page.locator(`${hero} [data-lenis-prevent]`)).toHaveCount(0);
     const heroBox = (await page.locator(hero).boundingBox())!;
     const bandBox = (await band.boundingBox())!;
-    expect(Math.abs(bandBox.y - (heroBox.y + heroBox.height))).toBeLessThanOrEqual(20);
+    // The band rises over the hero by its corner radius (28 or 36 px).
+    expect(Math.abs(bandBox.y - (heroBox.y + heroBox.height))).toBeLessThanOrEqual(40);
   });
 
   test("still links 'How we build' to the process section", async ({ page }, testInfo) => {
