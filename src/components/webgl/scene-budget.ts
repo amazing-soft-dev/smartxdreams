@@ -1,8 +1,8 @@
 /**
  * Lets several decorative WebGL scenes share the GPU: at most one draws at a time. Each scene reports when
  * it is on screen, with a priority; only the visible scene with the highest priority draws, and the others
- * hold their last frame (their static fallbacks sit underneath). The hero star-field outranks the footer
- * smoke, so on a short page or a very tall screen where both are visible, only the stars animate.
+ * hold their last frame (their static fallbacks sit underneath). The hero backdrop outranks the footer
+ * smoke, so on a short page or a very tall screen where both are visible, only the hero animates.
  */
 const visible = new Map<string, number>();
 
@@ -25,4 +25,4 @@ export function isTopScene(id: string): boolean {
 }
 
 /** Scene priorities. */
-export const SCENE_PRIORITY = { astra: 2, smoke: 1 } as const;
+export const SCENE_PRIORITY = { earth: 3, astra: 2, smoke: 1 } as const;

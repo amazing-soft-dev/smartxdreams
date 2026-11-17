@@ -1,6 +1,6 @@
 # AstraField
 
-The star-field behind the Home hero. Code lives in `src/components/astra` (scene) and `src/components/webgl` (shared WebGL helpers).
+The star-field that sat behind the Home hero until the [Earth backdrop](earth.md) replaced it. It is no longer mounted on any page; the scene and its constellations are kept for reuse. Code lives in `src/components/astra` (scene) and `src/components/webgl` (shared WebGL helpers).
 
 ## Using it
 

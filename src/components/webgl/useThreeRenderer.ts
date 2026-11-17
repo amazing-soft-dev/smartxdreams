@@ -32,7 +32,8 @@ export type SceneHandle = {
 export function useThreeRenderer(
   /** Element the canvas is created in; the scene component positions and sizes it. */
   hostRef: RefObject<HTMLElement | null>,
-  setup: () => SceneHandle,
+  /** Builds the scene. Gets the renderer for scenes that draw to a render target before the main pass. */
+  setup: (renderer: WebGLRenderer) => SceneHandle,
   /** Identity and priority in the shared scene budget (see scene-budget.ts). */
   budget: { id: string; priority: number },
 ) {
@@ -56,7 +57,7 @@ export function useThreeRenderer(
       return; // three.js could not start on this context after all: the fallback stays visible.
     }
     renderer.setClearColor(0x000000, 0);
-    const handle = setup();
+    const handle = setup(renderer);
 
     const resize = () => {
       const width = canvas.clientWidth;
