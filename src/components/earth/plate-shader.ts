@@ -79,6 +79,33 @@ export const FULL_MOTION = 0.065;
  */
 export const WAKE_GAIN = 0.35;
 
+/**
+ * The cyclone turns counter-clockwise (as seen, like a northern-hemisphere storm) and its clouds drift in
+ * toward the eye. Turning the picture continuously would wind the spiral tighter forever, so, as flow-map
+ * water shaders do, two layers turn it, half a cycle apart: each turns a small, bounded amount before it
+ * starts again, and they are crossfaded so neither restart shows.
+ * - CYCLONE_CYCLE: seconds per layer cycle
+ * - CYCLONE_SPIN: turn at the eye, radians per second
+ * - CYCLONE_INFLOW: inward drift, as a fraction of the distance to the eye per second
+ */
+export const CYCLONE_CYCLE = 4;
+export const CYCLONE_SPIN = 0.16;
+export const CYCLONE_INFLOW = 0.03;
+
+/**
+ * The two swirl layers at time `t` (seconds): each one's phase (0..1 through its cycle) and its weight in the
+ * crossfade. A layer is weighted most halfway through its cycle, where it has turned least, and not at all as
+ * it restarts; the weights always add up to 1. Mirrors the shader.
+ */
+export function swirlLayers(t: number): [{ phase: number; weight: number }, { phase: number; weight: number }] {
+  const fract = (x: number) => x - Math.floor(x);
+  const phases = [fract(t / CYCLONE_CYCLE), fract(t / CYCLONE_CYCLE + 0.5)] as const;
+  return [
+    { phase: phases[0], weight: 1 - Math.abs(2 * phases[0] - 1) },
+    { phase: phases[1], weight: 1 - Math.abs(2 * phases[1] - 1) },
+  ];
+}
+
 export { GLOW_BAND };
 
 export const plateFragmentShader = /* glsl */ `
@@ -105,6 +132,9 @@ const float WAKE_GAIN = ${glslFloat(WAKE_GAIN)};
 // The painted cyclone's eye and reach, in plate heights (plate.ts).
 const vec2 CYCLONE = vec2(${glslFloat(LANDMARKS.cyclone.u * PLATE_ASPECT)}, ${glslFloat(LANDMARKS.cyclone.v)});
 const float CYCLONE_REACH = ${glslFloat(LANDMARKS.cyclone.radius)};
+const float CYCLONE_CYCLE = ${glslFloat(CYCLONE_CYCLE)};
+const float CYCLONE_SPIN = ${glslFloat(CYCLONE_SPIN)};
+const float CYCLONE_INFLOW = ${glslFloat(CYCLONE_INFLOW)};
 
 // The cloud symbol's centre and half-size, in plate heights (plate.ts).
 const vec2 SYMBOL = vec2(${glslFloat(LANDMARKS.symbol.u * PLATE_ASPECT)}, ${glslFloat(LANDMARKS.symbol.v)});
@@ -138,14 +168,19 @@ vec2 weather(vec2 q) {
   return bands * patches * (1.0 - symbolCalm(q)) * pxToPlate();
 }
 
-// The painted cyclone turns back and forth in place (0.19 rad, with a small overtone), most at its eye and
-// not at all past its reach. Returns where the content at q comes from, relative to q.
-vec2 storm(vec2 q) {
+// One swirl layer of the cyclone at the given phase (0..1 through its cycle). The content at q has turned
+// counter-clockwise (as seen) and drifted in toward the eye, by an amount that grows through the cycle from
+// zero at its middle, most at the eye and not at all past its reach; so it came from a point turned back and
+// pushed out. Returns that point relative to q. (In plate coordinates y points down, so a positive angle here
+// turns clockwise as seen.)
+vec2 swirl(vec2 q, float phase) {
   vec2 r = q - CYCLONE;
   float heart = 1.0 - smoothstep(0.4, 1.15, length(r) / CYCLONE_REACH);
-  float a = (0.19 * sin(uTime * 0.16) + 0.035 * sin(uTime * 0.23)) * heart;
-  float c = cos(a), s = sin(a);
-  return vec2(c * r.x - s * r.y, s * r.x + c * r.y) - r;
+  float s = (phase - 0.5) * CYCLONE_CYCLE;
+  float a = CYCLONE_SPIN * s * heart;
+  float grow = 1.0 + CYCLONE_INFLOW * s * heart;
+  float c = cos(a), sn = sin(a);
+  return vec2(c * r.x - sn * r.y, sn * r.x + c * r.y) * grow - r;
 }
 
 // The pointer wake at this pixel, in plate heights (x right, y down): the fluid's displacement in cells,
@@ -158,10 +193,10 @@ vec2 wake() {
 }
 
 // Where the content at q comes from, relative to q, eased in from the calm band and capped so it never
-// reaches across it. Sampling against the wake moves the content along it.
-vec2 motion(vec2 q, float dist) {
+// reaches across it. Sampling against the wake moves the content along it. 'extra' is the cyclone's swirl.
+vec2 motion(vec2 q, float dist, vec2 extra) {
   if (dist <= CALM_LIMB) return vec2(0.0);
-  vec2 delta = (orbital() + weather(q) + storm(q) - wake()) * smoothstep(CALM_LIMB, FULL_MOTION, dist);
+  vec2 delta = (orbital() + weather(q) + extra - wake()) * smoothstep(CALM_LIMB, FULL_MOTION, dist);
   float limit = (dist - CALM_LIMB) * 0.5;
   float travel = length(delta);
   return travel > limit ? delta * (limit / travel) : delta;
@@ -170,6 +205,22 @@ vec2 motion(vec2 q, float dist) {
 vec3 plateColor(vec2 uv) {
   // Textures are stored bottom row first.
   return texture2D(uPlate, vec2(uv.x, 1.0 - uv.y)).rgb;
+}
+
+// The plate's colour at q (plate heights) moved by everything, the cyclone's swirl as two crossfaded layers.
+// Only pixels within the cyclone's reach pay for the second sample.
+vec3 movedColor(vec2 q, float dist) {
+  if (length(q - CYCLONE) > CYCLONE_REACH * 1.15) {
+    vec2 moved = q + motion(q, dist, vec2(0.0));
+    return plateColor(vec2(moved.x / PLATE_ASPECT, moved.y));
+  }
+  float t = uTime / CYCLONE_CYCLE;
+  float p1 = fract(t);
+  float p2 = fract(t + 0.5);
+  float w1 = 1.0 - abs(2.0 * p1 - 1.0);
+  vec2 m1 = q + motion(q, dist, swirl(q, p1));
+  vec2 m2 = q + motion(q, dist, swirl(q, p2));
+  return mix(plateColor(vec2(m2.x / PLATE_ASPECT, m2.y)), plateColor(vec2(m1.x / PLATE_ASPECT, m1.y)), w1);
 }
 
 void main() {
@@ -185,8 +236,7 @@ void main() {
     return;
   }
   vec2 q = vec2(uv.x * PLATE_ASPECT, uv.y);
-  vec2 moved = q + motion(q, dist);
-  vec3 color = plateColor(vec2(moved.x / PLATE_ASPECT, moved.y));
+  vec3 color = movedColor(q, dist);
   float alpha = 1.0;
   if (dist < 0.0) {
     // In the sky: the painted glow is bright and the painted sky is black, so brightness is the glow's
