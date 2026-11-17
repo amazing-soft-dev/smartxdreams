@@ -54,6 +54,27 @@ describe("createFluid", () => {
     expect(fluid.peak()).toBeLessThan(0.12);
   });
 
+  it("bends the picture smoothly: no cell's displacement jumps far from its neighbour's after a quick sweep", () => {
+    const fluid = createFluid();
+    // A quick diagonal sweep across a third of the canvas, as a mouse flicked over the clouds.
+    for (let i = 0; i < 24; i++) fluid.splat(0.3 + i * 0.012, 0.35 + i * 0.008, 0.012, 0.008);
+    let steepest = 0;
+    for (let t = 0; t < 0.5; t += 1 / 60) {
+      fluid.step(1 / 60);
+      for (let y = 0; y < FLUID_HEIGHT - 1; y++) {
+        for (let x = 0; x < FLUID_WIDTH - 1; x++) {
+          const at = (cx: number, cy: number) => fluid.displacementAt((cx + 0.5) / FLUID_WIDTH, (cy + 0.5) / FLUID_HEIGHT);
+          const here = at(x, y);
+          for (const next of [at(x + 1, y), at(x, y + 1)]) {
+            steepest = Math.max(steepest, Math.hypot(next.x - here.x, next.y - here.y));
+          }
+        }
+      }
+    }
+    // Under a cell per cell, so neighbouring clouds move together instead of tearing into streaks.
+    expect(steepest).toBeLessThan(0.8);
+  });
+
   it("stays finite and bounded at the longest step, even after a violent flick", () => {
     const fluid = createFluid();
     for (let i = 0; i < 30; i++) fluid.splat(0.1 + i * 0.03, 0.3 + (i % 5) * 0.08, 0.3, -0.2);
