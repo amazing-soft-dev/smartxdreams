@@ -10,9 +10,9 @@ export const CLOUD_STROKE_SCALE = 2;
 export const CLOUD_SOFTNESS = 8;
 
 /** Extra width of the cut where one strand passes over the other, so the gap survives the wider strokes. */
-const CLOUD_CUT = SYMBOL.cut + SYMBOL.stroke * (CLOUD_STROKE_SCALE - 1);
+export const CLOUD_CUT = SYMBOL.cut + SYMBOL.stroke * (CLOUD_STROKE_SCALE - 1);
 /** Radius of the clip around each crossing, grown with the strokes. */
-const CLOUD_CROSSING_RADIUS = SYMBOL.crossingRadius * 1.35;
+export const CLOUD_CROSSING_RADIUS = SYMBOL.crossingRadius * 1.35;
 
 export type SymbolMaskTransform = {
   /** Mask px per symbol unit. */
