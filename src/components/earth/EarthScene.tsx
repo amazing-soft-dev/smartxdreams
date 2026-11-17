@@ -52,6 +52,7 @@ export default function EarthScene() {
           uResolution: { value: new Vector2(1, 1) },
           uReady: { value: 0 },
           uSky: { value: INK_SKY },
+          uTime: { value: 0 },
         },
         // The quad covers the canvas and writes premultiplied colour straight to it.
         blending: NoBlending,
@@ -96,7 +97,8 @@ export default function EarthScene() {
       return {
         scene,
         camera,
-        update: () => {
+        update: (elapsed) => {
+          material.uniforms.uTime!.value = elapsed;
           if (!shown && material.uniforms.uReady!.value === 1) {
             shown = true;
             // After this frame reaches the screen.
