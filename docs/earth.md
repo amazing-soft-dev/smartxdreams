@@ -23,6 +23,40 @@ Place `<EarthField />` inside a positioned, dark container. It is decorative (`a
 
 `npm run check:bundle` (run in CI) keeps three.js out of the initial scripts of every route.
 
+## Plate geometry
+
+The backdrop is moving to the painted Earth plate in `public/brand/earth` (see [brand.md](brand.md#earth-plate-publicbrandearth)). Two modules describe it; the scene and the fallback switch to them in the follow-up issues, and the planet-circle layout below goes away.
+
+### The plate (`plate.ts`)
+
+Plate coordinates: `u` 0..1 left to right, `v` 0..1 top to bottom. The plate is 1774 × 887 px, twice as wide as tall.
+
+- **Variants:** 768, 1200 and 1774 px WebP. `pickPlateVariant(pixels)` returns the narrowest at least that wide; `PLATE_SRCSET` lists them all.
+- **Horizon:** the limb is an oval, so it is a cubic `v(u)` (`HORIZON`), fitted by `node scripts/measure-earth-plate.mjs` to where the blue atmosphere starts (192 of 222 columns, within 6 px over the full width). `horizonDistance(u, v)` is the signed distance in plate heights, positive on the planet and negative in the sky, measured across the curve so the steep left end and the flat right end read alike. `horizonPath()` is the planet's outline as an SVG path in plate pixels.
+- **Landmarks** (measured by eye on the master, in `LANDMARKS`):
+
+| Landmark | Plate px | Use |
+|---|---|---|
+| Sunrise | about (730, 285) | the hot point on the limb |
+| Cyclone | eye about (1545, 262), spiral about 120 px | turns in place in the scene |
+| Cloud symbol | about x 1065–1470, y 310–635 | placed per breakpoint; kept legible |
+
+If the art changes, run the script, update `HORIZON`, re-measure the landmarks, and run `npm test`.
+
+### Placement (`plate-layout.ts`)
+
+Each breakpoint names where the cloud symbol's centre goes and how tall it is, in hero heights (H) from the bottom-left. `plateRect(target, aspect)` scales and moves the plate to put it there, then grows it about the symbol's centre just enough to cover the hero's left, right and bottom edges, so the planet is never cut off. Only the top can stay uncovered; above the plate is sky.
+
+| From | Symbol centre (right, bottom) | Symbol height | Copy |
+|---|---|---|---|
+| 0 px (phone) | 0.2 H, 0.2 H | 0.16 H | across the top |
+| 640 px (tablet) | 0.3 H, 0.25 H | 0.22 H | across the top |
+| 1024 px (desktop) | 0.55 H, 0.48 H | 0.40 H | left column |
+
+`heroToPlate()` and `plateToHero()` convert between hero and plate coordinates (the pointer test and the shader use them). `plateLayoutCss(selector)` writes the same placement for the fallback, with `plateRect()` itself in CSS (`--plate-height`, `--plate-left`, `--plate-bottom`, in container query units); in Chromium it matches `plateRect()` within 0.1 px.
+
+`plate-layout.test.ts` checks every breakpoint over the hero shapes it must handle (tall phones, portrait to landscape tablets, a 1024 × 660 laptop up to an ultrawide): the plate covers the edges, the symbol is wholly on screen and on the planet, clear of the copy, and the cyclone's eye is on screen on desktop.
+
 ## Layout
 
 `layout.ts` places the planet per breakpoint (`EARTH_BREAKPOINTS`), the way a designer would: the height where the limb meets the hero's right edge (`edgeY`), how far from the right edge it meets the bottom (`baseX`), and how far past the right edge the centre sits (`overhang`). `planetCircle()` solves that into a centre and radius. Each breakpoint also names the limb angle where the sun rises (`sunAngle`, degrees counter-clockwise from "right").
