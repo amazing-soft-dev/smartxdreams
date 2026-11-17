@@ -21,7 +21,7 @@ const targets: SelectionTarget[] = [
  * docs/earth.md). On phones and tablets the copy sits across the top and the planet rises below it; on phones
  * the hero keeps a band below the copy (88vw, at most 360 px) for the planet, whatever the copy's length.
  *
- * The hero fills the screen at every width (at least 100svh, plus the 1 rem the cards band rises over it),
+ * The hero fills the screen at every width (at least 100svh, plus the 28 or 36 px the cards band rises over it),
  * growing only if the copy needs more room, so the cards band always starts below the fold. The plate's placement handles every window shape this
  * gives, from 4:3 laptops to ultrawides. Text is the largest element on screen, so it is also the Largest
  * Contentful Paint.
@@ -32,7 +32,7 @@ export function HomeHero() {
       aria-labelledby="home-hero-title"
       data-surface="dark"
       data-nav-theme="dark"
-      className="relative isolate flex min-h-[calc(100svh+1rem)] items-start overflow-hidden bg-space pt-28 pb-[min(88vw,360px)] text-white md:pt-36 md:pb-16 lg:items-center lg:pt-28 lg:pb-24"
+      className="relative isolate flex min-h-[calc(100svh+28px)] md:min-h-[calc(100svh+36px)] items-start overflow-hidden bg-space pt-28 pb-[min(88vw,360px)] text-white md:pt-36 md:pb-16 lg:items-center lg:pt-28 lg:pb-24"
     >
       {/* The still sky and plate first; the three.js plate loads on top when the device allows it. */}
       <EarthField />
