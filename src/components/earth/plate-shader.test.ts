@@ -11,6 +11,8 @@ import {
   horizonChunk,
   plateFragmentShader,
   swirlLayers,
+  WAKE_BLUR,
+  WAKE_GAIN,
 } from "./plate-shader";
 
 describe("glslFloat", () => {
@@ -90,5 +92,21 @@ describe("cyclone swirl", () => {
     expect(plateFragmentShader).toContain(`const float CYCLONE_SPIN = ${glslFloat(CYCLONE_SPIN)};`);
     expect(plateFragmentShader).toContain("vec2 swirl(vec2 q, float phase)");
     expect(plateFragmentShader).not.toContain("sin(uTime * 0.16)");
+  });
+});
+
+describe("pointer wake", () => {
+  it("pushes the clouds a few pixels at most, through a blur wider than a cell", () => {
+    expect(WAKE_GAIN).toBeGreaterThan(0);
+    expect(WAKE_GAIN).toBeLessThanOrEqual(0.35);
+    expect(WAKE_BLUR).toBeGreaterThanOrEqual(1);
+    expect(plateFragmentShader).toContain(`const float WAKE_GAIN = ${glslFloat(WAKE_GAIN)};`);
+    expect(plateFragmentShader).toContain(`const float WAKE_BLUR = ${glslFloat(WAKE_BLUR)};`);
+  });
+
+  it("moves the cloud symbol as one piece: over the symbol the wake is the wake averaged across it", () => {
+    expect(plateFragmentShader).toContain("vec2 wake(vec2 q)");
+    expect(plateFragmentShader).toContain("return mix(local, whole, calm);");
+    expect(plateFragmentShader).toContain("- wake(q)");
   });
 });

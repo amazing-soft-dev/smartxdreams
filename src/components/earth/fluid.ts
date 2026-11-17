@@ -15,21 +15,21 @@ export const FLUID_WIDTH = 128;
 export const FLUID_HEIGHT = 64;
 
 /** Velocity and displacement are clamped to these, so a flick cannot tear the picture. */
-export const MAX_VELOCITY = 45; // cells per second
+export const MAX_VELOCITY = 30; // cells per second
 export const MAX_DISPLACEMENT = 8; // cells
 
 /** Time constants: how fast the velocity and the displacement die away (per second). */
 const VELOCITY_DAMPING = 2.6;
 const DISPLACEMENT_DECAY = 2.2;
 /** Strength of the vorticity confinement. */
-const VORTICITY = 3;
+const VORTICITY = 1.5;
 /** Jacobi iterations for the pressure solve. It starts from the previous step's pressure, so it converges over a few frames. */
 const PRESSURE_ITERATIONS = 20;
 /** Radius of a splat, in cells. */
-const SPLAT_RADIUS = 2.8;
+const SPLAT_RADIUS = 5;
 /** How much a splat adds: velocity per cell moved, and displacement per cell moved. */
-const SPLAT_VELOCITY = 20;
-const SPLAT_DISPLACEMENT = 0.45;
+const SPLAT_VELOCITY = 12;
+const SPLAT_DISPLACEMENT = 0.3;
 /** How much the flow feeds the displacement as it carries it (cells per cell/second, per second). */
 const FLOW_TO_DISPLACEMENT = 0.35;
 /** The longest step taken at once, so a slow frame cannot make the solver unstable. */
