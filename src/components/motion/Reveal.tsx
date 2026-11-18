@@ -10,6 +10,8 @@ import { spring } from "@/styles/motion";
  * - left60 / right60: slide 60 px in from the side (avatars, side notes), spring A
  * - waveDown / waveUp: drop 160 px from above or rise 160 px from below (hero cards), spring B
  * - fade: opacity only
+ * - up35 / up50 / up75 / up100 / up150: Beemas' block fade-ups from each distance it uses, all on its
+ *   measured rise spring (docs/motion-audit.md)
  */
 export const revealPresets = {
   up60: { hidden: { opacity: 0, y: 60 }, transition: spring.a },
@@ -18,6 +20,11 @@ export const revealPresets = {
   waveDown: { hidden: { opacity: 0, y: -160 }, transition: spring.b },
   waveUp: { hidden: { opacity: 0, y: 160 }, transition: spring.b },
   fade: { hidden: { opacity: 0 }, transition: { duration: 0.6 } },
+  up35: { hidden: { opacity: 0, y: 35 }, transition: spring.rise },
+  up50: { hidden: { opacity: 0, y: 50 }, transition: spring.rise },
+  up75: { hidden: { opacity: 0, y: 75 }, transition: spring.rise },
+  up100: { hidden: { opacity: 0, y: 100 }, transition: spring.rise },
+  up150: { hidden: { opacity: 0, y: 150 }, transition: spring.rise },
 } as const satisfies Record<string, { hidden: TargetAndTransition; transition: object }>;
 
 export type RevealPreset = keyof typeof revealPresets;
