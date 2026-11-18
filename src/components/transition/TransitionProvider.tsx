@@ -253,6 +253,7 @@ export function TransitionProvider({ children }: { children: ReactNode }) {
       <div ref={announcer} role="status" aria-live="polite" aria-atomic="true" className="sr-only" />
       <div
         ref={overlay}
+        data-page-transition=""
         aria-hidden="true"
         className="pointer-events-none invisible fixed inset-0 z-[100] flex data-[state=active]:pointer-events-auto data-[state=active]:visible"
       >
@@ -284,6 +285,7 @@ export function TransitionProvider({ children }: { children: ReactNode }) {
           <div className="relative overflow-hidden px-1">
             <span
               ref={label}
+              data-transition-label=""
               className="block text-[clamp(2.5rem,6vw,5.5rem)] leading-[1.1] tracking-[-0.02em] text-white"
             />
           </div>
