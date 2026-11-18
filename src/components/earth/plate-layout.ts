@@ -41,7 +41,7 @@ export type PlateBreakpoint = {
  */
 export const PLATE_BREAKPOINTS: readonly PlateBreakpoint[] = [
   // Phone: the hero keeps a band below the copy for the planet (HomeHero), and the emblem sits in it.
-  { name: "phone", minWidth: 0, symbol: { right: 0.17, bottom: 0.17, height: 0.14 } },
+  { name: "phone", minWidth: 0, symbol: { right: 0.165, bottom: 0.17, height: 0.135 } },
   { name: "tablet", minWidth: 640, symbol: { right: 0.3, bottom: 0.18, height: 0.3 } },
   // A phone on its side (or a short window): too short for the copy across the top, so the copy is a left
   // column, as on desktop (HomeHero's landscape-phone variant).

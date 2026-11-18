@@ -68,8 +68,9 @@ export default function EarthScene() {
       let flowing = false;
       let rect: PlateRect = { left: 0, bottom: 0, width: 1, height: 1 };
 
-      // The cloud emblem's mask: until it has loaded, a white pixel, so the whole plate counts as emblem and the
-      // cyclone holds still rather than bending the emblem for a moment.
+      // The cloud emblem's mask: until it has loaded, a white pixel. In red the whole plate counts as emblem, so
+      // the cyclone holds still rather than bending the emblem for a moment; in green (the distance from the
+      // emblem) everything is far away, so nothing drifts with the emblem until its shape is known.
       const placeholderEmblem = new DataTexture(new Uint8Array([255, 255, 255, 255]), 1, 1);
       placeholderEmblem.needsUpdate = true;
       let emblem: Texture | null = null;

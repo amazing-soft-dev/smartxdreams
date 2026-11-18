@@ -1,11 +1,16 @@
 import { describe, expect, it } from "vitest";
 import {
+  EMBLEM_MASK_SRC,
+  EMBLEM_REGION_RANGE,
+  EMBLEM_STROKES,
+  emblemDistance,
   HORIZON,
   horizonDistance,
   horizonPath,
   horizonV,
   LANDMARKS,
   PLATE,
+  PLATE_ASPECT,
   PLATE_VARIANTS,
   pickPlateVariant,
 } from "./plate";
@@ -124,8 +129,47 @@ describe("horizonPath", () => {
 describe("emblem mask", () => {
   it("is built next to the variants", async () => {
     const { existsSync } = await import("node:fs");
-    const { EMBLEM_MASK_SRC } = await import("./plate");
     expect(EMBLEM_MASK_SRC).toBe("/brand/earth/earth-emblem-mask.png");
     expect(existsSync(`public${EMBLEM_MASK_SRC}`)).toBe(true);
+  });
+
+  it("holds the strokes in red and the distance from them in green, as emblemDistance() works it out", async () => {
+    const { default: sharp } = await import("sharp");
+    const { data, info } = await sharp(`public${EMBLEM_MASK_SRC}`).raw().toBuffer({ resolveWithObject: true });
+    expect(info.channels).toBeGreaterThanOrEqual(3);
+    let worst = 0;
+    for (let j = 2; j < info.height; j += 7) {
+      for (let i = 3; i < info.width; i += 7) {
+        const k = (j * info.width + i) * info.channels;
+        const x = ((i + 0.5) / info.width) * PLATE_ASPECT;
+        const y = (j + 0.5) / info.height;
+        const expected = Math.min(1, emblemDistance(x, y) / EMBLEM_REGION_RANGE);
+        worst = Math.max(worst, Math.abs(data[k + 1]! / 255 - expected));
+        // Well inside a stroke the red is mostly white (the blur softens it a little) and the distance zero.
+        if (emblemDistance(x, y) === 0 && emblemDistance(x + 0.02, y) === 0 && emblemDistance(x - 0.02, y) === 0) {
+          expect(data[k]!).toBeGreaterThan(160);
+        }
+      }
+    }
+    expect(worst).toBeLessThanOrEqual(1 / 255 + 1e-9);
+  });
+});
+
+describe("emblemDistance", () => {
+  it("is zero along every stroke's centre line and grows away from the strokes", () => {
+    for (const { points } of EMBLEM_STROKES) {
+      for (const [x, y] of points) expect(emblemDistance(x! / PLATE.height, y! / PLATE.height)).toBe(0);
+    }
+    // The open ocean left of the emblem and the far right of the plate are well away from it.
+    expect(emblemDistance(800 / PLATE.height, 450 / PLATE.height)).toBeGreaterThan(0.15);
+    expect(emblemDistance(1650 / PLATE.height, 900 / PLATE.height)).toBeGreaterThan(0.2);
+  });
+
+  it("changes no faster than the distance moved, so a fade over it is as smooth as over any distance", () => {
+    for (let x = 0.9; x < PLATE_ASPECT; x += 0.013) {
+      for (let y = 0.2; y < 0.9; y += 0.011) {
+        expect(Math.abs(emblemDistance(x + 0.002, y) - emblemDistance(x, y))).toBeLessThanOrEqual(0.002 + 1e-12);
+      }
+    }
   });
 });

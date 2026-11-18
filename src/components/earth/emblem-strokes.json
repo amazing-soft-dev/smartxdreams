@@ -1,0 +1,15 @@
+{
+  "$comment": "The cloud emblem's two strokes on the 1659 x 948 master, as centre lines in master pixels: the inner hook (top stroke, U-turn, then the tail down to the left) and the outer C around it. Widths include about 8 px of margin on each side. Read by scripts/build-earth-plate.mjs (the emblem mask) and plate.ts (emblemDistance()). regionRange: plate heights of distance from the strokes that the mask's green channel spans.",
+  "master": { "width": 1659, "height": 948 },
+  "regionRange": 0.5,
+  "strokes": [
+    {
+      "width": 48,
+      "points": [[1150, 440], [1230, 435], [1305, 432], [1360, 440], [1382, 465], [1365, 492], [1305, 502], [1230, 505], [1155, 510], [1095, 525], [1050, 560], [1015, 610]]
+    },
+    {
+      "width": 62,
+      "points": [[1140, 410], [1190, 375], [1280, 360], [1380, 365], [1455, 395], [1500, 440], [1517, 490], [1505, 530], [1462, 560], [1380, 578], [1280, 583], [1180, 590], [1105, 604], [1040, 627]]
+    }
+  ]
+}
