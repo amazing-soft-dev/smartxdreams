@@ -7,6 +7,6 @@
 export const homeStatement = [
   "Most AI tools hand you a blank prompt box.",
   "We build products that do one job each:",
-  "{chip:joined} find the job, {chip:applypilot} fill the form, {chip:sitelog} write the report, {chip:kinly} explain the letter.",
+  "{chip:joined} find the job, {chip:acorn} fill the form, {chip:sitelog} write the report, {chip:kinly} explain the letter.",
   "You stay in charge of every decision.",
 ] as const;
