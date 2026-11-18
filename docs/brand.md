@@ -28,21 +28,21 @@ The header, footer and page transition still draw the stroke symbol in code (`sr
 
 ### Earth plate (`public/brand/earth/`)
 
-A painted view of the Earth from orbit, with the sun rising on the upper-left limb, a cyclone at the top right and the SmartxDreams symbol drawn in clouds right of centre. It is the Home hero backdrop's texture: the WebGL scene animates it, and the CSS fallback shows it still. Supplied by the SmartxDreams team on 2026-11-17 as a 1774 x 887 PNG.
+"Cloud-Formed Emblem Over Earth": a painted view of the Earth from orbit, with the sun rising on the upper-left limb, a cyclone at the top right and the SmartxDreams emblem formed in clouds right of centre. It is the Home hero backdrop's texture: the WebGL scene animates it, and the CSS fallback shows it still. Supplied by the SmartxDreams team as a 1659 x 948 PNG, kept as the master at `public/brand/Cloud-Formed Emblem Over Earth.png` (the site never loads it; it serves the variants below).
 
 | File | Size | Use |
 |---|---|---|
-| `earth-plate-1774.webp` | 1774 x 887, quality 82 | Master; large and high-density screens |
-| `earth-plate-1200.webp` | 1200 x 600, quality 80 | Laptops and tablets; the fallback's default |
-| `earth-plate-768.webp` | 768 x 384, quality 78 | Phones |
+| `earth-emblem-1659.webp` | 1659 x 948, quality 82, 227 KB | Master width; large and high-density screens |
+| `earth-emblem-1200.webp` | 1200 x 686, quality 80, 126 KB | Laptops and tablets |
+| `earth-emblem-768.webp` | 768 x 439, quality 78, 53 KB | Phones |
 
 It is brand artwork, not a stock photo, so it lives here and not in `public/images` (which holds only credited Unsplash and Pexels photos used through `<Photo>`; see [images.md](images.md)). To regenerate the variants from a new master PNG:
 
 ```bash
-node -e "const s=require('sharp');for(const [w,q] of [[1774,82],[1200,80],[768,78]])s(process.argv[1]).resize({width:w}).webp({quality:q,effort:6,smartSubsample:true}).toFile('public/brand/earth/earth-plate-'+w+'.webp')" path/to/master.png
+node scripts/build-earth-plate.mjs [path/to/master.png]
 ```
 
-Keep each file under 800 KB (the photo budget). If the new art moves the limb, the sun, the cyclone or the symbol, measure them again for the hero layout.
+The script never upscales (the widest variant is the master's width) and fails if a file goes over 800 KB (the photo budget). If the new art moves the limb, the sun, the cyclone or the emblem, measure them again (`node scripts/measure-earth-plate.mjs`, see [earth.md](earth.md#plate-geometry)) for the hero layout.
 
 ### Icon sets (`public/brand/smartxdreams-{dark,white}-1x1-transparent/`)
 
@@ -105,7 +105,7 @@ The wordmark is "Smart**x**Dreams" in Inter Tight, weight 600, at 0.6 x `height`
 ## Changing the symbol
 
 1. Replace the two raster masters in `public/brand/` and both icon-set folders, keeping the file names.
-2. If the stroke symbol's geometry changed, update `SYMBOL` in `src/lib/brand-symbol.ts` (used by `Logo`; the cloud symbol in the [Earth plate](#earth-plate-publicbrandearth) is painted and would need new art) and the paths in `src/app/icon.svg`. If the raster mark's bounds changed, update `SYMBOL_BOX` in `src/app/opengraph-image.tsx` (the artwork's bounding box in the 1254 px PNG).
+2. If the stroke symbol's geometry changed, update `SYMBOL` in `src/lib/brand-symbol.ts` (used by `Logo`; the cloud emblem in the [Earth plate](#earth-plate-publicbrandearth) is painted and would need new art) and the paths in `src/app/icon.svg`. If the raster mark's bounds changed, update `SYMBOL_BOX` in `src/app/opengraph-image.tsx` (the artwork's bounding box in the 1254 px PNG).
 3. Copy the dark-mark `favicon.ico` to `src/app/favicon.ico` and the white-mark `apple-touch-icon.png` to `src/app/apple-icon.png`.
 4. If the colours changed, update `SYMBOL_COLORS` and `WORDMARK_COLORS` in `Logo.tsx`, the `<style>` in `icon.svg`, and the tables on this page.
 5. Run `npm test` (Logo, manifest and Organization logo tests) and, for the static export, `NEXT_OUTPUT=export npm run build && npm run verify:out`.

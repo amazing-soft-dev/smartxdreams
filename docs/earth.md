@@ -3,7 +3,7 @@
 The Home hero's backdrop, split along the planet's oval limb:
 
 - **Outside the limb (the sky):** the starfield of the Framer reference, recreated in `src/components/sky` (see [sky.md](sky.md)). It never reacts to the pointer.
-- **Inside the limb (the Earth):** the painted Earth plate (`public/brand/earth`, with the SmartxDreams symbol in its clouds), animated as on generalcontextlabs.com: a slow drift, weather bands and a turning cyclone, and a fluid wake where a mouse moves over the planet, and only there.
+- **Inside the limb (the Earth):** the painted Earth plate (`public/brand/earth`, the Cloud-Formed Emblem art, with the SmartxDreams emblem in its clouds), animated as on generalcontextlabs.com: a slow drift, weather bands and a turning cyclone, and a fluid wake where a mouse moves over the planet, and only there.
 
 Code lives in `src/components/earth`; the shared WebGL helpers are in `src/components/webgl`.
 
@@ -24,9 +24,9 @@ The Home hero fills the screen at every width (at least 100svh plus the 28 or 36
 
 | Width | Hero | Copy | Planet and symbol |
 |---|---|---|---|
-| under 768 px | at least the viewport; copy height plus a band of min(88vw, 360 px) below it if that is taller | across the top | rises in the band below the copy; symbol 0.12 H, low on the right |
-| 768–1023 px | at least the viewport | across the top | fills the lower half; symbol 0.22 H |
-| 1024 px and up | at least the viewport, so its shape is the window's (4:3 to ultrawide) | left column (44vw, at most 620 px), centred vertically | rises from under the copy to the right edge; symbol 0.28 H at the bottom right |
+| under 768 px | at least the viewport; copy height plus a band of min(88vw, 360 px) below it if that is taller | across the top | rises in the band below the copy; emblem 0.14 H, low on the right |
+| 768–1023 px | at least the viewport | across the top | fills the lower half; emblem 0.3 H |
+| 1024 px and up | at least the viewport, so its shape is the window's (4:3 to ultrawide) | left column (44vw, at most 620 px), centred vertically | rises from under the copy to the right edge; emblem 0.3 H at the bottom right |
 
 - **Placement:** `PLATE_BREAKPOINTS` in `plate-layout.ts`. On desktop the plate sits low on the right: its left edge may start partway across the hero, since the planet along that edge is below the hero's bottom and only sky shows beside it (see [Placement](#placement-plate-layoutts)).
 - **Scrim:** on desktop a soft radial wash of the sky's colour sits behind the copy column, so the sunrise and the limb's glow never cut the description's contrast.
@@ -50,29 +50,33 @@ The backdrop is the painted Earth plate in `public/brand/earth` (see [brand.md](
 
 ### The plate (`plate.ts`)
 
-Plate coordinates: `u` 0..1 left to right, `v` 0..1 top to bottom. The plate is 1774 × 887 px, twice as wide as tall.
+Plate coordinates: `u` 0..1 left to right, `v` 0..1 top to bottom. The plate is the Cloud-Formed Emblem art, 1659 × 948 px (1.75:1, `PLATE_ASPECT`).
 
-- **Variants:** 768, 1200 and 1774 px WebP. `pickPlateVariant(pixels)` returns the narrowest at least that wide; `PLATE_SRCSET` lists them all.
-- **Horizon:** the limb is an oval, so it is a cubic `v(u)` (`HORIZON`), fitted by `node scripts/measure-earth-plate.mjs` to where the blue atmosphere starts (192 of 222 columns, within 6 px over the full width). `horizonDistance(u, v)` is the signed distance in plate heights, positive on the planet and negative in the sky, measured across the curve so the steep left end and the flat right end read alike. `horizonPath()` is the planet's outline as an SVG path in plate pixels.
+- **Variants:** 768, 1200 and 1659 px WebP (`PLATE_VARIANTS`), built by `node scripts/build-earth-plate.mjs`. `pickPlateVariant(pixels)` returns the narrowest at least that wide, or the master above that.
+- **Horizon:** the limb is an oval, so it is a cubic `v(u)` (`HORIZON`), fitted by `node scripts/measure-earth-plate.mjs` to where the bright blue rim starts: 130 of 145 columns from 40 to 1656 px, within 8.5 px. The art's navy sky is already faintly blue up to 80 px above the rim, so the script looks for bright blue (above 185, at least red), and it skips the columns from 460 to 960 px where the sun's glare hides the rim. `horizonDistance(u, v)` is the signed distance in plate heights, positive on the planet and negative in the sky, measured across the curve so the steep left end and the flat right end read alike. `horizonPath()` is the planet's outline as an SVG path in plate pixels.
 - **Landmarks** (measured by eye on the master, in `LANDMARKS`):
 
 | Landmark | Plate px | Use |
 |---|---|---|
-| Sunrise | about (730, 285) | the hot point on the limb |
-| Cyclone | eye about (1545, 262), spiral about 120 px | spins in place in the scene |
-| Cloud symbol | about x 1065–1470, y 310–635 | placed per breakpoint; kept legible |
+| Sunrise | about (688, 345), just inside the limb | the hot point on the limb |
+| Cyclone | eye about (1458, 292); painted arms about 190 px, turning reach 105 px | turns around its eye in the scene |
+| Cloud emblem | about x 1005–1540, y 355–650 | placed per breakpoint; kept legible |
 
-If the art changes, run the script, update `HORIZON`, re-measure the landmarks, and run `npm test`.
+The cyclone's turning reach is smaller than its painted arms because the emblem's upper stroke passes only about 95 px below the eye; a larger reach would bend it.
+
+If the art changes, run both scripts, update `PLATE`, `HORIZON` and the landmarks, and run `npm test`.
 
 ### Placement (`plate-layout.ts`)
 
 Each breakpoint names where the cloud symbol's centre goes and how tall it is, in hero heights (H) from the bottom-left. `plateRect(target, aspect)` scales and moves the plate to put it there, then grows it about the symbol's centre just enough to cover the hero's left, right and bottom edges, so the planet is never cut off. Only the top can stay uncovered; above the plate is sky.
 
-| From | Symbol centre (right, bottom) | Symbol height | Copy |
+| From | Emblem centre (right, bottom) | Emblem height | Copy |
 |---|---|---|---|
-| 0 px (phone) | 0.2 H, 0.2 H | 0.16 H | across the top |
-| 640 px (tablet) | 0.3 H, 0.25 H | 0.22 H | across the top |
-| 1024 px (desktop) | 0.55 H, 0.48 H | 0.40 H | left column |
+| 0 px (phone) | 0.15 H, 0.1 H | 0.14 H | across the top |
+| 640 px (tablet) | 0.3 H, 0.18 H | 0.3 H | across the top |
+| 1024 px (desktop) | 0.3 H, 0.18 H | 0.3 H | left column |
+
+The emblem is about 1.8 times as wide as it is tall, so at 0.3 H it spans about 0.54 H.
 
 `heroToPlate()` and `plateToHero()` convert between hero and plate coordinates (the pointer test and the shader use them). `plateLayoutCss(selector)` writes the same placement for the fallback, with `plateRect()` itself in CSS (`--plate-height`, `--plate-left`, `--plate-bottom`, in container query units); in Chromium it matches `plateRect()` within 0.1 px.
 
