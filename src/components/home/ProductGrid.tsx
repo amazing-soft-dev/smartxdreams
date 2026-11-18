@@ -42,7 +42,7 @@ export function ProductGrid() {
                   className={cx(
                     "group relative flex h-full min-h-64 flex-col rounded-[30px] p-7",
                     "outline-offset-4 has-[a:focus-visible]:outline-2 has-[a:focus-visible]:outline-violet-500",
-                    "transition-[translate,box-shadow] duration-500 ease-[var(--ease-out-quint)] hover:-translate-y-1.5 motion-reduce:hover:translate-y-0 hover:shadow-card-hover",
+                    "transition-[translate,box-shadow] duration-500 ease-[var(--ease-out-quint)] hover:-translate-y-1.5 motion-reduce:hover:translate-y-0 hover:shadow-card-hover has-[a:focus-visible]:-translate-y-1.5 has-[a:focus-visible]:shadow-card-hover motion-reduce:has-[a:focus-visible]:translate-y-0",
                     tone.surface,
                   )}
                 >
