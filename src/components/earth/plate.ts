@@ -75,10 +75,44 @@ export const LANDMARKS = {
 } as const;
 
 /**
- * How far (plate heights) the painted atmosphere glow is kept outside the limb before it fades out. Shared by
- * the shader and the fallback.
+ * How far (plate heights) the painted atmosphere glow is kept outside the limb before it fades out: far enough
+ * for the streaks of high cloud over the emblem art's limb, which reach about 110 px (0.115) above the rim
+ * between the sunrise and the cyclone. glowCoverage() keeps the painted sky out of the band, so it can be this
+ * wide without veiling the starfield. Shared by the shader and the fallback.
  */
-export const GLOW_BAND = 0.06;
+export const GLOW_BAND = 0.12;
+
+/**
+ * The painted sky's own brightness, as the brighter of its red and green (0..1). The emblem art's sky is a
+ * navy gradient: its red stays near 0 and its green under about 0.1 away from the planet, and only its blue
+ * rises in the haze over the rim. The atmosphere's cyan rim, the sunrise and the pink streaks of high cloud are
+ * bright in red or green, so how far that rises above this floor is how much of the glow there is.
+ */
+export const SKY_FLOOR = 0.1;
+/** How far above SKY_FLOOR the glow is fully opaque. */
+export const GLOW_RISE = 0.35;
+
+const smoothstep = (edge0: number, edge1: number, x: number) => {
+  const t = Math.min(1, Math.max(0, (x - edge0) / (edge1 - edge0)));
+  return t * t * (3 - 2 * t);
+};
+
+/**
+ * How much of a painted pixel outside the limb is atmosphere glow (0..1), from its red and green (0..1): none
+ * for the navy sky and its blue haze, all for the bright rim, the sunrise and the high streaks. The shader
+ * computes the same thing.
+ */
+export function glowCoverage(red: number, green: number): number {
+  return smoothstep(SKY_FLOOR, SKY_FLOOR + GLOW_RISE, Math.max(red, green));
+}
+
+/** Within this many plate heights outside the limb the glow is kept whole; beyond, it fades out by GLOW_BAND. */
+export const GLOW_EDGE = 0.008;
+
+/** How much of the glow is kept at a signed limb distance (plate heights, negative in the sky). */
+export function glowFade(distance: number): number {
+  return smoothstep(-GLOW_BAND, -GLOW_EDGE, distance);
+}
 
 /**
  * The limb as an SVG path in plate pixels, closed along the bottom: the planet's outline for a clip path.

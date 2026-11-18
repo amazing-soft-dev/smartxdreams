@@ -107,8 +107,8 @@ describe("variants", () => {
 
 describe("horizonPath", () => {
   it("lifts the whole outline for the glow band", () => {
-    const lifted = horizonPath(32, 0.06);
-    expect(lifted.startsWith(`M0 ${((horizonV(0) - 0.06) * PLATE.height).toFixed(1)}`)).toBe(true);
+    const lifted = horizonPath(32, 0.12);
+    expect(lifted.startsWith(`M0 ${((horizonV(0) - 0.12) * PLATE.height).toFixed(1)}`)).toBe(true);
     expect(lifted.endsWith(`L${PLATE.width} ${PLATE.height}L0 ${PLATE.height}Z`)).toBe(true);
   });
 

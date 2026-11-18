@@ -10,7 +10,7 @@
   container-type: size;
 }
 
-/* A canvas the size of the plate, twice as wide as tall, placed by the layout. EarthFallback draws into it. */
+/* A canvas the size of the plate (PLATE_ASPECT wide per unit tall), placed by the layout. EarthFallback draws into it. */
 .plate {
   position: absolute;
   left: var(--plate-left);
@@ -19,7 +19,3 @@
   width: calc(var(--plate-height) * var(--plate-aspect));
 }
 
-/* The painted glow above the limb: black adds nothing under `screen`, the glow lightens the sky. */
-.glow {
-  mix-blend-mode: screen;
-}
