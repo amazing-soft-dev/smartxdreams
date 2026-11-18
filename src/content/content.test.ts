@@ -13,7 +13,7 @@ describe("products", () => {
     const slugs = products.map((p) => p.slug);
     expect(slugs).toHaveLength(6);
     expect(new Set(slugs).size).toBe(6);
-    expect([...slugs].sort()).toEqual(["applypilot", "joined", "kinly", "sitelog", "toothledger", "trustdraft"]);
+    expect([...slugs].sort()).toEqual(["acorn", "joined", "kinly", "sitelog", "toothledger", "trustdraft"]);
   });
 
   it("have URL-safe slugs and unique names", () => {
@@ -39,7 +39,7 @@ describe("products", () => {
   });
 
   it("carry a not-advice disclaimer where money, health or job applications are involved", () => {
-    for (const slug of ["applypilot", "toothledger", "kinly"]) {
+    for (const slug of ["acorn", "toothledger", "kinly"]) {
       expect(products.find((p) => p.slug === slug)?.disclaimer, slug).toBeTruthy();
     }
   });
