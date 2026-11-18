@@ -2,7 +2,7 @@
 
 Tokens live in `src/app/globals.css` (`@theme`, Tailwind CSS v4) and, for JavaScript motion, in `src/styles/motion.ts`.
 
-The UI palette below was first sampled from the original logo. The current symbol has its own colours (navy `#2B2170`, violet `#6E56F0`, lavender `#A99BFF` and `#E6E1FF`), which are used only inside the logo and the app icons and are listed in [brand.md](brand.md). Do not use them as UI colours, and do not change these tokens to match the logo without a design review: every contrast ratio below depends on them.
+The UI palette below was first sampled from the original logo. The current mark, the SD ribbon, is a charcoal (`#252628` on average) or white (`#E7ECF8`) raster file with its own shading, used only as the logo and the app icons and described in [brand.md](brand.md). Its wordmark uses `ink` and `violet-500` from this palette (white and `violet-300` on dark surfaces). Do not sample UI colours from the ribbon, and do not change these tokens to match it without a design review: every contrast ratio below depends on them.
 
 ## Colors
 
