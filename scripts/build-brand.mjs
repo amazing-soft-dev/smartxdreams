@@ -222,8 +222,28 @@ icon("maskable-512x512.png", await (await square(onDark, 512, 0.56, INK)).remove
 
 // ── App icons (Next.js file conventions in src/app) ─────────────────────────────────────────────────
 // - favicon.ico and apple-icon.png: the same files as in public/brand/icons/.
+// - icon.svg: what modern browsers prefer for the tab. A PNG cannot follow the tab's colour scheme, so the
+//   SVG carries both marks as 64 px PNGs and shows the charcoal one on light tabs and the white one on dark.
 emit("src/app/favicon.ico", ico([16, 32, 48].map((size) => ({ size, png: faviconPngs[size] }))));
 emit("src/app/apple-icon.png", appleIcon);
+{
+  const data = async (artwork) => (await (await square(artwork, 64, 0.96)).png().toBuffer()).toString("base64");
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="SmartxDreams">
+  <!-- Built by scripts/build-brand.mjs from assets/brand/: do not edit. The charcoal mark on light tabs, the
+       white one on dark tabs. -->
+  <style>
+    .on-dark { display: none; }
+    @media (prefers-color-scheme: dark) {
+      .on-light { display: none; }
+      .on-dark { display: inline; }
+    }
+  </style>
+  <image class="on-light" width="64" height="64" href="data:image/png;base64,${await data(onLight)}"/>
+  <image class="on-dark" width="64" height="64" href="data:image/png;base64,${await data(onDark)}"/>
+</svg>
+`;
+  emit("src/app/icon.svg", Buffer.from(svg));
+}
 
 /** An ICO file holding PNG images (every browser since IE Vista-era reads PNG entries). */
 function ico(images) {
@@ -256,7 +276,7 @@ for (const { file, buffer } of outputs) {
     // Compare sizes, not bytes: sharp's encoders may differ by a few bytes between platforms. An ICO is
     // compared by its directory (image count and sizes), which sharp cannot read.
     const current = await fs.readFile(file).catch(() => null);
-    if (rel.endsWith(".json")) {
+    if (rel.endsWith(".json") || rel.endsWith(".svg")) {
       if (current?.toString().replace(/\r\n/g, "\n") !== buffer.toString()) {
         console.error(`${rel}  missing or out of date: run npm run brand`);
         failed = true;
