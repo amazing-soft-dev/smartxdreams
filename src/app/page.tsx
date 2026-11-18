@@ -3,6 +3,7 @@ import { HomeHero } from "@/components/home/HomeHero";
 import { Principles } from "@/components/home/Principles";
 import { ProcessStepper } from "@/components/home/ProcessStepper";
 import { ProductGrid } from "@/components/home/ProductGrid";
+import { ProductStrip } from "@/components/home/ProductStrip";
 import { Statement } from "@/components/home/Statement";
 import { CtaSection } from "@/components/sections/CtaSection";
 import { FaqSection } from "@/components/sections/FaqSection";
@@ -29,6 +30,7 @@ export default function HomePage() {
     <main id="main" tabIndex={-1}>
       <HomeHero />
       <HomeCards />
+      <ProductStrip />
       <ProductGrid />
       <Statement />
       <ProcessStepper />
