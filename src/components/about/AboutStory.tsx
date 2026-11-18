@@ -1,5 +1,5 @@
 import { Reveal } from "@/components/motion/Reveal";
-import { Accent } from "@/components/ui/Accent";
+import { SplitText } from "@/components/motion/SplitText";
 import { Photo } from "@/components/ui/Photo";
 import { Section } from "@/components/ui/Section";
 import { Tag } from "@/components/ui/Tag";
@@ -13,7 +13,7 @@ export function AboutStory() {
         <div>
           <Tag>Our story</Tag>
           <h2 id="story-title" className="mt-5 text-h2">
-            <Accent text={about.story.title} />
+            <SplitText text={about.story.title} />
           </h2>
           <div className="mt-6 flex max-w-[62ch] flex-col gap-5 text-body-l text-ink/75">
             {about.story.paragraphs.map((p) => (
