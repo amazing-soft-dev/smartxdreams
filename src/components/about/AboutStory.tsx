@@ -4,6 +4,7 @@ import { Photo } from "@/components/ui/Photo";
 import { Section } from "@/components/ui/Section";
 import { Tag } from "@/components/ui/Tag";
 import { about } from "@/content/about";
+import { PhotoReveal } from "@/components/motion/PhotoReveal";
 
 /** "Our story": why the studio started, beside a photo that slides in from the right. */
 export function AboutStory() {
@@ -23,7 +24,9 @@ export function AboutStory() {
         </div>
         <Reveal preset="right60">
           <div className="relative aspect-[4/3] overflow-hidden rounded-[30px]">
-            <Photo slot="about-story" fill sizes="(min-width: 1024px) 45vw, 100vw" />
+            <PhotoReveal>
+              <Photo slot="about-story" fill sizes="(min-width: 1024px) 45vw, 100vw" />
+            </PhotoReveal>
           </div>
         </Reveal>
       </div>

@@ -6,6 +6,7 @@ import { SectionHeader } from "@/components/ui/SectionHeader";
 import { about } from "@/content/about";
 import { aboutStats } from "@/content/selectors";
 import { TeamProfiles } from "./TeamProfiles";
+import { PhotoReveal } from "@/components/motion/PhotoReveal";
 
 /**
  * "Team", laid out like Ignivo's team bento: a wide card about building with the studio, with a few numbers
@@ -40,7 +41,9 @@ export function AboutTeam() {
           </div>
         </div>
         <div className="relative min-h-64 lg:min-h-full">
-          <Photo slot="about-team" fill sizes="(min-width: 1024px) 45vw, 100vw" />
+          <PhotoReveal>
+            <Photo slot="about-team" fill sizes="(min-width: 1024px) 45vw, 100vw" />
+          </PhotoReveal>
         </div>
       </div>
 
