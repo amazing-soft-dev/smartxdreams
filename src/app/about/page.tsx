@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { AboutHero } from "@/components/about/AboutHero";
 import { AboutRoadmap } from "@/components/about/AboutRoadmap";
+import { AboutStats } from "@/components/about/AboutStats";
 import { AboutStory } from "@/components/about/AboutStory";
 import { AboutTeam } from "@/components/about/AboutTeam";
 import { AboutValues } from "@/components/about/AboutValues";
@@ -32,6 +33,7 @@ export default function AboutPage() {
       <JsonLd data={aboutJsonLd} />
       <AboutHero />
       <AboutStory />
+      <AboutStats />
       <AboutValues />
       <AboutRoadmap />
       <AboutTeam />
