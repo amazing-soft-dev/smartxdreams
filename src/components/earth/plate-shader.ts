@@ -119,6 +119,7 @@ uniform float uReady;       // 1 once the plate texture has loaded
 uniform vec4 uSky;          // what shows outside the planet and its glow (premultiplied; alpha 0 lets the page show)
 uniform float uTime;        // seconds the scene has been running
 uniform sampler2D uFlow;    // the fluid wake's displacement over the canvas (fluid.ts): red x, green y, 0.5 = still
+uniform sampler2D uEmblem;  // the cloud emblem's mask over the plate (earth-emblem-mask.png): 1 on the emblem
 
 varying vec2 vUv;
 
@@ -175,6 +176,12 @@ vec2 weather(vec2 q) {
   return bands * patches * (1.0 - symbolCalm(q)) * pxToPlate();
 }
 
+// How much of the plate at q (plate heights) is the cloud emblem, 0..1, from its soft mask. Until the mask
+// has loaded the scene holds a 1 x 1 white texture, so everything counts as emblem and nothing turns.
+float emblemAt(vec2 q) {
+  return texture2D(uEmblem, vec2(q.x / PLATE_ASPECT, 1.0 - q.y)).r;
+}
+
 // One swirl layer of the cyclone at the given phase (0..1 through its cycle). The content at q has turned
 // counter-clockwise (as seen) and drifted in toward the eye, by an amount that grows through the cycle from
 // zero at its middle, most at the eye and not at all past its reach; so it came from a point turned back and
@@ -187,7 +194,9 @@ vec2 swirl(vec2 q, float phase) {
   float a = CYCLONE_SPIN * s * heart;
   float grow = 1.0 + CYCLONE_INFLOW * s * heart;
   float c = cos(a), sn = sin(a);
-  return vec2(c * r.x - sn * r.y, sn * r.x + c * r.y) * grow - r;
+  // The emblem's upper stroke passes within about 100 px of the eye, inside the storm's painted reach: the
+  // swirl leaves it alone, so it keeps its shape while the arms beside it turn.
+  return (vec2(c * r.x - sn * r.y, sn * r.x + c * r.y) * grow - r) * (1.0 - emblemAt(q));
 }
 
 // The fluid's displacement at a point of the canvas (0..1, y up), in cells.
