@@ -79,10 +79,10 @@ function Mark({ tone, height, label, decorative, className }: MarkProps) {
   );
 }
 
-/** Wordmark colours: the text takes the old S stroke's role, the "x" the D stroke's accent. */
+/** Wordmark colours: ink or white text, with the "x" in the brand violet. */
 const WORDMARK_COLORS: Record<Tone, { text: string; accent: string }> = {
-  dark: { text: "#2B2170", accent: "#6E56F0" },
-  light: { text: "#E6E1FF", accent: "#A99BFF" },
+  dark: { text: "#0F1226", accent: "#6D4AFF" },
+  light: { text: "#FFFFFF", accent: "#AA97FF" },
 };
 
 /** Wordmark size and spacing as fractions of the logo height. */
