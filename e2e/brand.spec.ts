@@ -37,3 +37,22 @@ test("both header marks are loaded before they are needed", async ({ page }) => 
     .poll(() => imgs.evaluateAll((all) => all.every((img) => (img as HTMLImageElement).complete && (img as HTMLImageElement).naturalWidth > 0)))
     .toBe(true);
 });
+
+test.describe("mobile menu", () => {
+  test.use({ viewport: { width: 390, height: 844 } });
+
+  test("its logo is decoded before the menu opens and lines up with the close button", async ({ page }) => {
+    await page.goto("/");
+    const menu = page.getByRole("dialog", { name: "Site menu", includeHidden: true });
+    const mark = menu.locator('a[aria-label="SmartxDreams home"] img');
+    // The dialog is closed (display: none), yet its eager image is already fetched and decoded.
+    await expect.poll(() => mark.evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0)).toBe(true);
+    await expect(mark).toHaveAttribute("src", /smartxdreams-mark-on-dark-\d+\.webp$/);
+
+    await page.getByRole("button", { name: "Open menu" }).click();
+    const close = menu.getByRole("button", { name: "Close menu" });
+    await expect(close).toBeVisible();
+    const [m, c] = await Promise.all([mark.boundingBox(), close.boundingBox()]);
+    expect(Math.abs(m!.y + m!.height / 2 - (c!.y + c!.height / 2))).toBeLessThanOrEqual(1);
+  });
+});

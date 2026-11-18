@@ -11,6 +11,7 @@ import { headerCta } from "@/content/site";
 import { cx } from "@/lib/cx";
 import { ease } from "@/styles/motion";
 import { DesktopNav } from "./DesktopNav";
+import { NAV_LOGO_HEIGHT } from "./logo-size";
 import { MenuButton } from "./MenuButton";
 import { MobileMenu } from "./MobileMenu";
 import { useHideOnScroll } from "./useHideOnScroll";
@@ -70,7 +71,7 @@ export function Header() {
                 <Logo
                   key={tone}
                   tone={tone}
-                  height={26}
+                  height={NAV_LOGO_HEIGHT}
                   decorative
                   className={cx(
                     "transition-opacity duration-400 ease-[var(--ease-standard)]",
