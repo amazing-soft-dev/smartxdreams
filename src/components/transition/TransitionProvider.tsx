@@ -6,9 +6,13 @@ import { Logo } from "@/components/ui/Logo";
 import { cssEase } from "@/styles/motion";
 import { routeLabel } from "./route-label";
 
-/** Panel timing: 400 ms per panel, 35 ms stagger, so the cover is closed after 540 ms. */
-const PANEL_MS = 400;
-const STAGGER_MS = 35;
+/**
+ * Panel timing, measured frame by frame on the reference transition (docs/motion-audit.md#page-transition):
+ * the cover takes 500 ms per panel with a 55 ms stagger, so it is closed after 720 ms; the reveal is a
+ * touch quicker, 450 ms per panel with a 45 ms stagger. Both on the panel ease, a slow start and long settle.
+ */
+const PANEL_MS = { in: 500, out: 450 } as const;
+const STAGGER_MS = { in: 55, out: 45 } as const;
 const PANELS = 5;
 /** The mark's entrance: it starts as the first panels land and finishes as the cover closes. */
 const MARK_DELAY_MS = 180;
@@ -129,14 +133,14 @@ export function TransitionProvider({ children }: { children: ReactNode }) {
         phase === "in"
           ? [{ transform: offscreen(i, "in") }, { transform: "translateY(0)" }]
           : [{ transform: "translateY(0)" }, { transform: offscreen(i, "out") }],
-        { duration: PANEL_MS, delay: i * STAGGER_MS, easing: ease, fill: "forwards" },
+        { duration: PANEL_MS[phase], delay: i * STAGGER_MS[phase], easing: ease, fill: "forwards" },
       ),
     );
     // Safety net: if the browser stops advancing animations (a hidden or throttled tab), jump them to
     // their end instead of leaving the overlay blocking the page.
     const safety = window.setTimeout(
       () => animations.forEach((a) => a.finish()),
-      PANEL_MS + STAGGER_MS * PANELS + SAFETY_MARGIN_MS,
+      PANEL_MS[phase] + STAGGER_MS[phase] * PANELS + SAFETY_MARGIN_MS,
     );
     return Promise.all(animations.map((a) => a.finished.catch(() => undefined))).finally(() =>
       window.clearTimeout(safety),
