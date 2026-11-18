@@ -36,6 +36,9 @@ export type Feature = {
   body: string;
 };
 
+/** The square behind a product's logo: a background colour as a hex, such as "#FFF6D1". */
+export type ProductLogoTile = { background: `#${string}` };
+
 export type Product = {
   /** URL segment: /products/<slug>. */
   slug: string;
@@ -71,9 +74,10 @@ export type Product = {
   /**
    * The product's logo, built by scripts/build-brand.mjs from assets/products/<slug>.png into
    * public/products/logos/<slug>-<size>.webp. `alt` describes the artwork, for where the logo stands alone;
-   * next to the product's name it is decorative.
+   * next to the product's name it is decorative. `tile` is the square the logo sits on wherever it may meet a
+   * dark surface (see ProductLogo); white when it is left out.
    */
-  logo: { alt: string };
+  logo: { alt: string; tile?: ProductLogoTile };
   /** Slugs of related products. */
   related: string[];
   seo: {

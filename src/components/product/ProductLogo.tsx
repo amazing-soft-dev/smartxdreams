@@ -15,9 +15,14 @@ type ProductLogoProps = {
   size?: number;
   /**
    * On a light tile (the default): several logos are dark or navy and would disappear on ink, so wherever
-   * the surface may be dark the logo sits on white, like an app icon. Pass false on light surfaces only.
+   * the surface may be dark the logo sits on a square, like an app icon. Pass false on light surfaces only.
    */
   tile?: boolean;
+  /**
+   * The tile's colour for this use only, overriding the product's own `logo.tile.background` (white when the
+   * product names none). Any CSS colour.
+   */
+  tileBackground?: string;
   /** Hide from assistive technology when the product's name is right next to the logo. */
   decorative?: boolean;
   /**
@@ -30,7 +35,15 @@ type ProductLogoProps = {
 };
 
 /** A product's logo, square, at any size: the browser picks the sharpest built file for the screen. */
-export function ProductLogo({ product, size = 40, tile = true, decorative = false, loading = "lazy", className }: ProductLogoProps) {
+export function ProductLogo({
+  product,
+  size = 40,
+  tile = true,
+  tileBackground,
+  decorative = false,
+  loading = "lazy",
+  className,
+}: ProductLogoProps) {
   // The tile's padding is a share of its size, so the logo keeps the same air at every size.
   const inner = tile ? Math.round(size * 0.72) : size;
   const smallest = PRODUCT_LOGO_SIZES.find((s) => s >= inner * 2) ?? 384;
@@ -58,10 +71,11 @@ export function ProductLogo({ product, size = 40, tile = true, decorative = fals
   return (
     <span
       className={cx(
-        "inline-flex shrink-0 items-center justify-center rounded-[28%] bg-white shadow-[0_1px_2px_rgb(15_18_38/0.08)] ring-1 ring-ink/5",
+        "inline-flex shrink-0 items-center justify-center rounded-[28%] shadow-[0_1px_2px_rgb(15_18_38/0.08)] ring-1 ring-ink/5",
         className,
       )}
-      style={{ width: size, height: size }}
+      data-logo-tile=""
+      style={{ width: size, height: size, backgroundColor: tileBackground ?? product.logo.tile?.background ?? "#FFFFFF" }}
     >
       {img}
     </span>
