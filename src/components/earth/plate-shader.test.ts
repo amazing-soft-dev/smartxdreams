@@ -8,6 +8,7 @@ import {
   CYCLONE_TURN,
   CYCLONE_TURN_RATE,
   cycloneAngle,
+  cycloneAt,
   cycloneBody,
   FULL_MOTION,
   GLOW_BAND,
@@ -20,6 +21,34 @@ import {
 
 /** Plate heights per master pixel. */
 const PX = 1 / 948;
+
+type Motion = (x: number, y: number, t: number) => { x: number; y: number };
+
+/**
+ * The largest change in area, as a fraction, that `motion` (where the content at a point comes from, relative to
+ * it) gives any small patch of the plate within `radius` of `centre`, over the first 80 s. It is |det J - 1| of
+ * the map q -> q + motion(q): 0 for a pure turn or slide, and what reads as a zoom when it pulses.
+ */
+function worstAreaChange(motion: Motion, centre: { x: number; y: number }, radius: number, seconds = 80): number {
+  const h = 1e-4;
+  let worst = 0;
+  for (let t = 0; t < seconds; t += 2.7) {
+    for (let x = centre.x - radius; x <= centre.x + radius; x += radius / 12) {
+      for (let y = centre.y - radius; y <= centre.y + radius; y += radius / 12) {
+        const px = motion(x + h, y, t);
+        const mx = motion(x - h, y, t);
+        const py = motion(x, y + h, t);
+        const my = motion(x, y - h, t);
+        const a = 1 + (px.x - mx.x) / (2 * h);
+        const b = (py.x - my.x) / (2 * h);
+        const c = (px.y - mx.y) / (2 * h);
+        const d = 1 + (py.y - my.y) / (2 * h);
+        worst = Math.max(worst, Math.abs(a * d - b * c - 1));
+      }
+    }
+  }
+  return worst;
+}
 
 describe("glslFloat", () => {
   it("always writes a decimal point, so GLSL reads a float", () => {
@@ -119,6 +148,7 @@ describe("glow coverage", () => {
 });
 
 describe("cyclone", () => {
+  const eye = { x: LANDMARKS.cyclone.u * PLATE_ASPECT, y: LANDMARKS.cyclone.v };
   const reach = LANDMARKS.cyclone.radius;
 
   it("turns forward and then back: the angle swings both ways and is zero at the start", () => {
@@ -150,6 +180,32 @@ describe("cyclone", () => {
       expect(cycloneBody(d)).toBeLessThanOrEqual(last);
       last = cycloneBody(d);
     }
+  });
+
+  it("moves every cloud along its own ring: none moves toward or away from the eye", () => {
+    for (const t of [3, 9.8, 17, 31.4, 60]) {
+      for (let d = 0.01; d < reach; d += 0.02) {
+        for (let a = 0; a < 2 * Math.PI; a += 0.7) {
+          const x = eye.x + d * Math.cos(a);
+          const y = eye.y + d * Math.sin(a);
+          const m = cycloneAt(x, y, t);
+          expect(Math.hypot(x + m.x - eye.x, y + m.y - eye.y)).toBeCloseTo(d, 9);
+        }
+      }
+    }
+  });
+
+  it("neither grows nor shrinks any cloud (no zoom into the eye): the turn keeps areas", () => {
+    // The Jacobian of q -> q + cycloneAt(q): its determinant is the factor a small cloud's area changes by.
+    expect(worstAreaChange((x, y, t) => cycloneAt(x, y, t), eye, reach)).toBeLessThan(1e-3);
+  });
+
+  it("moves the arms visibly at the height of a swing: several pixels at the core, more further out", () => {
+    const t = Math.PI / 2 / CYCLONE_TURN_RATE;
+    const core = cycloneAt(eye.x + CYCLONE_CORE * reach, eye.y, t);
+    expect(Math.hypot(core.x, core.y) / PX).toBeGreaterThan(6);
+    const mid = cycloneAt(eye.x + reach * 0.5, eye.y, t);
+    expect(Math.hypot(mid.x, mid.y) / PX).toBeGreaterThan(8);
   });
 
   it("is written into the shader as one turn, with no crossfaded layers, inflow or breath", () => {
