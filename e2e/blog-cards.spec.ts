@@ -32,6 +32,10 @@ test.describe("blog cards", () => {
 
   test("clicking a grid card's cover while hovered opens the post", async ({ page }) => {
     await page.goto("/blog");
-    await clickHoveredCover(page, page.locator("section[aria-labelledby='articles-title'] article").first());
+    // The static page shows a Suspense fallback grid. BlogBrowser replaces those articles when it
+    // hydrates, and a cover found in the fallback is detached mid-scroll. The post-card id exists
+    // only on the hydrated grid.
+    const card = page.locator("section[aria-labelledby='articles-title'] [id^='post-card-'] article").first();
+    await clickHoveredCover(page, card);
   });
 });
