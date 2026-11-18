@@ -11,7 +11,7 @@ import { pageMetadata } from "@/lib/seo";
 import type { Metadata } from "next";
 
 const description =
-  "SmartxDreams builds six focused AI products: JobAtlas, ApplyPilot, SiteLog, ToothLedger, Kinly and TrustDraft. Each does one job, shows its sources and leaves the final call to you.";
+  "SmartxDreams builds six focused AI products: Joined, Acorn, SiteLog, ToothLedger, SeniorAIPlans and TrustDraft. Each does one job, shows its sources and leaves the final call to you.";
 
 export const metadata: Metadata = {
   ...pageMetadata({ title: "AI products for everyday work and life", description, path: "/" }),
