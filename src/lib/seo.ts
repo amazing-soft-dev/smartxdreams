@@ -57,10 +57,11 @@ export function pageMetadata({ title, description, path }: PageMetadataInput): M
 }
 
 /**
- * Site path of the logo in the Organization structured data: the dark mark (1254 px square PNG,
- * transparent), because search engines show it on white.
+ * Site path of the logo in the Organization structured data: the charcoal mark, cleaned and centred on a
+ * transparent 512 px square by scripts/build-brand.mjs. Search engines show it on white and ask for a square
+ * of at least 112 px.
  */
-export const organizationLogoPath = "/brand/smartxdreams-dark.png";
+export const organizationLogoPath = "/brand/logo/smartxdreams-mark-on-light-square-512.png";
 
 /** schema.org Organization for SmartxDreams. */
 export function organizationJsonLd(): Record<string, unknown> {
