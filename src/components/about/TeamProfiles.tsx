@@ -1,18 +1,23 @@
+import { RevealGroup, RevealItem } from "@/components/motion/RevealGroup";
 import { Photo } from "@/components/ui/Photo";
 import { team } from "@/content/team";
+import { PortraitReveal } from "./PortraitReveal";
 
 /**
  * One card per person, as Ignivo's team profiles: an index number, the portrait, name and role, a divider,
  * what they do here and the areas they look after. Three columns on desktop, two on tablets, one on phones.
+ * The cards rise in one after another, and each portrait comes up from greyscale (PortraitReveal).
  */
 export function TeamProfiles() {
   return (
-    <ul aria-label="The team" className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+    <RevealGroup as="ul" aria-label="The team" stagger={0.08} className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
       {team.map((person, i) => (
-        <li key={person.slug} data-person={person.slug}>
+        <RevealItem as="li" key={person.slug} data-person={person.slug}>
           <article className="flex h-full flex-col rounded-[30px] bg-canvas p-4 pb-6 md:p-5 md:pb-7">
             <div className="relative aspect-[4/5] overflow-hidden rounded-[22px]">
-              <Photo slot={person.photo.slot} fill sizes="(min-width: 1024px) 30vw, (min-width: 640px) 45vw, 100vw" />
+              <PortraitReveal index={i}>
+                <Photo slot={person.photo.slot} fill sizes="(min-width: 1024px) 30vw, (min-width: 640px) 45vw, 100vw" />
+              </PortraitReveal>
               <span
                 aria-hidden="true"
                 className="absolute top-3 left-3 rounded-full bg-white/85 px-2.5 py-1 font-mono text-micro text-ink backdrop-blur"
@@ -34,8 +39,8 @@ export function TeamProfiles() {
               </ul>
             </div>
           </article>
-        </li>
+        </RevealItem>
       ))}
-    </ul>
+    </RevealGroup>
   );
 }
