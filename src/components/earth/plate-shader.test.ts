@@ -440,9 +440,10 @@ describe("pointer wake", () => {
     expect(plateFragmentShader).toContain(`const float WAKE_BLUR = ${glslFloat(WAKE_BLUR)};`);
   });
 
-  it("moves the cloud symbol as one piece: over the symbol the wake is the wake averaged across it", () => {
-    expect(plateFragmentShader).toContain("vec2 wake(vec2 q)");
-    expect(plateFragmentShader).toContain("return mix(local, emblem, calm);");
-    expect(plateFragmentShader).toContain("- wake(q)");
+  it("moves the whole emblem as one piece: near it the wake is the wake averaged across it, by the drift's weight", () => {
+    expect(plateFragmentShader).toContain("vec2 wake(vec2 q, float whole)");
+    expect(plateFragmentShader).toContain("return mix(local, emblem, whole);");
+    expect(plateFragmentShader).toContain("- wake(q, whole)");
+    expect(plateFragmentShader).not.toContain("symbolCalm");
   });
 });

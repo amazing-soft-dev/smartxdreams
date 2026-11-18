@@ -385,28 +385,24 @@ vec2 canvasAt(vec2 q) {
   return vec2(hero.x / (uResolution.x / uResolution.y), hero.y);
 }
 
-// Over the cloud symbol the wake is averaged across it (wake()), blending over a soft ellipse around it.
-float symbolCalm(vec2 q) {
-  return 1.0 - smoothstep(0.85, 1.35, length((q - SYMBOL) / SYMBOL_HALF));
-}
-
-// The wake at this pixel. Over the cloud symbol it is the wake averaged across the symbol, so the symbol is
-// carried as one piece and keeps its shape, while the clouds around it flow; the two blend over a soft ellipse.
-vec2 wake(vec2 q) {
+// The wake at this pixel. Near the cloud emblem it is the wake averaged across the emblem, so the emblem is
+// carried as one piece and keeps its shape, while the clouds around it flow; the two blend by the same weight
+// that carries the plate near the emblem with its drift (emblemWhole()), so the whole emblem, tail and outer
+// strokes included, moves together.
+vec2 wake(vec2 q, float whole) {
   vec2 local = wakeAt(vUv);
-  float calm = symbolCalm(q);
-  if (calm < 0.001) return local;
+  if (whole < 0.001) return local;
   vec2 emblem = (wakeAt(canvasAt(SYMBOL)) * 2.0
     + wakeAt(canvasAt(SYMBOL + vec2(SYMBOL_HALF.x * 0.6, 0.0))) + wakeAt(canvasAt(SYMBOL - vec2(SYMBOL_HALF.x * 0.6, 0.0)))
     + wakeAt(canvasAt(SYMBOL + vec2(0.0, SYMBOL_HALF.y * 0.6))) + wakeAt(canvasAt(SYMBOL - vec2(0.0, SYMBOL_HALF.y * 0.6)))) / 6.0;
-  return mix(local, emblem, calm);
+  return mix(local, emblem, whole);
 }
 
 // Motion that every pixel shares, whatever the cyclone does: the orbital drift, the weather giving way to the
 // emblem's drift near the emblem, and the pointer wake. Sampling against the wake moves the content along it.
 vec2 sharedMotion(vec2 q) {
   float whole = emblemWhole(q);
-  return orbital() + mix(weather(q), emblemDrift(), whole) - wake(q);
+  return orbital() + mix(weather(q), emblemDrift(), whole) - wake(q, whole);
 }
 
 // A motion delta (where the content at this pixel comes from, relative to it) made safe for the limb: off in
