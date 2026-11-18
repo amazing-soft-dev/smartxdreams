@@ -22,6 +22,10 @@ const CONTENT_IN_MS = 240;
  * reference the name is readable for about 700 ms before it leaves.
  */
 const MIN_HOLD_MS = 700;
+/** The exit: the name leaves upward; FADE_DELAY_MS in, the lockup and the glow fade; then the panels go. */
+const LABEL_OUT_MS = 260;
+const FADE_DELAY_MS = 120;
+const FADE_OUT_MS = 380;
 /** Longest we wait for the new route to render before revealing anyway. */
 const ROUTE_TIMEOUT_MS = 1500;
 /** Extra time before a stalled panel animation is forced to finish. */
@@ -69,6 +73,7 @@ export function TransitionProvider({ children }: { children: ReactNode }) {
   const content = useRef<HTMLDivElement>(null);
   const label = useRef<HTMLSpanElement>(null);
   const mark = useRef<HTMLSpanElement>(null);
+  const glow = useRef<HTMLDivElement>(null);
   const announcer = useRef<HTMLDivElement>(null);
   const busy = useRef(false);
   // Resolves when the pathname changes, so the reveal waits for the new page.
@@ -194,6 +199,7 @@ export function TransitionProvider({ children }: { children: ReactNode }) {
       const layer = content.current;
       if (word) word.textContent = routeLabel(url.pathname);
       const logo = mark.current;
+      const halo = glow.current;
 
       // The lockup and the destination fade in together, in place, while the last panels are still closing.
       layer?.animate([{ opacity: 0 }, { opacity: 1 }], {
@@ -216,26 +222,22 @@ export function TransitionProvider({ children }: { children: ReactNode }) {
       // hidden tab.
       await wait(Math.max(32, MIN_HOLD_MS - (performance.now() - closedAt)));
 
-      // Label leaves upward and the layer fades, then the panels reveal the page.
+      // The exit runs in sequence, as on the reference: the name slides up out of its mask; 120 ms in, the
+      // lockup and the glow start to fade; only once they are gone do the panels carry on through.
       word?.animate([{ transform: "translateY(0)" }, { transform: "translateY(-110%)" }], {
-        duration: 260,
+        duration: LABEL_OUT_MS,
         easing: cssEase("inOutCubic"),
         fill: "forwards",
       });
-      // The mark leaves with the panels: a slight shrink inside the layer's fade.
-      logo?.animate([{ transform: "scale(1)" }, { transform: "scale(0.96)" }], {
-        duration: 260,
-        easing: cssEase("inOutCubic"),
-        fill: "forwards",
-      });
-      // The panels start moving 100 ms into the fade, so the two overlap.
-      layer?.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 200, fill: "forwards" });
-      await wait(100);
+      await wait(FADE_DELAY_MS);
+      logo?.animate([{ opacity: 0, transform: "scale(0.96)" }], { duration: FADE_OUT_MS, easing: cssEase("standard"), fill: "forwards" });
+      halo?.animate([{ opacity: 0 }], { duration: FADE_OUT_MS, easing: cssEase("standard"), fill: "forwards" });
+      await wait(FADE_OUT_MS);
       // The panels are about to leave: let the new page begin its entrance as it comes into sight.
       delete document.documentElement.dataset.pageCovered;
       window.dispatchEvent(new Event(PAGE_REVEALED));
       await animatePanels("out");
-      for (const node of [...panels(), word, layer, logo]) node?.getAnimations().forEach((a) => a.cancel());
+      for (const node of [...panels(), word, layer, logo, halo]) node?.getAnimations().forEach((a) => a.cancel());
       delete el.dataset.state;
       busy.current = false;
       arrive(url.pathname);
@@ -265,6 +267,7 @@ export function TransitionProvider({ children }: { children: ReactNode }) {
         {/* Destination label over a soft brand glow, shown while the panels cover the page. */}
         <div ref={content} className="absolute inset-0 flex flex-col items-center justify-center gap-5 opacity-0">
           <div
+            ref={glow}
             className="absolute top-1/2 left-1/2 size-[60vmin] -translate-1/2 rounded-full opacity-60"
             style={{ background: "radial-gradient(closest-side, rgb(109 74 255 / 0.85), rgb(255 107 61 / 0.35) 60%, rgb(255 107 61 / 0))" }}
           />
