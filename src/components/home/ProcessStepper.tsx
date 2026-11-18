@@ -91,7 +91,7 @@ export function ProcessStepper() {
           />
           {/* Tick bar and step counter (desktop, decorative). */}
           {scrub ? (
-          <div aria-hidden="true" className="mt-10 hidden h-8 items-end gap-6 lg:flex">
+          <div aria-hidden="true" data-motion="ticks" className="mt-10 hidden h-8 items-end gap-6 lg:flex">
             {/* The ticks run the whole row, from the content's left edge up to the counter. */}
             <div ref={track} className="flex h-full min-w-0 flex-1 items-end justify-between">
               {Array.from({ length: tickCount }, (_, i) => (

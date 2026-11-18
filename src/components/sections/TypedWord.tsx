@@ -50,7 +50,7 @@ export function TypedWord({ words, staticText, className }: TypedWordProps) {
   }
 
   return (
-    <span aria-hidden="true" className={className}>
+    <span aria-hidden="true" data-motion="typed" className={className}>
       {word.slice(0, length)}
       <span className="ml-0.5 inline-block w-[0.06em] animate-[caret-blink_1s_step-end_infinite] bg-current align-[-0.08em]">
         &nbsp;
