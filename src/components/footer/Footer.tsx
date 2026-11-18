@@ -34,7 +34,10 @@ export function Footer() {
                   white ribbon and wordmark at the contrast they have on plain ink. */}
               <Logo tone="light" height={30} decorative className="drop-shadow-[0_1px_10px_rgb(15_18_38/0.6)]" />
             </TransitionLink>
-            <p className="mt-5 text-body text-white/65">{company.tagline}</p>
+            {/* The studio's line comes out of a soft blur, as Ignivo's text does. */}
+            <Reveal preset="blur10" delay={0.15}>
+              <p className="mt-5 text-body text-white/65">{company.tagline}</p>
+            </Reveal>
             <SocialIcons />
           </div>
 
