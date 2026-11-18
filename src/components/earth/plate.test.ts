@@ -78,7 +78,7 @@ describe("landmarks", () => {
     expect(Math.abs(horizonDistance(LANDMARKS.sunrise.u, LANDMARKS.sunrise.v))).toBeLessThan(0.08);
     const { symbol, cyclone } = LANDMARKS;
     // The whole emblem and the cyclone's full-strength core (the inner 55% of its reach) sit below the limb. The
-    // painted arms above the eye run up to the limb, where motion() calms them.
+    // painted arms above the eye run up to the limb, where limbSafe() calms them.
     expect(horizonDistance(symbol.u, symbol.v - symbol.height / 2)).toBeGreaterThan(0);
     expect(horizonDistance(cyclone.u, cyclone.v - cyclone.radius * 0.55)).toBeGreaterThan(0);
   });
