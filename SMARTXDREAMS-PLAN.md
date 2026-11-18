@@ -97,11 +97,11 @@ Names are **proposals only**. I can't check trademark or domain availability fro
 
 | # | Product (proposed) | Slug | Audience | Page hero idea (code-built mockup) |
 |---|---|---|---|---|
-| 1 | **JobAtlas**: all-in-one job platform | `/products/jobatlas` | Job seekers | Unified feed from LinkedIn, Indeed, Jobright, Dice and company career pages, with source chips, dedupe badge and a company-details drawer |
-| 2 | **ApplyPilot**: AI copilot job-apply extension | `/products/applypilot` | Job seekers | Browser frame with a form filling field by field from the profile, ending at a **"Review before you submit"** step |
+| 1 | **Joined**: all-in-one job platform | `/products/joined` | Job seekers | Unified feed from LinkedIn, Indeed, Jobright, Dice and company career pages, with source chips, dedupe badge and a company-details drawer |
+| 2 | **Acorn**: AI copilot job-apply extension | `/products/acorn` | Job seekers | Browser frame with a form filling field by field from the profile, ending at a **"Review before you submit"** step |
 | 3 | **SiteLog**: daily site reports | `/products/sitelog` | Small builders, foremen | Photos + voice note → generated report with weather, crew, progress, delays |
 | 4 | **ToothLedger**: dental insurance researcher | `/products/toothledger` | Dental patients | Quote + plan → "you pay" breakdown, remaining annual limit bar, waiting-period flags, two-calendar-year split comparison |
-| 5 | **Kinly**: AI helper for seniors | `/products/kinly` | Seniors managing alone | Bill or letter → plain-words explanation, scam alert, document shelf, weekly check-in |
+| 5 | **SeniorAIPlans**: AI helper for seniors | `/products/senioraiplans` | Seniors managing alone | Bill or letter → plain-words explanation, scam alert, document shelf, weekly check-in |
 | 6 | **TrustDraft**: security questionnaire helper | `/products/trustdraft` | Small software companies | Questionnaire rows with drafted answers, source citations, "can't back this up" flags, reviewer approve step |
 
 Each product page uses **one shared template** (hero, problem, how-it-works in 3–4 steps, feature bento, "who it's for", honest limits, FAQ, waitlist form, related products). Product content lives in `src/content/products/<slug>.ts`.
@@ -109,9 +109,9 @@ Each product page uses **one shared template** (hero, problem, how-it-works in 3
 ### Copy and safety rules (apply to every page)
 
 - **No fabricated proof.** No invented customer counts, testimonials, logos or percentages. The Home "proof" section shows principles and what is being built until real numbers exist.
-- **ApplyPilot:** the user always reviews before anything is submitted. Don't promise "100% automatic" or interview outcomes.
+- **Acorn:** the user always reviews before anything is submitted. Don't promise "100% automatic" or interview outcomes.
 - **ToothLedger:** the output is an estimate based on the uploaded documents, not a guarantee of coverage. It is not insurance, financial or dental advice.
-- **Kinly:** scam detection reduces risk but isn't a guarantee. It doesn't replace medical, legal or financial professionals. Large type, high contrast and plain language on that page.
+- **SeniorAIPlans:** scam detection reduces risk but isn't a guarantee. It doesn't replace medical, legal or financial professionals. Large type, high contrast and plain language on that page.
 - **TrustDraft:** AI drafts, a human approves everything before it is sent. Unsupported answers are flagged, never invented.
 - **Job sources:** brand names appear as text only, with the footnote *"Product and company names are trademarks of their respective owners; SmartxDreams is not affiliated with them."*
 
@@ -148,7 +148,7 @@ src/
     motion/                 Reveal SmoothScroll(Lenis) TransitionProvider SmokeBackground
     nav/                    Header MegaMenu MobileMenu
     sections/               Hero ProductGrid Statement Process Principles Faq Cta
-    mockups/                JobAtlas ApplyPilot SiteLog ToothLedger Kinly TrustDraft (HTML/CSS, aria-hidden or labelled)
+    mockups/                Joined Acorn SiteLog ToothLedger SeniorAIPlans TrustDraft (HTML/CSS, aria-hidden or labelled)
     blog/                   PostCard(CursorBadge) Toc ReadingProgress
   content/
     site.ts                 nav, footer, global copy, FAQ
@@ -196,7 +196,7 @@ When we reach the image issues, I will search both sites in the built-in browser
 - **No logos or trademarks** in frame (job-board screens, brand-name signage).
 - **Fit:** landscape 3:2 or 16:10 at least 2400 px on the long side so `sharp` can build 640/1024/1600/2400 WebP variants.
 
-**Process per photo:** search → open the photo page → record URL, photographer, license and ID in `public/images/credits.json` → download the original through the site's download link → name it by slot (`product-kinly-who.jpg`) → run the `images` script → alt text written for content photos (empty alt for decorative ones).
+**Process per photo:** search → open the photo page → record URL, photographer, license and ID in `public/images/credits.json` → download the original through the site's download link → name it by slot (`product-senioraiplans-who.jpg`) → run the `images` script → alt text written for content photos (empty alt for decorative ones).
 
 **Downloads:** only from unsplash.com / pexels.com (and their image CDNs). I'll state file names and sources in the issue and PR, and I won't run or open anything that isn't an image. If either site shows a bot check, login prompt or CAPTCHA, I'll stop and ask you, since I can't bypass those.
 
@@ -302,11 +302,11 @@ Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>
 | # | Branch | Issue | Planned commits | Depends |
 |---|---|---|---|---|
 | 34 | `feat/N-product-template` | Product page template | `feat(products): route with generateStaticParams` · `feat(products): hero, problem, steps, bento sections` · `feat(products): honest-limits block` · `feat(products): per-product metadata and JSON-LD` · `feat(products): waitlist slot` | 05, 11, 13 |
-| 35 | `feat/N-product-jobatlas` | JobAtlas page | `feat(jobatlas): content` · `feat(jobatlas): unified-feed mockup with source chips` · `feat(jobatlas): company-details drawer mockup` · `feat(jobatlas): trademark footnote` | 34 |
-| 36 | `feat/N-product-applypilot` | ApplyPilot page | `feat(applypilot): content` · `feat(applypilot): browser-frame autofill mockup` · `feat(applypilot): review-before-submit step` · `feat(applypilot): privacy and data-handling block` | 34 |
+| 35 | `feat/N-product-joined` | Joined page | `feat(joined): content` · `feat(joined): unified-feed mockup with source chips` · `feat(joined): company-details drawer mockup` · `feat(joined): trademark footnote` | 34 |
+| 36 | `feat/N-product-acorn` | Acorn page | `feat(acorn): content` · `feat(acorn): browser-frame autofill mockup` · `feat(acorn): review-before-submit step` · `feat(acorn): privacy and data-handling block` | 34 |
 | 37 | `feat/N-product-sitelog` | SiteLog page | `feat(sitelog): content` · `feat(sitelog): photos + voice note → report mockup` · `feat(sitelog): weather, crew, progress, delays blocks` | 34 |
 | 38 | `feat/N-product-toothledger` | ToothLedger page | `feat(toothledger): content` · `feat(toothledger): you-pay breakdown mockup` · `feat(toothledger): remaining-limit bar and waiting-period flags` · `feat(toothledger): split-across-years comparison` · `feat(toothledger): estimate-not-advice disclaimer` | 34, 16 |
-| 39 | `feat/N-product-kinly` | Kinly page | `feat(kinly): content in plain language` · `feat(kinly): bill-explainer and scam-alert mockup` · `feat(kinly): document shelf and weekly check-in` · `feat(kinly): senior-friendly variant (larger type, higher contrast)` | 34 |
+| 39 | `feat/N-product-senioraiplans` | SeniorAIPlans page | `feat(senioraiplans): content in plain language` · `feat(senioraiplans): bill-explainer and scam-alert mockup` · `feat(senioraiplans): document shelf and weekly check-in` · `feat(senioraiplans): senior-friendly variant (larger type, higher contrast)` | 34 |
 | 40 | `feat/N-product-trustdraft` | TrustDraft page | `feat(trustdraft): content` · `feat(trustdraft): questionnaire mockup with citations` · `feat(trustdraft): unsupported-answer flags and reviewer approval` | 34 |
 | 41 | `feat/N-products-index` | `/products` index | `feat(products): index page with audience chips` · `feat(products): URL-synced filter` · `feat(products): empty and result states` | 15, 29, 34 |
 | 42 | `feat/N-product-crosslinks` | Related products and compare | `feat(products): related-products strip` · `feat(products): "which is right for me" helper` · `feat(seo): ItemList JSON-LD on index` | 41 |
@@ -350,7 +350,7 @@ Added after the Unsplash/Pexels decision. These run **after the shell (C) and be
 |---|---|---|---|---|
 | 61 | `feat/N-image-manifest` | Image manifest, credits and `Photo` component | `feat(images): credits.json schema (zod) and slot registry` · `feat(images): Photo component with responsive WebP, alt rules, blur placeholder` · `feat(images): credits section in /about and docs on license rules` · `build(images): check:images fails on missing credit or duplicate use` | 02 |
 | 62 | `feat/N-photos-home-about` | Source photos: Home and About | `feat(images): add Home stepper photos (4) with credits` · `feat(images): add About photos (3) with credits` · `feat(images): alt text and focal points` · `docs(images): license checks recorded` | 61 |
-| 63 | `feat/N-photos-products` | Source photos: six product pages | `feat(images): JobAtlas and ApplyPilot photos` · `feat(images): SiteLog and ToothLedger photos (no identifiable faces)` · `feat(images): Kinly and TrustDraft photos` · `docs(images): sensitive-context review` | 61 |
+| 63 | `feat/N-photos-products` | Source photos: six product pages | `feat(images): Joined and Acorn photos` · `feat(images): SiteLog and ToothLedger photos (no identifiable faces)` · `feat(images): SeniorAIPlans and TrustDraft photos` · `docs(images): sensitive-context review` | 61 |
 | 64 | `feat/N-photos-blog-misc` | Source photos: blog covers, 404, contact | `feat(images): 7 blog covers with credits` · `feat(images): 404 and contact backgrounds` · `build(images): run full pipeline and size budget` | 61 |
 
 Pages that consume them (27–33, 35–40, 43, 47, 49, 26, 44) get one small extra commit each: `feat(<scope>): use <slot> photo`.
@@ -456,7 +456,7 @@ Parallel branches are fine when they touch different files. `site.ts` and `globa
 | Static export has no `/api` | Forms degrade to a clear message in the static build; the server build (Vercel) sends via Resend |
 | Waitlist emails are personal data | Consent checkbox, privacy page, minimal fields, no tracking pixels, honeypot |
 | Spam and abuse | Honeypot, time-trap, per-IP rate limit, zod validation |
-| ApplyPilot and LinkedIn/Indeed terms of service on automation | Copy says "fills forms you review and submit"; **counsel should review before launch** (issue 59) |
+| Acorn and LinkedIn/Indeed terms of service on automation | Copy says "fills forms you review and submit"; **counsel should review before launch** (issue 59) |
 | Seniors and dental: regulated-adjacent claims | Estimate/not-advice wording, no guarantees, reviewed in issue 59 |
 | Full parity motion vs. performance | Lazy-load WebGL and Lenis, budgets in issue 57, everything off under reduced motion |
 | Lenis and the page transition fight over scroll | Transition resets scroll through Lenis; tested in 23/24 |

@@ -17,7 +17,7 @@ hero screen "Illustrative screen. <Product> is in development." (added in this r
 
 ## 1. Claims audit per product page
 
-### JobAtlas (job seekers)
+### Joined (job seekers)
 
 | Claim | Type | Status | Notes |
 |---|---|---|---|
@@ -29,11 +29,11 @@ hero screen "Illustrative screen. <Product> is in development." (added in this r
 | "Many listings are stale" (problem statement) | Description | Fixed | Was "half the listings are stale", an unsourced figure. |
 | Limits: not every site covered; links to the original posting; listings can change | Limit | OK | |
 
-### ApplyPilot (job seekers)
+### Acorn (job seekers)
 
 | Claim | Type | Status | Notes |
 |---|---|---|---|
-| Browser extension that fills application forms from your resume and profile | Capability | **Counsel** | Automated form filling on job sites can conflict with a site's terms of use. The copy says ApplyPilot fills forms you review and submit yourself, and never submits for you. Counsel should confirm this is acceptable for the target sites and markets. |
+| Browser extension that fills application forms from your resume and profile | Capability | **Counsel** | Automated form filling on job sites can conflict with a site's terms of use. The copy says Acorn fills forms you review and submit yourself, and never submits for you. Counsel should confirm this is acceptable for the target sites and markets. |
 | "Nothing is sent until you press submit" / "never submits an application for you" | Commitment | Launch | The core promise; must be enforced in the product, not only in settings. |
 | Fills from your real history; leaves unknown fields empty instead of inventing | Commitment | Launch | |
 | "Works on common application forms", including multi-page forms with uploads | Capability | Launch | Limits already say some sites block extensions. |
@@ -63,7 +63,7 @@ hero screen "Illustrative screen. <Product> is in development." (added in this r
 | Not insurance, financial or dental advice | Disclaimer | OK, **Counsel** | Health-adjacent. Counsel should confirm wording for the target markets (insurance and dental regulation). |
 | Documents used only for the estimate; never shared with insurers or dentists | Data commitment | Launch | Dental plans and quotes are health-related data in some jurisdictions; see docs/legal.md. |
 
-### Kinly (seniors)
+### SeniorAIPlans (seniors)
 
 | Claim | Type | Status | Notes |
 |---|---|---|---|
@@ -106,16 +106,16 @@ advice", read from the same field, so the wording cannot drift.
 
 | Rule | Where it is met | Result |
 |---|---|---|
-| ApplyPilot: the user always reviews before anything is submitted | Promise "Nothing is sent until you press submit"; limit "never submits an application for you"; feature "Review first, always"; blog post "check before you submit" | Pass |
-| ApplyPilot: no "100% automatic", no interview outcomes | No such wording anywhere; limit "It does not promise interviews or offers, and it does not write experience you do not have" | Pass |
+| Acorn: the user always reviews before anything is submitted | Promise "Nothing is sent until you press submit"; limit "never submits an application for you"; feature "Review first, always"; blog post "check before you submit" | Pass |
+| Acorn: no "100% automatic", no interview outcomes | No such wording anywhere; limit "It does not promise interviews or offers, and it does not write experience you do not have" | Pass |
 | ToothLedger: an estimate, not a guarantee of coverage | Every mention says "estimate"; limits "your insurer decides what it actually pays" and "cannot promise savings"; mockup "Not a guarantee" | Pass |
 | ToothLedger: not insurance, financial or dental advice | Disclaimer in the hero, limits, Terms; blog post says "general information, not advice" | Pass |
-| Kinly: scam detection reduces risk but is not a guarantee | Feature, limit and FAQ all say "cannot catch every scam" and what to do instead | Pass |
-| Kinly: does not replace medical, legal or financial professionals | Disclaimer in the hero and limits; FAQ "Does Kinly give medical or legal advice? No." | Pass |
-| Kinly: large type, high contrast, plain language | `readability: "large"` sets larger type and full-strength text on the page (at least 16:1); copy written at about US grade 5 | Pass |
+| SeniorAIPlans: scam detection reduces risk but is not a guarantee | Feature, limit and FAQ all say "cannot catch every scam" and what to do instead | Pass |
+| SeniorAIPlans: does not replace medical, legal or financial professionals | Disclaimer in the hero and limits; FAQ "Does SeniorAIPlans give medical or legal advice? No." | Pass |
+| SeniorAIPlans: large type, high contrast, plain language | `readability: "large"` sets larger type and full-strength text on the page (at least 16:1); copy written at about US grade 5 | Pass |
 | TrustDraft: AI drafts, a person approves everything | Promise "A person approves every answer before it goes out"; limit; mockup "Export is locked until every answer is approved" | Pass |
 | TrustDraft: unsupported answers flagged, never invented | Feature "Flags instead of guesses"; limit "flags questions it cannot support instead of inventing answers" | Pass |
-| Job sources: brand names as text only, with the trademark note | JobAtlas names sources as plain text; the trademark note is in the JobAtlas footnote and in the site footer on every page; no third-party logos anywhere | Pass (wording itself flagged for Counsel in section 1) |
+| Job sources: brand names as text only, with the trademark note | Joined names sources as plain text; the trademark note is in the Joined footnote and in the site footer on every page; no third-party logos anywhere | Pass (wording itself flagged for Counsel in section 1) |
 | Not-advice wording on the blog | The dental and scam posts say they are general information and point to a professional or the company involved | Pass |
 
 ## 3. No-fabrication checklist
@@ -124,12 +124,12 @@ Signed off for the site as of 2026-11-16 (engineering review; re-run before laun
 changes). Each line was checked in `src/content`, `src/components` and the blog posts.
 
 - [x] **No invented statistics.** No percentages, user counts, time saved or results. The stats section is
-  hidden until `src/content/stats.ts` has a sourced value (all null). The one figure found, JobAtlas's
+  hidden until `src/content/stats.ts` has a sourced value (all null). The one figure found, Joined's
   "half the listings are stale", was removed.
 - [x] **No testimonials or quotes.** No customer, partner or press quotes anywhere, including the blog.
 - [x] **No logos of other companies.** Third-party names (LinkedIn, Indeed, Jobright, Dice, Vercel, Resend,
   Unsplash, Pexels) appear as plain text only. The trademark note is in the footer of every page and in the
-  JobAtlas footnote. Photos were checked for visible logos (docs/images.md).
+  Joined footnote. Photos were checked for visible logos (docs/images.md).
 - [x] **No invented people.** The About page names no team members; team profiles appear when real people
   are introduced. The blog is signed "the SmartxDreams team".
 - [x] **No implied endorsements.** No "as seen in", "trusted by", partner badges or awards. Photos show no
@@ -146,11 +146,11 @@ changes). Each line was checked in `src/content`, `src/components` and the blog 
 
 ## For counsel: items to review before launch
 
-1. **JobAtlas sources.** Naming LinkedIn, Indeed, Jobright and Dice, and the company review data. Confirm
+1. **Joined sources.** Naming LinkedIn, Indeed, Jobright and Dice, and the company review data. Confirm
    lawful access per source, or change the copy to "major job boards".
-2. **ApplyPilot automation.** Filling application forms on third-party job sites, with the user reviewing
+2. **Acorn automation.** Filling application forms on third-party job sites, with the user reviewing
    and submitting. Confirm against those sites' terms for the target markets.
-3. **ToothLedger and Kinly disclaimers.** Health, insurance and financial-adjacent wording, with Kinly
+3. **ToothLedger and SeniorAIPlans disclaimers.** Health, insurance and financial-adjacent wording, with SeniorAIPlans
    aimed at older adults.
 4. **Data commitments** on the product pages ("never sold", "stored encrypted", "deleted on request") must
    match the privacy policy and the products at launch; see docs/legal.md.
