@@ -10,7 +10,7 @@ statically generated page (gzipped) and fails when any budget is exceeded:
 
 | Budget | Limit | Now (2026-11-16) |
 |---|---|---|
-| Initial JavaScript per page | 330 KB | Home 305.1 KB, other pages about 288 KB |
+| Initial JavaScript per page | 340 KB | Home 331.6 KB, other pages about 308 KB (2026-11-18, with the motion work #380–#391) |
 | CSS per page | 30 KB | 13.4–13.8 KB |
 | Preloaded fonts | 1 file, up to 60 KB | 1 Latin woff2, 44 KB |
 | three.js (lazy chunk) | 200 KB | 131.2 KB |

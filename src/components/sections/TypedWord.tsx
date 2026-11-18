@@ -18,7 +18,8 @@ const HOLD_MS = 1600;
 /**
  * Types each word letter by letter, holds it, deletes it, and moves on, with a blinking caret.
  * Visual only (aria-hidden): the surrounding heading carries a static text alternative. Under reduced motion
- * it shows staticText with no typing and no caret.
+ * it shows staticText with no typing and no caret. Both are rendered and CSS picks one (motion-reduce:), so the
+ * server and client markup match: useReducedMotion() is null on the server and only steers the typing effect.
  */
 export function TypedWord({ words, staticText, className }: TypedWordProps) {
   const reduced = useReducedMotion();
@@ -41,19 +42,14 @@ export function TypedWord({ words, staticText, className }: TypedWordProps) {
     return () => window.clearTimeout(timer);
   }, [deleting, length, word.length, reduced]);
 
-  if (reduced) {
-    return (
-      <span aria-hidden="true" className={className}>
-        {staticText}
-      </span>
-    );
-  }
-
   return (
     <span aria-hidden="true" className={className}>
-      {word.slice(0, length)}
-      <span className="ml-0.5 inline-block w-[0.06em] animate-[caret-blink_1s_step-end_infinite] bg-current align-[-0.08em]">
-        &nbsp;
+      <span className="hidden motion-reduce:inline">{staticText}</span>
+      <span className="motion-reduce:hidden">
+        {word.slice(0, length)}
+        <span className="ml-0.5 inline-block w-[0.06em] animate-[caret-blink_1s_step-end_infinite] bg-current align-[-0.08em]">
+          &nbsp;
+        </span>
       </span>
     </span>
   );

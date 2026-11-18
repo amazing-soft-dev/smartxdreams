@@ -44,6 +44,9 @@ async function emblemBox(page: import("@playwright/test").Page): Promise<Box> {
 test.describe("Home hero layout", () => {
   test("fills the screen at common resolutions, with the emblem on screen and clear of the copy", async ({ page }, testInfo) => {
     const windows = testInfo.project.name === "mobile" ? [null] : WINDOWS;
+    // One full page load per window size: about 25 s on desktop even alone, so the default 30 s left no room
+    // for a loaded machine.
+    test.setTimeout(30_000 + 10_000 * windows.length);
     for (const size of windows) {
       if (size) await page.setViewportSize(size);
       await page.goto("/");
