@@ -16,6 +16,13 @@ describe("waitlist tokens", () => {
     expect(verifyToken(secret, createToken(secret, payload), 1_000_000)).toEqual({ valid: true, payload });
   });
 
+  it("confirm a link emailed before a rename for the product under its new name", () => {
+    for (const [old, now] of [["kinly", "senioraiplans"], ["jobatlas", "joined"], ["applypilot", "acorn"]] as const) {
+      const token = createToken(secret, { ...payload, p: old });
+      expect(verifyToken(secret, token, 1_000_000)).toEqual({ valid: true, payload: { ...payload, p: now } });
+    }
+  });
+
   it("reject expired, edited, re-signed and malformed tokens", () => {
     const token = createToken(secret, payload);
     expect(verifyToken(secret, token, 3_000_000)).toEqual({ valid: false, reason: "expired" });
