@@ -107,3 +107,6 @@ header from opacity 0.001 and 10 px above, a spring with `duration` 2.7 and `bou
   implements the ones it uses.
 - Frames were sampled, not filmed.
 
+## In code
+
+These numbers are `spring.rise`, `spring.slide`, `spring.appear` and `stagger` in `src/styles/motion.ts`.
