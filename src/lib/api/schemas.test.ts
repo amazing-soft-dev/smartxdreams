@@ -54,7 +54,7 @@ describe("waitlist schemas", () => {
   });
 
   it("accepts each of the six products and nothing else", () => {
-    for (const product of ["jobatlas", "applypilot", "sitelog", "toothledger", "kinly", "trustdraft"]) {
+    for (const product of ["joined", "applypilot", "sitelog", "toothledger", "kinly", "trustdraft"]) {
       expect(waitlistRequestSchema.safeParse({ ...waitlist, product }).success).toBe(true);
     }
     expect(waitlistRequestSchema.safeParse({ ...waitlist, product: "nope" }).success).toBe(false);
