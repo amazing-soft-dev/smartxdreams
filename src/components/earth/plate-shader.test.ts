@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { HORIZON, horizonDistance, LANDMARKS, PLATE_ASPECT } from "./plate";
+import { GLOW_EDGE, GLOW_RISE, glowCoverage, glowFade, HORIZON, horizonDistance, LANDMARKS, PLATE_ASPECT, SKY_FLOOR } from "./plate";
 import {
   CALM_LIMB,
   CYCLONE_CYCLE,
@@ -62,6 +62,53 @@ describe("motion and glow bands", () => {
   it("keep the painted glow around the sunrise, which sits within the glow band of the limb", () => {
     expect(GLOW_BAND).toBeGreaterThan(0);
     expect(Math.abs(horizonDistance(LANDMARKS.sunrise.u, LANDMARKS.sunrise.v))).toBeLessThan(GLOW_BAND + FULL_MOTION);
+  });
+
+  it("reach the high streaks, about 0.115 plate heights over the rim", () => {
+    expect(GLOW_BAND).toBeGreaterThanOrEqual(0.115);
+    expect(GLOW_EDGE).toBeLessThan(GLOW_BAND / 4);
+  });
+});
+
+describe("glow coverage", () => {
+  it("counts no glow in the painted navy sky, even where its haze is bright blue", () => {
+    // Far out (red and green under 0.1) and in the haze just over the rim (blue up to 0.75, green ~0.09).
+    expect(glowCoverage(0.02, 0.07)).toBe(0);
+    expect(glowCoverage(0.02, 0.09)).toBe(0);
+  });
+
+  it("counts the cyan rim, the sunrise and the pink streaks", () => {
+    expect(glowCoverage(0.35, 0.64)).toBe(1); // rim
+    expect(glowCoverage(0.75, 0.46)).toBe(1); // sunrise
+    expect(glowCoverage(0.24, 0.25)).toBeGreaterThan(0.2); // a streak 40 px out
+  });
+
+  it("rises with brightness and never leaves 0..1", () => {
+    let last = 0;
+    for (let x = 0; x <= 1; x += 0.05) {
+      const c = glowCoverage(x, 0);
+      expect(c).toBeGreaterThanOrEqual(last);
+      expect(c).toBeLessThanOrEqual(1);
+      last = c;
+    }
+    expect(SKY_FLOOR + GLOW_RISE).toBeLessThan(1);
+  });
+
+  it("fades the band from whole at its inner edge to nothing at GLOW_BAND", () => {
+    expect(glowFade(-GLOW_EDGE / 2)).toBe(1);
+    expect(glowFade(-GLOW_BAND)).toBe(0);
+    expect(glowFade(-GLOW_BAND / 2)).toBeGreaterThan(0);
+    expect(glowFade(-GLOW_BAND / 2)).toBeLessThan(1);
+  });
+
+  it("is written into the shader with the same constants, from red and green only", () => {
+    expect(plateFragmentShader).toContain(`const float SKY_FLOOR = ${glslFloat(SKY_FLOOR)};`);
+    expect(plateFragmentShader).toContain(`const float GLOW_RISE = ${glslFloat(GLOW_RISE)};`);
+    expect(plateFragmentShader).toContain(`const float GLOW_EDGE = ${glslFloat(GLOW_EDGE)};`);
+    expect(plateFragmentShader).toContain("smoothstep(SKY_FLOOR, SKY_FLOOR + GLOW_RISE, max(color.r, color.g))");
+    expect(plateFragmentShader).toContain("smoothstep(-GLOW_BAND, -GLOW_EDGE, dist)");
+    // The old brightness-as-coverage, blue included, is gone.
+    expect(plateFragmentShader).not.toContain("max(color.g, color.b)");
   });
 });
 
