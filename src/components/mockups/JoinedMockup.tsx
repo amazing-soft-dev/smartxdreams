@@ -14,7 +14,7 @@ const listings = [
  */
 export function JoinedFeedMockup({ className }: { className?: string }) {
   return (
-    <MockupFrame title="JobAtlas" caption="Product design · Europe" className={className}>
+    <MockupFrame title="Joined" caption="Product design · Europe" className={className}>
       <div className="flex items-center gap-2 rounded-xl border border-ink/10 px-3 py-2 text-ink/60">
         <span aria-hidden="true">⌕</span> product designer, remote, €60k+
       </div>
