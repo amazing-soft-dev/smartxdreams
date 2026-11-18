@@ -61,53 +61,56 @@ The script never upscales (the widest variant is the master's width) and fails i
 
 ## Where each asset appears
 
-| Place | Asset | Colourway |
+| Place | Asset | Mark |
 |---|---|---|
-| Header on a light section | `<Logo tone="dark">` | light-bg |
-| Header on a dark hero, mobile menu, footer | `<Logo tone="light">` | dark-bg |
-| Page transition | `<Logo variant="mark" tone="light">` | dark-bg |
-| Browser tab (Chrome, Edge, Firefox) | `src/app/icon.svg` | light-bg, dark-bg in dark mode |
-| Browser tab fallback | `src/app/favicon.ico` (copy of the dark-mark `favicon.ico`) | dark mark |
-| iOS home screen | `src/app/apple-icon.png` (copy of the white-mark `apple-touch-icon.png`) | white mark: iOS fills transparency with black |
-| Installed app (manifest) | dark-mark `android-chrome-192x192.png` and `-512x512.png`, plus `/icon.svg` | dark mark, on `background_color` `#F5F2EE` |
-| Link previews | `/opengraph-image` | white mark on ink |
-| Search results (Organization JSON-LD) | `smartxdreams-dark.png` | dark mark on white |
+| Header bar | `<Logo>` twice, both tones stacked; the one that suits the section behind (`useNavTheme`) is shown and they cross-fade | charcoal on light sections, white on dark |
+| Mobile menu | `<Logo tone="light">`, same height as the header (`NAV_LOGO_HEIGHT`) | white |
+| Footer | `<Logo tone="light" height={30}>` with a soft ink shadow against the smoke | white |
+| Page transition | `<Logo variant="mark" tone="light" height={36}>`, decoded while idle, scaling in with the panels | white |
+| Browser tab (Chrome, Edge, Firefox, Safari 18+) | `src/app/icon.svg` | charcoal, white in dark mode |
+| Browser tab fallback | `src/app/favicon.ico` | charcoal |
+| iOS home screen | `src/app/apple-icon.png` | white on opaque ink |
+| Installed app (manifest) | `android-chrome-192x192.png`, `-512x512.png`, `maskable-512x512.png`, `/icon.svg` | charcoal on `background_color` `#F5F2EE`; maskable white on ink |
+| Link previews | `/opengraph-image` reads `smartxdreams-mark-on-dark-512.png` | white on ink |
+| Search results (Organization JSON-LD) | `smartxdreams-mark-on-light-square-512.png` (`organizationLogoPath` in `src/lib/seo.ts`) | charcoal on white |
 
 ## The `Logo` component
 
-`src/components/ui/Logo.tsx` draws everything inline (no request, sharp at every size).
+`src/components/ui/Logo.tsx` draws the mark as an `<img>` of the built files, with every width in its srcset so the browser picks the sharpest one for the screen.
 
 | Prop | Default | Meaning |
 |---|---|---|
-| `variant` | `"full"` | `"full"`: symbol and wordmark. `"mark"`: symbol alone |
-| `tone` | `"dark"` | Colour of the **artwork**: `"dark"` for light surfaces (light-bg colourway), `"light"` for dark surfaces (dark-bg colourway) |
-| `height` | `32` | Height in px of the symbol; the wordmark scales with it |
+| `variant` | `"full"` | `"full"`: mark and wordmark. `"mark"`: the ribbon alone |
+| `tone` | `"dark"` | Colour of the **artwork**: `"dark"` for light surfaces (the on-light file), `"light"` for dark surfaces (the on-dark file) |
+| `height` | `32` | Height in px of the mark; the wordmark scales with it |
 | `label` | `"SmartxDreams"` | Accessible name |
 | `decorative` | `false` | Hide from assistive technology, when a link or text next to it already names the company |
 
-The mark's viewBox (`216 116 168 273`) is cropped to the strokes, so `height` is the height of the artwork. Mask and clip-path ids come from `useId()`, so any number of logos can share a page.
+`width` and `height` attributes come from `brand-marks.json`, so the box is reserved before the file arrives and nothing shifts. React hoists a `<link rel="preload">` for each eager logo, so the header's marks load with the document.
 
 ### Full logo
 
-The wordmark is "Smart**x**Dreams" in Inter Tight, weight 600, at 0.6 x `height`, with a gap of 0.3 x `height` after the symbol. The text takes the S colour and the "x" the D colour of the same colourway (`#2B2170` and `#6E56F0` on light, `#E6E1FF` and `#A99BFF` on dark). The whole logo is one `role="img"`; the text inside is hidden from screen readers so the name is not read twice.
+The wordmark is "Smart**x**Dreams" in Inter Tight, weight 600, at 0.6 x `height`, with a gap of 0.3 x `height` after the mark. On light surfaces it is ink `#0F1226` with the "x" in violet `#6D4AFF`; on dark surfaces white with the "x" in `#AA97FF`. The whole logo is one `role="img"`; the text inside is hidden from screen readers so the name is not read twice.
 
 ## Clear space and minimum size
 
-- **Clear space:** keep at least half the symbol's width free on every side. Nothing else (text, edges, other marks) goes inside it.
-- **Minimum size:** symbol 16 px tall on screen; full logo `height` 20 px. Below that the gaps in the weave close up. For the 16 px favicon the symbol is drawn edge to edge on purpose.
+- **Clear space:** keep at least half the mark's width free on every side. Nothing else (text, edges, other marks) goes inside it.
+- **Minimum size:** mark 16 px tall on screen; full logo `height` 20 px. Below that the gap between the S and the D closes up. For the 16 px favicon the mark is drawn nearly edge to edge on purpose.
 
 ## Don'ts
 
-- Do not put the light-bg colourway on a dark surface or the dark-bg colourway on a light one.
-- Do not recolour, outline, add shadows to or rotate the symbol, or swap the S and D colours.
-- Do not fill the gaps where the strokes cross.
+- Do not put the on-light (charcoal) mark on a dark surface or the on-dark (white) mark on a light one.
+- Do not recolour, outline, rotate or stretch the mark; its shading is part of it.
+- Do not use a raw master on the site: masters carry stray specks and padding. Use the built files.
 - Do not set the wordmark in another typeface or as an image; use `<Logo>`.
 - Do not use third-party logos anywhere on the site (see [compliance.md](compliance.md)).
 
-## Changing the symbol
+## Changing the mark
 
-1. Replace the two raster masters in `public/brand/` and both icon-set folders, keeping the file names.
-2. If the stroke symbol's geometry changed, update `SYMBOL` in `src/lib/brand-symbol.ts` (used by `Logo`; the cloud emblem in the [Earth plate](#earth-plate-publicbrandearth) is painted and would need new art) and the paths in `src/app/icon.svg`. If the raster mark's bounds changed, update `SYMBOL_BOX` in `src/app/opengraph-image.tsx` (the artwork's bounding box in the 1254 px PNG).
-3. Copy the dark-mark `favicon.ico` to `src/app/favicon.ico` and the white-mark `apple-touch-icon.png` to `src/app/apple-icon.png`.
-4. If the colours changed, update `SYMBOL_COLORS` and `WORDMARK_COLORS` in `Logo.tsx`, the `<style>` in `icon.svg`, and the tables on this page.
-5. Run `npm test` (Logo, manifest and Organization logo tests) and, for the static export, `NEXT_OUTPUT=export npm run build && npm run verify:out`.
+1. Replace the masters in `assets/brand/`, keeping the file names (`smartxdreams-mark-on-light.png`, `smartxdreams-mark-on-dark.png`).
+2. Run `npm run brand`. It rewrites every file in the table under [Building the files](#building-the-files), including `brand-marks.json`, so the logo's aspect ratio and the social card follow by themselves.
+3. Look at the results on both surfaces: a new master may carry new specks or a different kind of edge. If parts of the mark go missing or specks survive, adjust `SOLID`, `MIN_PART` or `EDGE` at the top of the script.
+4. If the colours changed, update `WORDMARK_COLORS` in `Logo.tsx` and the tables on this page.
+5. Run `npm test` (Logo, logo files, manifest and Organization logo tests), `npm run check:brand` and, for the static export, `NEXT_OUTPUT=export npm run build && npm run verify:out`.
+
+The cloud emblem in the [Earth plate](#earth-plate-publicbrandearth) is painted art and needs a new master of its own.
