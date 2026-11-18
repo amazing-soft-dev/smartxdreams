@@ -56,3 +56,11 @@ test.describe("mobile menu", () => {
     expect(Math.abs(m!.y + m!.height / 2 - (c!.y + c!.height / 2))).toBeLessThanOrEqual(1);
   });
 });
+
+test("the footer carries the white ribbon, shadowed against the smoke", async ({ page }) => {
+  await page.goto("/");
+  const logo = page.locator('footer a[aria-label="SmartxDreams home"] > span');
+  await expect(logo.locator("img")).toHaveAttribute("src", /smartxdreams-mark-on-dark-\d+\.webp$/);
+  await expect(logo.locator("img")).toHaveAttribute("height", "30");
+  expect(await logo.evaluate((el) => getComputedStyle(el).filter)).toContain("drop-shadow");
+});
