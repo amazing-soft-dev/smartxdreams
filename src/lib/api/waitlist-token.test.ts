@@ -5,7 +5,7 @@ import { type WaitlistTokenPayload, createToken, verifyToken } from "./waitlist-
 const secret = "test-secret-that-is-at-least-32-characters";
 const payload: WaitlistTokenPayload = {
   e: "ann@example.com",
-  p: "kinly",
+  p: "senioraiplans",
   cv: "2026-11-15",
   ca: "2026-11-15T10:00:00.000Z",
   exp: 2_000_000,
@@ -35,12 +35,12 @@ describe("waitlist duplicate handling", () => {
 
   it("allows two confirmation emails a day per address and product, counting only sent ones", () => {
     const t = 5_000_000;
-    expect(mayEmailSignup("dup@example.com", "kinly", t)).toBe(true);
-    recordSignupEmail("dup@example.com", "kinly", t);
-    recordSignupEmail("DUP@example.com", "kinly", t + 1);
-    expect(mayEmailSignup("dup@example.com", "kinly", t + 2)).toBe(false);
+    expect(mayEmailSignup("dup@example.com", "senioraiplans", t)).toBe(true);
+    recordSignupEmail("dup@example.com", "senioraiplans", t);
+    recordSignupEmail("DUP@example.com", "senioraiplans", t + 1);
+    expect(mayEmailSignup("dup@example.com", "senioraiplans", t + 2)).toBe(false);
     expect(mayEmailSignup("dup@example.com", "sitelog", t + 2)).toBe(true);
-    expect(mayEmailSignup("dup@example.com", "kinly", t + 24 * 60 * 60_000)).toBe(true);
+    expect(mayEmailSignup("dup@example.com", "senioraiplans", t + 24 * 60 * 60_000)).toBe(true);
   });
 
   it("records a confirmation once, and again after a failed record is forgotten", () => {

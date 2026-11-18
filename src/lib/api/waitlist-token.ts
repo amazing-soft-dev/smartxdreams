@@ -1,4 +1,5 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
+import { currentProductSlug } from "@/content/products/retired";
 
 /**
  * Signed waitlist confirmation tokens. Nothing is stored at sign-up: the token itself carries what was
@@ -46,5 +47,7 @@ export function verifyToken(secret: string, token: string, now = Date.now()): To
     return { valid: false, reason: "malformed" };
   }
   if (typeof payload.exp !== "number" || payload.exp < now) return { valid: false, reason: "expired" };
-  return { valid: true, payload };
+  // A link emailed before a product was renamed carries its old slug; the signature covers that slug, so
+  // the token stays valid and is confirmed for the product under its current slug.
+  return { valid: true, payload: { ...payload, p: currentProductSlug(payload.p) } };
 }
