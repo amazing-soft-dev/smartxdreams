@@ -23,7 +23,7 @@ function Bar({ value, tone = "violet" }: { value: number; tone?: "violet" | "cor
   );
 }
 
-/** JobAtlas: one feed of jobs from several sources, with duplicates merged. Source names are plain text. */
+/** Joined: one feed of jobs from several sources, with duplicates merged. Source names are plain text. */
 export function JobFeedCard({ className }: { className?: string }) {
   const jobs = [
     { role: "Product Designer", company: "Northwind", sources: ["LinkedIn", "Indeed"], merged: true },
@@ -48,7 +48,7 @@ export function JobFeedCard({ className }: { className?: string }) {
   );
 }
 
-/** ApplyPilot: fields filled from the profile, then a review step before submit. */
+/** Acorn: fields filled from the profile, then a review step before submit. */
 export function AutofillCard({ className }: { className?: string }) {
   const fields = [
     { label: "Full name", value: "Jordan Lee" },
@@ -120,7 +120,7 @@ export function CostBarCard({ className }: { className?: string }) {
   );
 }
 
-/** Kinly: a letter explained in plain words, with a scam warning. */
+/** SeniorAIPlans: a letter explained in plain words, with a scam warning. */
 export function BillExplainerCard({ className }: { className?: string }) {
   return (
     <MockupFrame title="Kinly" caption="Letter from your insurer" className={className}>
