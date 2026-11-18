@@ -172,8 +172,8 @@ export default function EarthScene() {
           }
         },
         resize: (width, height) => {
-          // The breakpoint follows the viewport, like the CSS fallback's media queries.
-          rect = plateRect(plateBreakpointFor(window.innerWidth).symbol, width / height);
+          // The breakpoint follows the viewport (width and aspect), like the CSS fallback's media queries.
+          rect = plateRect(plateBreakpointFor(window.innerWidth, window.innerHeight).symbol, width / height);
           material.uniforms.uPlateRect!.value.set(...plateUniform(rect));
           material.uniforms.uResolution!.value.set(width, height);
           loadPlate(rect.width * height * Math.min(window.devicePixelRatio || 1, 2));
