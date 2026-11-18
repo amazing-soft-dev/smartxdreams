@@ -43,7 +43,7 @@ export function TypedWord({ words, staticText, className }: TypedWordProps) {
   }, [deleting, length, word.length, reduced]);
 
   return (
-    <span aria-hidden="true" className={className}>
+    <span aria-hidden="true" data-motion="typed" className={className}>
       <span className="hidden motion-reduce:inline">{staticText}</span>
       <span className="motion-reduce:hidden">
         {word.slice(0, length)}

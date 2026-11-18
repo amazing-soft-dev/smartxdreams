@@ -38,6 +38,7 @@ export function Header() {
   const onDark = theme === "dark";
   return (
     <motion.header
+      data-motion="appear"
       // Beemas' header appear (docs/motion-audit.md): from 10 px above on a long, soft spring.
       initial={{ y: -10, opacity: 0.001 }}
       animate={{ y: 0, opacity: 1 }}
