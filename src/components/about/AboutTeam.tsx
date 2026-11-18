@@ -6,6 +6,7 @@ import { Section } from "@/components/ui/Section";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { about } from "@/content/about";
 import { aboutStats } from "@/content/selectors";
+import { TeamProfiles } from "./TeamProfiles";
 
 /**
  * "Team", laid out like Ignivo's team bento: a wide card about building with the studio, with a few numbers
@@ -43,6 +44,8 @@ export function AboutTeam() {
           <Photo slot="about-team" fill sizes="(min-width: 1024px) 45vw, 100vw" />
         </div>
       </div>
+
+      <TeamProfiles />
 
       {/* Every photo on the site is credited here, as the Unsplash and Pexels licenses ask. */}
       <PhotoCredits className="mt-20 border-t border-ink/10 pt-10" />
