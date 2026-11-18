@@ -28,8 +28,24 @@ const PRESSURE_ITERATIONS = 20;
 /** Radius of a splat, in cells. */
 const SPLAT_RADIUS = 5;
 /** How much a splat adds: velocity per cell moved, and displacement per cell moved. */
-const SPLAT_VELOCITY = 12;
+const SPLAT_VELOCITY = 11;
 const SPLAT_DISPLACEMENT = 0.3;
+/**
+ * The eddies a move leaves on either side of its path, as anything moving through a fluid does: a pair of
+ * counter-rotating swirls, EDDY_OFFSET cells either side of the path and EDDY_RADIUS cells in radius. Each
+ * turns so that between them the flow runs with the pointer and outside them it curls back, so the clouds are
+ * pushed along and then curl round on both sides. EDDY_VELOCITY is per cell moved, like the splat's (an
+ * eddy's fastest ring turns at about 0.43 × EDDY_VELOCITY cells/s per cell moved). The eddies add velocity
+ * only; the flow feeds the displacement as it carries it, so the picture curls with them.
+ *
+ * Broad and gentle on purpose: a turning displacement shears across its centre, by about its size over its
+ * radius, and tighter, stronger eddies tore the picture into streaks (fluid.test.ts keeps the steepest step
+ * between neighbouring cells under 0.8 cells after a quick sweep). The push along the path gave up a little
+ * (SPLAT_VELOCITY 12 to 11) to make room.
+ */
+export const EDDY_OFFSET = 12;
+export const EDDY_RADIUS = 10;
+export const EDDY_VELOCITY = 5;
 /** How much the flow feeds the displacement as it carries it (cells per cell/second, per second). */
 const FLOW_TO_DISPLACEMENT = 0.35;
 /** The longest step taken at once, so a slow frame cannot make the solver unstable. */
@@ -96,13 +112,39 @@ export function createFluid(width = FLUID_WIDTH, height = FLUID_HEIGHT): Fluid {
     const cy = y * height - 0.5;
     const cellsX = mx * width;
     const cellsY = my * height;
-    const reach = Math.ceil(SPLAT_RADIUS * 2.5);
+    const moved = Math.hypot(cellsX, cellsY);
+    // The eddies sit either side of the path: along the left normal (y up) and its opposite.
+    const nx = moved > 0 ? -cellsY / moved : 0;
+    const ny = moved > 0 ? cellsX / moved : 0;
+    const eddies = [
+      { x: cx + nx * EDDY_OFFSET, y: cy + ny * EDDY_OFFSET, turn: 1 }, // left: counter-clockwise
+      { x: cx - nx * EDDY_OFFSET, y: cy - ny * EDDY_OFFSET, turn: -1 }, // right: clockwise
+    ];
+    const reach = Math.ceil(Math.max(SPLAT_RADIUS * 2.5, EDDY_OFFSET + EDDY_RADIUS * 2.5));
     for (let j = Math.max(1, Math.floor(cy - reach)); j <= Math.min(height - 2, Math.ceil(cy + reach)); j++) {
       for (let i = Math.max(1, Math.floor(cx - reach)); i <= Math.min(width - 2, Math.ceil(cx + reach)); i++) {
         const w = Math.exp(-((i - cx) ** 2 + (j - cy) ** 2) / (SPLAT_RADIUS * SPLAT_RADIUS));
+        // The push along the path...
+        let ux = cellsX * SPLAT_VELOCITY * w;
+        let uy = cellsY * SPLAT_VELOCITY * w;
+        let ex = 0;
+        let ey = 0;
+        // ...and the two eddies: each a swirl about its centre, (-r.y, r.x) turned by its sign, so between them
+        // both push with the pointer and outside them both curl back. A swirl like this has no divergence.
+        if (moved > 0) {
+          for (const eddy of eddies) {
+            const rx = i - eddy.x;
+            const ry = j - eddy.y;
+            const s = (eddy.turn * moved * Math.exp(-(rx * rx + ry * ry) / (EDDY_RADIUS * EDDY_RADIUS))) / EDDY_RADIUS;
+            ex += -ry * s;
+            ey += rx * s;
+          }
+        }
+        ux += ex * EDDY_VELOCITY;
+        uy += ey * EDDY_VELOCITY;
         const k = at(i, j);
-        vx[k] = clamp(vx[k]! + cellsX * SPLAT_VELOCITY * w, -MAX_VELOCITY, MAX_VELOCITY);
-        vy[k] = clamp(vy[k]! + cellsY * SPLAT_VELOCITY * w, -MAX_VELOCITY, MAX_VELOCITY);
+        vx[k] = clamp(vx[k]! + ux, -MAX_VELOCITY, MAX_VELOCITY);
+        vy[k] = clamp(vy[k]! + uy, -MAX_VELOCITY, MAX_VELOCITY);
         dx[k] = clamp(dx[k]! + cellsX * SPLAT_DISPLACEMENT * w, -MAX_DISPLACEMENT, MAX_DISPLACEMENT);
         dy[k] = clamp(dy[k]! + cellsY * SPLAT_DISPLACEMENT * w, -MAX_DISPLACEMENT, MAX_DISPLACEMENT);
       }
