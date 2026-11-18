@@ -2,12 +2,12 @@ import { cx } from "@/lib/cx";
 import { MockupFrame } from "./MockupFrame";
 
 /**
- * Kinly product mockup: a letter explained in plain words, with a scam warning underneath. Large text, as in
+ * SeniorAIPlans product mockup: a letter explained in plain words, with a scam warning underneath. Large text, as in
  * the product. Illustrative content with no real person, company or account; aria-hidden.
  */
-export function KinlyLetterMockup({ className }: { className?: string }) {
+export function SeniorAIPlansLetterMockup({ className }: { className?: string }) {
   return (
-    <MockupFrame title="Kinly" caption="Letter from your insurer" className={className}>
+    <MockupFrame title="SeniorAIPlans" caption="Letter from your insurer" className={className}>
       <p className="text-[0.75rem] text-ink/70">What this letter says</p>
       <p className="rounded-xl bg-canvas px-3.5 py-3 text-[1rem] leading-snug text-ink">
         Your monthly payment goes up by <strong className="font-semibold">$12</strong> from 1 March. You do not need to
@@ -47,11 +47,11 @@ function ShelfMockup({ className }: { className?: string }) {
   );
 }
 
-/** The Kinly product page mockup: the explained letter, with the document shelf and weekly check-in. */
-export function KinlyMockup({ className }: { className?: string }) {
+/** The SeniorAIPlans product page mockup: the explained letter, with the document shelf and weekly check-in. */
+export function SeniorAIPlansMockup({ className }: { className?: string }) {
   return (
     <div aria-hidden="true" className={cx("relative", className)}>
-      <KinlyLetterMockup className="sm:mr-20" />
+      <SeniorAIPlansLetterMockup className="sm:mr-20" />
       <ShelfMockup className="mt-3 sm:absolute sm:-right-3 sm:-bottom-20 sm:mt-0 sm:w-72" />
     </div>
   );
