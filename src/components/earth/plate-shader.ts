@@ -279,17 +279,31 @@ vec2 orbital() {
   return vec2(12.0 * sin(uTime * 0.055), 4.5 * sin(uTime * 0.043)) * pxToPlate();
 }
 
-// The bands vary across the picture, so over the cloud symbol they would slowly bend the S and the D out of
-// shape. They fade out over a soft ellipse around it, and the symbol rides the orbital drift as one piece.
+// The weather bands and the currents vary across the picture, so over the cloud emblem they would slowly bend it
+// out of shape. A soft ellipse around it (with the mask, emblemWhole()) carries it whole instead.
 float symbolCalm(vec2 q) {
   return 1.0 - smoothstep(0.85, 1.35, length((q - SYMBOL) / SYMBOL_HALF));
+}
+
+// How much of the plate at q (plate heights) is the cloud emblem, 0..1, from its soft mask. Until the mask
+// has loaded the scene holds a 1 x 1 white texture, so everything counts as emblem and nothing turns.
+float emblemAt(vec2 q) {
+  return texture2D(uEmblem, vec2(q.x / PLATE_ASPECT, 1.0 - q.y)).r;
+}
+
+// How much of the plate at q rides with the cloud emblem as one piece, 0..1: the soft ellipse around it
+// (symbolCalm), and its own strokes (the mask) where they reach past that ellipse, as the tail and the outer
+// C's ends do. The ellipse gives a wide, gentle blend over the open ocean around the emblem; the mask makes
+// sure no stroke is left half outside it.
+float emblemWhole(vec2 q) {
+  return max(symbolCalm(q), emblemAt(q));
 }
 
 vec2 weather(vec2 q) {
   vec2 bands = vec2(28.0 * (sin(uTime * 0.22 + q.y * 3.0) - sin(q.y * 3.0)),
                     12.0 * (sin(uTime * 0.18 + q.x * 3.0) - sin(q.x * 3.0)));
   float patches = smoothstep(0.35, 0.7, noise3(vec3(q * 2.4, 4.0)));
-  return bands * patches * (1.0 - symbolCalm(q)) * pxToPlate();
+  return bands * patches * (1.0 - emblemWhole(q)) * pxToPlate();
 }
 
 // The currents' stream function at q: smooth noise whose field drifts across the planet and slowly changes.
@@ -302,12 +316,6 @@ float stream(vec2 q) {
 vec2 currents(vec2 q) {
   vec2 e = vec2(CURRENT_STEP, 0.0);
   return vec2(stream(q + e.yx) - stream(q - e.yx), stream(q - e) - stream(q + e)) * (CURRENT_STRENGTH / (2.0 * CURRENT_STEP));
-}
-
-// How much of the plate at q (plate heights) is the cloud emblem, 0..1, from its soft mask. Until the mask
-// has loaded the scene holds a 1 x 1 white texture, so everything counts as emblem and nothing turns.
-float emblemAt(vec2 q) {
-  return texture2D(uEmblem, vec2(q.x / PLATE_ASPECT, 1.0 - q.y)).r;
 }
 
 // One swirl layer of the cyclone at the given phase (0..1 through its cycle). The content at q has turned
@@ -384,10 +392,19 @@ vec2 wake(vec2 q) {
   return mix(local, whole, calm);
 }
 
+// The currents at q, with the emblem carried whole: over it the currents are those at its centre, so it
+// drifts with the flow around it and keeps its shape, while the clouds around it stream and curl.
+vec2 emblemSafeCurrents(vec2 q) {
+  float whole = emblemWhole(q);
+  if (whole < 0.001) return currents(q);
+  vec2 centre = currents(SYMBOL);
+  return whole > 0.999 ? centre : mix(currents(q), centre, whole);
+}
+
 // Motion that every pixel shares, whatever the cyclone does: the drift, the weather, the ambient currents and
 // the pointer wake. Sampling against the wake moves the content along it.
 vec2 sharedMotion(vec2 q) {
-  return orbital() + weather(q) + currents(q) - wake(q);
+  return orbital() + weather(q) + emblemSafeCurrents(q) - wake(q);
 }
 
 // A motion delta (where the content at this pixel comes from, relative to it) made safe for the limb: off in
