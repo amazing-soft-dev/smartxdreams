@@ -62,7 +62,7 @@ npx lighthouse http://localhost:3200/ --only-categories=performance --view
 ```
 
 Lighthouse's default mobile settings apply the throttling. Record the result here before launch, and repeat
-for `/products/kinly` and a blog post.
+for `/products/senioraiplans` and a blog post.
 
 | Date | Page | LCP | CLS | Notes |
 |---|---|---|---|---|

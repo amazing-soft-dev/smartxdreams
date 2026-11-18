@@ -21,7 +21,7 @@ description: "One or two sentences, 50–160 characters." # search results and c
 date: "2026-11-15"                                   # YYYY-MM-DD
 updated: "2026-12-01"                                # optional
 category: "studio"                                   # a category id
-products: ["kinly"]                                  # optional product slugs
+products: ["senioraiplans"]                                  # optional product slugs
 cover:                                               # optional, a slot in src/content/photos.json
   slot: "blog-studio"
 draft: true                                          # optional, see below
@@ -37,6 +37,6 @@ featured: true                                       # optional, see below
 ## Body
 
 - Start headings at `##`. The post title is the page's only `h1`.
-- Link to site pages with a path (`/products/kinly`); these use client-side navigation.
+- Link to site pages with a path (`/products/senioraiplans`); these use client-side navigation.
 - No invented statistics, quotes, customers or results. If you cite a number, link its source.
 - Third-party names as plain text only, never logos.
