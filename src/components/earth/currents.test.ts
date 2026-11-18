@@ -2,10 +2,12 @@ import { describe, expect, it } from "vitest";
 import { PLATE_ASPECT } from "./plate";
 import {
   CURRENT_DRIFT,
+  CURRENT_EASE_IN,
   CURRENT_EVOLVE,
   CURRENT_SCALE,
   CURRENT_STEP,
   CURRENT_STRENGTH,
+  currentEase,
   currentsAt,
   currentStream,
   glslFloat,
@@ -129,5 +131,37 @@ describe("ambient currents", () => {
 
   it("skip every pixel that cannot move: the calm band and outside the limb", () => {
     expect(plateFragmentShader).toMatch(/vec3 movedColor\(vec2 q, float dist\) \{[\s\S]{0,400}if \(dist <= CALM_LIMB\) return plateColor/);
+  });
+});
+
+describe("the scene's first frame", () => {
+  it("has no currents yet, so the scene fades in exactly over the still fallback", () => {
+    expect(currentEase(0)).toBe(0);
+    for (const [x, y] of grid(0.2)) {
+      const c = currentsAt(x, y, 0);
+      expect(Math.hypot(c.x, c.y)).toBe(0);
+    }
+  });
+
+  it("brings the currents in smoothly over the first seconds, then leaves them whole", () => {
+    let last = 0;
+    for (let t = 0; t <= CURRENT_EASE_IN; t += 0.25) {
+      expect(currentEase(t)).toBeGreaterThanOrEqual(last);
+      last = currentEase(t);
+    }
+    expect(currentEase(CURRENT_EASE_IN)).toBe(1);
+    expect(currentEase(600)).toBe(1);
+    // Still small while the scene fades in (700 ms).
+    expect(currentEase(0.7)).toBeLessThan(0.1);
+  });
+
+  it("starts every other motion from zero too", () => {
+    // Drift and weather are sines measured from t = 0; the breath is a sine from zero; the cyclone's first
+    // layer has no weight and its second is untouched at its middle.
+    expect(plateFragmentShader).toContain("vec2(12.0 * sin(uTime * 0.055), 4.5 * sin(uTime * 0.043))");
+    expect(plateFragmentShader).toContain("sin(uTime * 0.22 + q.y * 3.0) - sin(q.y * 3.0)");
+    expect(plateFragmentShader).toContain("CYCLONE_BREATH * sin(TAU * uTime / CYCLONE_BREATH_PERIOD)");
+    expect(plateFragmentShader).toContain("smoothstep(0.0, CURRENT_EASE_IN, uTime)");
+    expect(plateFragmentShader).toContain(`const float CURRENT_EASE_IN = ${glslFloat(CURRENT_EASE_IN)};`);
   });
 });
