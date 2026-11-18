@@ -127,8 +127,8 @@
       }
     },
     {
-      "slot": "product-jobatlas",
-      "src": "/images/products/jobatlas.jpg",
+      "slot": "product-joined",
+      "src": "/images/products/joined.jpg",
       "width": 2400,
       "height": 1600,
       "alt": "Hands on a laptop keyboard at a wooden desk",
