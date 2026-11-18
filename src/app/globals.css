@@ -244,7 +244,7 @@
 }
 
 /*
- * Large readability (product pages with readability: "large", such as Kinly): bigger body type and full-strength
+ * Large readability (product pages with readability: "large", such as SeniorAIPlans): bigger body type and full-strength
  * text. Muted text (ink/xx and white/xx) becomes full ink or white, so body text is at least 16:1 (AAA).
  */
 [data-readable="large"] {

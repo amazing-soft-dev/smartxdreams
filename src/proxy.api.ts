@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 
 /**
- * Lowercase URLs: /About, /Products/Kinly and /BLOG all redirect (308, permanent) to the lowercase path,
+ * Lowercase URLs: /About, /Products/Acorn and /BLOG all redirect (308, permanent) to the lowercase path,
  * keeping the query string. Every route on the site is lowercase, so this gives mixed-case links one
  * canonical address instead of a 404.
  *
