@@ -1,30 +1,44 @@
 # Brand assets
 
-The SmartxDreams symbol is an **S** (top) and a **D** (bottom) drawn as two strokes that pass over and under each other. It comes in two colourways, one for each kind of surface. There is no wordmark artwork: where the name appears next to the symbol, it is live text (see [Full logo](#full-logo)).
+The SmartxDreams mark is an **SD ribbon**: one shaded band that folds into an S at the top and a D around it. It comes as two raster masters, one for each kind of surface. There is no wordmark artwork: where the name appears next to the mark, it is live text (see [Full logo](#full-logo)).
 
-## Colourways
+## Masters and naming
 
-Pick the colourway by the surface the symbol sits on, never by preference. The wrong one nearly disappears: the navy S on the ink background is 1.37:1, the lavender S on the canvas background 2.13:1.
+Pick the mark by the surface it sits **on**, never by preference. The files are named that way (as press kits such as Stripe's, Vercel's and Linear's are), so "dark" never has to be guessed: `on-light` is the charcoal ribbon, `on-dark` the white one.
 
-| Colourway | Use on | S stroke | D stroke | Contrast |
-|---|---|---|---|---|
-| **light-bg** | Canvas, white and other light surfaces | `#2B2170` navy | `#6E56F0` violet | S 12.11:1, D 4.43:1 on canvas |
-| **dark-bg** | Ink, dark heroes, photos with a dark overlay | `#A99BFF` lavender | `#E6E1FF` pale lavender | S 7.77:1, D 14.61:1 on ink |
+| Master (`assets/brand/`) | Ribbon | Use on | Contrast |
+|---|---|---|---|
+| `smartxdreams-mark-on-light.png` | charcoal, mean `#252628` | Canvas, white and other light surfaces | about 13.5:1 on canvas |
+| `smartxdreams-mark-on-dark.png` | white with cool shading, mean `#E7ECF8` | Ink, dark heroes, photos with a dark overlay | about 15:1 on ink |
 
-Both strokes clear the 3:1 that WCAG asks of graphics on their intended surface.
+Both are 1254 x 1254 PNGs on transparency, as the SmartxDreams team supplied them. They live in `assets/`, which is **not served**: everything in `public/` is copied into the static export, so the site only ships the small files built from them.
 
-These are logo colours only. The UI palette (`violet-500` `#6D4AFF`, `coral-500`, `ink`) lives in [design-tokens.md](design-tokens.md) and is separate; do not use the logo hex values for buttons, links or text.
+These are logo colours only. The UI palette (`violet-500` `#6D4AFF`, `coral-500`, `ink`) lives in [design-tokens.md](design-tokens.md).
+
+## Building the files
+
+```bash
+npm run brand          # write every file below from the masters
+npm run check:brand    # fail if one is missing or no longer the size its master gives (runs in CI)
+```
+
+`scripts/build-brand.mjs` first **cleans** each master: the generator that drew the marks left faint specks around and inside the ribbon (60 on the charcoal master, over 100 on the white one). It keeps the solid parts (alpha 128 or more, at least 0.5% the size of the largest part), keeps the anti-aliased edge within 3 px of them, clears everything else, and trims the image to what is left. A height in px is therefore the height of the artwork: the charcoal ribbon is 943 x 804 master pixels, the white one 863 x 750. Nothing is ever upscaled, and no file may exceed 80 KB.
+
+| Built file | What |
+|---|---|
+| `public/brand/logo/smartxdreams-mark-on-{light,dark}-{32,64,128,256,512}.webp` | The mark at five widths, the `Logo` component's srcset |
+| `public/brand/logo/smartxdreams-mark-on-{light,dark}-512.png` | 256-colour PNGs for renderers without WebP (the social card) |
+| `public/brand/logo/smartxdreams-mark-on-light-square-512.png` | The charcoal mark centred on a transparent 512 px square: the organisation logo |
+| `public/brand/icons/favicon.ico` | 16, 32 and 48 px PNG entries, charcoal mark |
+| `public/brand/icons/favicon-{16x16,32x32}.png` | Charcoal mark, 96% of the square so it reads at 16 px |
+| `public/brand/icons/android-chrome-{192x192,512x512}.png` | Charcoal mark on transparency |
+| `public/brand/icons/apple-touch-icon.png` | 180 px, white mark on **opaque** ink (iOS fills transparency with black) |
+| `public/brand/icons/maskable-512x512.png` | White mark on opaque ink, inside the central 80% circle Android may crop to |
+| `src/app/favicon.ico`, `src/app/apple-icon.png` | Copies of the two icons above, served by Next.js file conventions |
+| `src/app/icon.svg` | Both marks as 64 px PNGs with a `prefers-color-scheme` rule: charcoal on light tabs, white on dark |
+| `src/lib/brand-marks.json` | Each mark's trimmed size and the built widths, so `Logo` knows the aspect ratio without loading the file |
 
 ## Files
-
-### Masters (`public/brand/`)
-
-| File | Colourway | Format | Used by |
-|---|---|---|---|
-| `smartxdreams-dark.png` | dark mark, for light surfaces | PNG 1254 x 1254, transparent | Organization logo in the JSON-LD (`organizationLogoPath` in `src/lib/seo.ts`) |
-| `smartxdreams-white.png` | white mark, for dark surfaces | PNG 1254 x 1254, transparent | Social card (`src/app/opengraph-image.tsx`) |
-
-The header, footer and page transition still draw the stroke symbol in code (`src/lib/brand-symbol.ts` and `src/app/icon.svg`), not from these PNGs. The gaps where those strokes cross are cut with `<mask>` and `<clipPath>`; keep those if you redraw that symbol, or the weave turns into a plain overlap.
 
 ### Earth plate (`public/brand/earth/`)
 
@@ -44,19 +58,6 @@ node scripts/build-earth-plate.mjs [path/to/master.png]
 ```
 
 The script never upscales (the widest variant is the master's width) and fails if a file goes over 800 KB (the photo budget). If the new art moves the limb, the sun, the cyclone or the emblem, measure them again (`node scripts/measure-earth-plate.mjs`, see [earth.md](earth.md#plate-geometry)) for the hero layout.  The emblem mask is built from the emblem's strokes, traced as centre lines in `src/components/earth/emblem-strokes.json`: if the emblem moves, re-trace them there and run the script again.
-
-### Icon sets (`public/brand/smartxdreams-{dark,white}/`)
-
-Generated from the raster masters, one folder per colourway:
-
-| File | Size |
-|---|---|
-| `favicon.ico` | 16, 32, 48 |
-| `favicon-16x16.png`, `favicon-32x32.png` | 16, 32 |
-| `apple-touch-icon.png` | 180 |
-| `android-chrome-192x192.png`, `android-chrome-512x512.png` | 192, 512 |
-
-The generator also writes a `site.webmanifest`. Do not add it: its name is empty and its icon paths point at the site root. `src/app/manifest.ts` writes the real manifest.
 
 ## Where each asset appears
 
