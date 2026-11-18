@@ -13,6 +13,7 @@ import {
   ProductSteps,
   ProductWaitlist,
 } from "@/components/product/ProductSections";
+import { productLogoSrc } from "@/components/product/ProductLogo";
 import { RetiredProduct } from "@/components/product/RetiredProduct";
 import { retiredProducts } from "@/content/products/retired";
 import { productBySlug, productSlugs } from "@/content/selectors";
@@ -74,6 +75,9 @@ function productJsonLd(product: Product): Record<string, unknown> {
     applicationCategory: categories[product.audience],
     operatingSystem: "Web",
     url: absoluteUrl(`/products/${product.slug}`),
+    // The product's 384 px square logo. SoftwareApplication has no logo property (that belongs to
+    // Organization and Brand), so the logo is the application's image.
+    image: absoluteUrl(productLogoSrc(product.slug, 384)),
     publisher: { "@type": "Organization", name: company.name, url: absoluteUrl("/") },
   };
 }
