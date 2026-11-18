@@ -73,7 +73,7 @@ vec4 curtain(float x, float y, float t, float seed, float speed, float base, flo
   // The base line drapes along the curtain, so the lower edge curves instead of running flat, and the whole
   // curtain rises and falls a little.
   float b = uHorizon + base
-    + 0.1 * (noise(xw * 1.1 + t * 0.04 * speed + seed * 13.0) - 0.5)
+    + 0.07 * (noise(xw * 1.1 + t * 0.04 * speed + seed * 13.0) - 0.5)
     + 0.025 * sin(xw * 2.3 + t * 0.09 * speed + seed * 5.0)
     + 0.012 * lift;
   float h = height * (1.0 + 0.08 * breathe);
@@ -106,9 +106,9 @@ void main() {
   float t = uTime;
 
   // Far to near: lower, shorter, dimmer and slower in the distance.
-  vec4 sum = curtain(x * 1.6, y, t, 1.0, 0.6, 0.03, 0.14, 0.45);
-  sum += curtain(x * 1.2, y, t, 2.0, 0.85, 0.07, 0.24, 0.7);
-  sum += curtain(x, y, t, 3.0, 1.0, 0.11, 0.34, 1.0);
+  vec4 sum = curtain(x * 1.6, y, t, 1.0, 0.6, 0.015, 0.16, 0.45);
+  sum += curtain(x * 1.2, y, t, 2.0, 0.85, 0.035, 0.27, 0.7);
+  sum += curtain(x, y, t, 3.0, 1.0, 0.055, 0.38, 1.0);
 
   // Skyglow along the horizon, in the lower edge's colour, breathing on a 7.3 s loop.
   float glow = exp(-abs(y - uHorizon) * 9.0) * 0.32 * (0.85 + 0.15 * sin(t * TAU / 7.3));
@@ -117,8 +117,11 @@ void main() {
   // Fade out toward the top edge, and below the horizon line.
   float fade = smoothstep(1.0, 1.0 - uFade, y) * smoothstep(uHorizon - 0.12, uHorizon, y);
 
-  float alpha = clamp(sum.a * uIntensity * fade, 0.0, 1.0);
-  vec3 color = min(sum.rgb * uIntensity * fade, vec3(alpha));
+  // Soft knee: faint light passes almost unchanged, while bright spots (where curtains overlap at their
+  // bases) level off below 0.6 instead of clipping to white, so the footer text over them stays legible.
+  float raw = sum.a * uIntensity * fade;
+  float alpha = 0.6 * (1.0 - exp(-raw * 1.7));
+  vec3 color = min(sum.rgb * uIntensity * fade * (alpha / max(raw, 0.0001)), vec3(alpha));
   gl_FragColor = vec4(color, alpha);
 }
 `;
