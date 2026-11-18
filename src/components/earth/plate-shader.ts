@@ -13,7 +13,7 @@
  * conversion), and the output is premultiplied alpha.
  */
 
-import { FLUID_HEIGHT, FLUID_WIDTH, MAX_DISPLACEMENT } from "./fluid";
+import { MAX_DISPLACEMENT } from "./fluid";
 import { GLOW_BAND, GLOW_EDGE, GLOW_RISE, HORIZON, LANDMARKS, PLATE_ASPECT, SKY_FLOOR } from "./plate";
 
 /** A GLSL float literal: always with a decimal point, and with a sign when negative. */
@@ -223,6 +223,7 @@ uniform vec2 uResolution;   // canvas size in CSS px
 uniform float uReady;       // 1 once the plate texture has loaded
 uniform vec4 uSky;          // what shows outside the planet and its glow (premultiplied; alpha 0 lets the page show)
 uniform float uTime;        // seconds the scene has been running
+uniform vec2 uFlowCells;    // the fluid grid's columns and rows (fluidGridFor(): square cells over the canvas)
 uniform sampler2D uFlow;    // the fluid wake's displacement over the canvas (fluid.ts): red x, green y, 0.5 = still
 uniform sampler2D uEmblem;  // the cloud emblem's mask over the plate (earth-emblem-mask.png): 1 on the emblem
 
@@ -237,7 +238,6 @@ const float SKY_FLOOR = ${glslFloat(SKY_FLOOR)};
 const float GLOW_RISE = ${glslFloat(GLOW_RISE)};
 const float CALM_LIMB = ${glslFloat(CALM_LIMB)};
 const float FULL_MOTION = ${glslFloat(FULL_MOTION)};
-const vec2 FLUID_CELLS = vec2(${glslFloat(FLUID_WIDTH)}, ${glslFloat(FLUID_HEIGHT)});
 const float MAX_DISPLACEMENT = ${glslFloat(MAX_DISPLACEMENT)};
 const float WAKE_GAIN = ${glslFloat(WAKE_GAIN)};
 const float WAKE_BLUR = ${glslFloat(WAKE_BLUR)};
@@ -365,10 +365,10 @@ vec2 flowAt(vec2 at) {
 // softened over five taps so it bends the picture smoothly rather than stretching it into streaks, turned
 // into a fraction of the canvas and then into plate heights.
 vec2 wakeAt(vec2 at) {
-  vec2 step = WAKE_BLUR / FLUID_CELLS;
+  vec2 step = WAKE_BLUR / uFlowCells;
   vec2 cells = (flowAt(at) * 2.0 + flowAt(at + vec2(step.x, 0.0)) + flowAt(at - vec2(step.x, 0.0))
     + flowAt(at + vec2(0.0, step.y)) + flowAt(at - vec2(0.0, step.y))) / 6.0;
-  vec2 canvas = cells / FLUID_CELLS * WAKE_GAIN;
+  vec2 canvas = cells / uFlowCells * WAKE_GAIN;
   vec2 hero = vec2(canvas.x * uResolution.x / uResolution.y, -canvas.y);
   return hero / uPlateRect.w;
 }
