@@ -105,13 +105,17 @@ export default function EarthScene() {
       const loader = new TextureLoader();
       let texture: Texture | null = null;
       let requestedWidth = 0;
+      // The width of the variant on screen. Loads can finish out of order (a small one still on its way when a
+      // resize asks for a sharper one), and a late small one must not replace the sharp one.
+      let shownWidth = 0;
       let disposed = false;
       const loadPlate = (pixels: number) => {
         const variant = pickPlateVariant(pixels);
         if (variant.width <= requestedWidth) return;
         requestedWidth = variant.width;
         loader.load(variant.src, (loaded) => {
-          if (disposed) return loaded.dispose();
+          if (disposed || variant.width <= shownWidth) return loaded.dispose();
+          shownWidth = variant.width;
           loaded.minFilter = LinearFilter;
           loaded.magFilter = LinearFilter;
           loaded.generateMipmaps = false;

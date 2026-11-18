@@ -45,6 +45,28 @@ test.describe("Earth backdrop on Home", () => {
       .first()
       .evaluate((star) => getComputedStyle(star).animationName);
     expect(animation).toBe("none");
+    // The still planet does not drift either.
+    await expect(page.locator(`${hero} [data-earth-fallback]`)).not.toHaveAttribute("data-drift");
+    expect(await planet.evaluate((c) => getComputedStyle(c).animationName)).toBe("none");
+  });
+
+  test("lets the still planet drift where the scene will not run but motion is welcome", async ({ page }) => {
+    // Two cores: useSceneSupport keeps the fallback (low power), but the visitor has not asked for stillness.
+    await page.addInitScript(() => Object.defineProperty(navigator, "hardwareConcurrency", { get: () => 2 }));
+    await page.goto("/");
+    const fallback = page.locator(`${hero} [data-earth-fallback]`);
+    await expect(fallback).toHaveAttribute("data-drift", "");
+    // Both canvases' offsets, read in the same frame.
+    const offsets = () =>
+      fallback.evaluate((root) =>
+        ["planet", "glow"].map((part) => getComputedStyle(root.querySelector(`canvas[data-earth-plate="${part}"]`)!).translate),
+      );
+    const [first, glowFirst] = await offsets();
+    // The planet and its glow move together, and they keep moving (slowly: a few px over seconds).
+    expect(glowFirst).toBe(first);
+    await expect.poll(async () => (await offsets())[0], { timeout: 10_000 }).not.toBe(first);
+    await page.waitForTimeout(1500);
+    await expect(page.locator(sceneCanvas)).toHaveCount(0);
   });
 
   test("fades the WebGL plate in where WebGL 2 is available", async ({ page }) => {
