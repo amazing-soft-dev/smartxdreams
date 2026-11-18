@@ -88,15 +88,16 @@ export function Accordion({ items, defaultOpen = 0, multiple = false, tone = "li
                 <PlusIcon open={isOpen} tone={tone} />
               </button>
             </h3>
-            {/* grid-template-rows 0fr -> 1fr animates to the content's natural height without measuring it.
-                Closed answers are inert, so they are hidden from keyboard and screen readers. */}
+            {/* grid-template-rows 0fr -> 1fr animates to the content's natural height without measuring it, on
+                the rise curve (--ease-rise) the rest of the page moves on. Closed answers are inert, so they
+                are hidden from keyboard and screen readers. */}
             <div
               id={panelId}
               role="region"
               aria-labelledby={buttonId}
               inert={!isOpen}
               className={cx(
-                "grid transition-[grid-template-rows,opacity] duration-400 ease-[var(--ease-out-quint)]",
+                "grid transition-[grid-template-rows,opacity] duration-700 ease-[var(--ease-rise)]",
                 isOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0",
               )}
             >
