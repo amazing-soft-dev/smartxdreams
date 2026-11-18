@@ -14,6 +14,7 @@ import { Tag } from "@/components/ui/Tag";
 import { ProductCard } from "@/components/products/ProductCard";
 import { audienceLabel, relatedProducts } from "@/content/selectors";
 import type { Product } from "@/content/types";
+import { ProductLogo } from "./ProductLogo";
 
 type ProductProps = { product: Product };
 
@@ -33,7 +34,9 @@ export function ProductHero({ product, Mockup }: ProductProps & { Mockup?: Compo
       <Glow color="coral" size={640} opacity={0.25} className="-right-1/4 -bottom-1/3" />
       <Container className="grid items-center gap-14 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
         <div>
-          <Reveal aboveFold preset="left60" delay={0.15}>
+          {/* The product's logo leads the hero, with who it is for beside it. */}
+          <Reveal aboveFold preset="left60" delay={0.15} className="flex items-center gap-4">
+            <ProductLogo product={product} size={64} decorative loading="eager" />
             <Tag tone="dark">{audienceLabel(product.audience)}</Tag>
           </Reveal>
           <Reveal aboveFold delay={0.3}>
