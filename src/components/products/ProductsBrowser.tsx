@@ -6,6 +6,7 @@ import { products } from "@/content/products";
 import { audiences } from "@/content/site";
 import { useUrlFilter } from "@/hooks/useUrlFilter";
 import { ProductCard } from "./ProductCard";
+import { Reveal } from "@/components/motion/Reveal";
 
 /** Audience options that have at least one product, after "All". */
 const options = [
@@ -37,25 +38,28 @@ export function ProductsBrowser() {
         label="Filter products by audience"
         liveMessage={liveMessage}
       />
-      <FilterList
-        items={[...shown]}
-        getKey={(p) => p.slug}
-        renderItem={(p) => <ProductCard product={p} />}
-        className="mt-10 gap-3 md:grid-cols-2 lg:grid-cols-3"
-        empty={
-          <div className="mt-10 rounded-[30px] bg-white px-7 py-12 text-center">
-            <p className="text-h5">No products for {label} yet.</p>
-            <p className="mt-2 text-body text-ink/70">Tell us what you need on the contact page, or see everything we are building.</p>
-            <button
-              type="button"
-              onClick={() => setAudience("all")}
-              className="mt-6 rounded-[16px] bg-ink px-5 py-3 text-label font-medium text-white"
-            >
-              Show all products
-            </button>
-          </div>
-        }
-      />
+      {/* The list rises in as one block the first time it is reached; filtering then animates the cards. */}
+      <Reveal preset="up75">
+        <FilterList
+          items={[...shown]}
+          getKey={(p) => p.slug}
+          renderItem={(p) => <ProductCard product={p} />}
+          className="mt-10 gap-3 md:grid-cols-2 lg:grid-cols-3"
+          empty={
+            <div className="mt-10 rounded-[30px] bg-white px-7 py-12 text-center">
+              <p className="text-h5">No products for {label} yet.</p>
+              <p className="mt-2 text-body text-ink/70">Tell us what you need on the contact page, or see everything we are building.</p>
+              <button
+                type="button"
+                onClick={() => setAudience("all")}
+                className="mt-6 rounded-[16px] bg-ink px-5 py-3 text-label font-medium text-white"
+              >
+                Show all products
+              </button>
+            </div>
+          }
+        />
+      </Reveal>
     </>
   );
 }

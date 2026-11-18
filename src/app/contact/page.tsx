@@ -16,6 +16,7 @@ import { contact, contactFaq } from "@/content/contact";
 import { products } from "@/content/products";
 import { pageMetadata } from "@/lib/seo";
 import { SplitText } from "@/components/motion/SplitText";
+import { stagger } from "@/styles/motion";
 
 /** Only what the product select needs, so the rest of the product copy stays out of the client bundle. */
 const productOptions = products.map((p) => ({ slug: p.slug, name: p.name }));
@@ -54,7 +55,7 @@ export default function ContactPage() {
           <ul className="mt-14 grid gap-3 md:grid-cols-3">
             {contact.channels.map((channel, i) => (
               <li key={channel.title}>
-                <Reveal delay={i * 0.08} className="h-full" aboveFold>
+                <Reveal preset="up75" delay={0.2 + i * stagger.group} className="h-full" aboveFold>
                   <Card tone="glass-dark" padding="lg" className="flex h-full flex-col">
                     <h2 className="text-h6">{channel.title}</h2>
                     <p className="mt-3 flex-1 text-body text-white/70">{channel.body}</p>

@@ -3,6 +3,8 @@
 import { type KeyboardEvent, useId, useRef, useState } from "react";
 import { cx } from "@/lib/cx";
 import type { Faq } from "@/content/types";
+import { Reveal } from "@/components/motion/Reveal";
+import { stagger } from "@/styles/motion";
 
 type AccordionProps = {
   items: Faq[];
@@ -62,8 +64,10 @@ export function Accordion({ items, defaultOpen = 0, multiple = false, tone = "li
         const buttonId = `${baseId}-q${index}`;
         const panelId = `${baseId}-a${index}`;
         return (
-          <div
+          <Reveal
             key={item.question}
+            preset="up50"
+            delay={index * (stagger.group / 2)}
             className={cx(
               "rounded-[20px] transition-colors duration-300",
               tone === "light" ? (isOpen ? "bg-white shadow-tag" : "bg-ink/[0.05]") : isOpen ? "bg-white/12" : "bg-white/[0.06]",
@@ -100,7 +104,7 @@ export function Accordion({ items, defaultOpen = 0, multiple = false, tone = "li
                 <p className={cx("px-5 pb-5 md:px-6", tone === "light" ? "text-ink/65" : "text-white/65")}>{item.answer}</p>
               </div>
             </div>
-          </div>
+          </Reveal>
         );
       })}
     </div>
