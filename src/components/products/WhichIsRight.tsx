@@ -24,7 +24,8 @@ export function WhichIsRight() {
               >
                 <span className="text-body-l">“{need}”</span>
                 <span className="shrink-0 text-label font-medium text-violet-600">
-                  {product.name} <span aria-hidden="true">→</span>
+                  {/* The arrow turns up and out on hover and focus, to the pose Beemas' arrows rest in. */}
+                  {product.name} <span aria-hidden="true" className="inline-block transition-transform duration-500 ease-[var(--ease-out-quint)] group-hover:-rotate-30 group-focus-visible:-rotate-30 motion-reduce:transition-none">→</span>
                 </span>
               </TransitionLink>
             </li>
