@@ -175,4 +175,4 @@ What shows without WebGL, and under the scene everywhere:
 
 ## Sharing the GPU
 
-The Earth has the highest priority in `scene-budget.ts` (`earth: 3`), above the footer smoke, so when both are on screen only the hero draws. It pauses off-screen and in hidden tabs, and disposes its GPU resources on unmount (see [astrafield.md](astrafield.md#renderer-lifecycle) for the renderer lifecycle it shares). The starfield sky is SVG and CSS, not WebGL, so it never competes for the GPU budget..
+The Earth has the highest priority in `scene-budget.ts` (`earth: 3`), above the footer aurora, so when both are on screen only the hero draws. It pauses off-screen and in hidden tabs, and disposes its GPU resources on unmount (see [astrafield.md](astrafield.md#renderer-lifecycle) for the renderer lifecycle it shares). The starfield sky is SVG and CSS, not WebGL, so it never competes for the GPU budget..

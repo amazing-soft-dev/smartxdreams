@@ -3,17 +3,17 @@
 import dynamic from "next/dynamic";
 import { useEffect, useRef, useState } from "react";
 
-/** The WebGL smoke scene, in its own chunk, client only. */
-const SmokeBackground = dynamic(() => import("@/components/webgl/SmokeBackground").then((m) => m.SmokeBackground), {
+/** The WebGL aurora scene, in its own chunk, client only. */
+const AuroraBackground = dynamic(() => import("@/components/webgl/AuroraBackground").then((m) => m.AuroraBackground), {
   ssr: false,
 });
 
 /**
- * The footer smoke. Its chunk is requested only when the footer comes within 600 px of the viewport, so a
+ * The footer aurora. Its chunk is requested only when the footer comes within 600 px of the viewport, so a
  * visitor who never scrolls that far never downloads it, and it never competes with the page's first paint.
- * Once loaded, the scene pauses while the footer is off-screen (see SmokeBackground).
+ * Once loaded, the scene pauses while the footer is off-screen (see AuroraBackground).
  */
-export function FooterSmoke() {
+export function FooterAurora() {
   const sentinel = useRef<HTMLDivElement>(null);
   const [near, setNear] = useState(false);
 
@@ -33,5 +33,5 @@ export function FooterSmoke() {
     return () => observer.disconnect();
   }, [near]);
 
-  return near ? <SmokeBackground /> : <div ref={sentinel} aria-hidden="true" className="pointer-events-none absolute inset-0" />;
+  return near ? <AuroraBackground /> : <div ref={sentinel} aria-hidden="true" className="pointer-events-none absolute inset-0" />;
 }
