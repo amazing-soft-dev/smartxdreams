@@ -2,20 +2,18 @@ import { describe, expect, it } from "vitest";
 import { GLOW_EDGE, GLOW_RISE, glowCoverage, glowFade, HORIZON, horizonDistance, LANDMARKS, PLATE_ASPECT, SKY_FLOOR } from "./plate";
 import {
   CALM_LIMB,
-  CYCLONE_BREATH,
-  CYCLONE_BREATH_PERIOD,
   CYCLONE_CORE,
-  CYCLONE_CYCLE,
-  CYCLONE_INFLOW,
-  CYCLONE_SPIN,
-  cycloneBreath,
+  CYCLONE_SWAY,
+  CYCLONE_SWAY_RATE,
+  CYCLONE_TURN,
+  CYCLONE_TURN_RATE,
+  cycloneAngle,
+  cycloneBody,
   FULL_MOTION,
   GLOW_BAND,
   glslFloat,
   horizonChunk,
   plateFragmentShader,
-  swirlLayerGap,
-  swirlLayers,
   WAKE_BLUR,
   WAKE_GAIN,
 } from "./plate-shader";
@@ -120,88 +118,60 @@ describe("glow coverage", () => {
   });
 });
 
-describe("cyclone swirl", () => {
-  it("crossfades two layers whose weights always add up to 1", () => {
-    for (let t = 0; t < CYCLONE_CYCLE * 3; t += 0.137) {
-      const [a, b] = swirlLayers(t);
-      expect(a.weight + b.weight).toBeCloseTo(1, 9);
-      expect(Math.abs(a.phase - b.phase)).toBeCloseTo(0.5, 9);
+describe("cyclone", () => {
+  const reach = LANDMARKS.cyclone.radius;
+
+  it("turns forward and then back: the angle swings both ways and is zero at the start", () => {
+    expect(cycloneAngle(0)).toBe(0);
+    let most = 0;
+    let least = 0;
+    for (let t = 0; t < 240; t += 0.25) {
+      most = Math.max(most, cycloneAngle(t));
+      least = Math.min(least, cycloneAngle(t));
+    }
+    // About 12 degrees each way, as on the reference.
+    expect(most).toBeGreaterThan(0.18);
+    expect(least).toBeLessThan(-0.18);
+    expect(Math.max(most, -least)).toBeLessThanOrEqual(CYCLONE_TURN + CYCLONE_SWAY);
+  });
+
+  it("swings slowly: a main swing of about 39 s and a quicker sway of about 27 s", () => {
+    expect((2 * Math.PI) / CYCLONE_TURN_RATE).toBeCloseTo(39.3, 1);
+    expect((2 * Math.PI) / CYCLONE_SWAY_RATE).toBeCloseTo(27.3, 1);
+  });
+
+  it("turns rigidly in the core and fades out at the edge of the painted arms", () => {
+    expect(cycloneBody(0)).toBe(1);
+    expect(cycloneBody(CYCLONE_CORE * reach)).toBe(1);
+    expect(cycloneBody(reach)).toBe(0);
+    expect(cycloneBody(reach * 1.5)).toBe(0);
+    let last = 1;
+    for (let d = 0; d <= reach; d += reach / 100) {
+      expect(cycloneBody(d)).toBeLessThanOrEqual(last);
+      last = cycloneBody(d);
     }
   });
 
-  it("hides each layer's restart: a layer has no weight as it starts again, full weight halfway", () => {
-    const [atRestart] = swirlLayers(0);
-    expect(atRestart.phase).toBe(0);
-    expect(atRestart.weight).toBe(0);
-    const [halfway] = swirlLayers(CYCLONE_CYCLE / 2);
-    expect(halfway.weight).toBeCloseTo(1, 9);
-  });
-
-  it("keeps each layer's turn small, so the crossfaded layers barely differ", () => {
-    // Half a cycle either side of a layer's middle, inside the core.
-    expect(CYCLONE_SPIN * (CYCLONE_CYCLE / 2)).toBeLessThan(0.35);
-  });
-
-  it("keeps the two layers within 9 px of each other anywhere in the storm, so the crossfade shows no ghost", () => {
-    const reach = LANDMARKS.cyclone.radius;
-    let widest = 0;
-    for (let d = 0; d <= reach; d += reach / 200) widest = Math.max(widest, swirlLayerGap(d));
-    expect(widest / PX).toBeLessThan(9);
-    // A rigid turn of the whole reach, as before, would have put them more than 20 px apart.
-    expect((CYCLONE_SPIN * (CYCLONE_CYCLE / 2) * reach * 0.55) / PX).toBeGreaterThan(20);
-  });
-
-  it("turns like a real vortex: rigid in the core, then the same speed along every ring", () => {
-    const speed = (d: number) => CYCLONE_SPIN * Math.min(1, CYCLONE_CORE / d) * d;
-    expect(speed(CYCLONE_CORE / 2)).toBeCloseTo(speed(CYCLONE_CORE) / 2, 9);
-    expect(speed(CYCLONE_CORE * 3)).toBeCloseTo(speed(CYCLONE_CORE), 9);
-    expect(CYCLONE_CORE).toBeLessThan(LANDMARKS.cyclone.radius / 3);
-    // The inflow is a few px per second on the master.
-    expect(CYCLONE_INFLOW / PX).toBeGreaterThan(2);
-    expect(CYCLONE_INFLOW / PX).toBeLessThan(6);
-  });
-
-  it("writes the swirl into the shader and no longer rocks the storm", () => {
-    expect(plateFragmentShader).toContain(`const float CYCLONE_SPIN = ${glslFloat(CYCLONE_SPIN)};`);
+  it("is written into the shader as one turn, with no crossfaded layers, inflow or breath", () => {
+    expect(plateFragmentShader).toContain(`const float CYCLONE_TURN = ${glslFloat(CYCLONE_TURN)};`);
+    expect(plateFragmentShader).toContain(`const float CYCLONE_TURN_RATE = ${glslFloat(CYCLONE_TURN_RATE)};`);
+    expect(plateFragmentShader).toContain(`const float CYCLONE_SWAY = ${glslFloat(CYCLONE_SWAY)};`);
+    expect(plateFragmentShader).toContain(`const float CYCLONE_SWAY_RATE = ${glslFloat(CYCLONE_SWAY_RATE)};`);
     expect(plateFragmentShader).toContain(`const float CYCLONE_CORE = ${glslFloat(CYCLONE_CORE)};`);
-    expect(plateFragmentShader).toContain("min(1.0, CYCLONE_CORE / d)");
-    expect(plateFragmentShader).toContain("vec2 swirl(vec2 q, float phase)");
-    expect(plateFragmentShader).not.toContain("sin(uTime * 0.16)");
+    expect(plateFragmentShader).toContain("vec2 cyclone(vec2 q)");
+    expect(plateFragmentShader).toContain("limbSafe(sharedMotion(q) + cyclone(q), dist)");
+    for (const gone of ["swirl(", "breathe(", "CYCLONE_INFLOW", "CYCLONE_CYCLE"]) expect(plateFragmentShader).not.toContain(gone);
   });
 
   it("spans the painted arms, about 190 px from the eye", () => {
-    expect(LANDMARKS.cyclone.radius / PX).toBeCloseTo(190, 0);
-  });
-});
-
-describe("cyclone breath", () => {
-  it("moves the clouds in toward the eye and back out, a few pixels each way", () => {
-    expect(cycloneBreath(CYCLONE_BREATH_PERIOD / 4)).toBeCloseTo(CYCLONE_BREATH, 9); // in
-    expect(cycloneBreath((CYCLONE_BREATH_PERIOD * 3) / 4)).toBeCloseTo(-CYCLONE_BREATH, 9); // out
-    expect(CYCLONE_BREATH / PX).toBeGreaterThan(6);
-    expect(CYCLONE_BREATH / PX).toBeLessThan(16);
-  });
-
-  it("stays bounded: after any number of breaths the storm is back where it started", () => {
-    for (const n of [1, 7, 100]) expect(cycloneBreath(n * CYCLONE_BREATH_PERIOD)).toBeCloseTo(0, 9);
-    for (let t = 0; t < 600; t += 0.73) expect(Math.abs(cycloneBreath(t))).toBeLessThanOrEqual(CYCLONE_BREATH + 1e-12);
-  });
-
-  it("breathes slowly, over several swirl cycles", () => {
-    expect(CYCLONE_BREATH_PERIOD).toBeGreaterThan(CYCLONE_CYCLE * 2);
-  });
-
-  it("is written into the shader, kept off the eye and the emblem", () => {
-    expect(plateFragmentShader).toContain(`const float CYCLONE_BREATH = ${glslFloat(CYCLONE_BREATH)};`);
-    expect(plateFragmentShader).toContain(`const float CYCLONE_BREATH_PERIOD = ${glslFloat(CYCLONE_BREATH_PERIOD)};`);
-    expect(plateFragmentShader).toMatch(/vec2 breathe\(vec2 q\)[\s\S]*smoothstep\(0\.0, 0\.2, d \/ CYCLONE_REACH\)[\s\S]*emblemAt\(q\)/);
+    expect(reach / PX).toBeCloseTo(190, 0);
   });
 });
 
 describe("emblem mask", () => {
-  it("is sampled from its own texture and keeps the swirl off the emblem", () => {
+  it("is sampled from its own texture and keeps the cyclone's turn off the emblem", () => {
     expect(plateFragmentShader).toMatch(/uniform sampler2D uEmblem;/);
-    expect(plateFragmentShader).toMatch(/vec2 swirl\(vec2 q, float phase\)[\s\S]*\* \(1\.0 - emblemAt\(q\)\);/);
+    expect(plateFragmentShader).toMatch(/vec2 cyclone\(vec2 q\)[\s\S]*\* body \* \(1\.0 - emblemAt\(q\)\);/);
   });
 });
 

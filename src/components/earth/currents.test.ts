@@ -156,11 +156,10 @@ describe("the scene's first frame", () => {
   });
 
   it("starts every other motion from zero too", () => {
-    // Drift and weather are sines measured from t = 0; the breath is a sine from zero; the cyclone's first
-    // layer has no weight and its second is untouched at its middle.
+    // Drift and weather are sines measured from t = 0, and the cyclone turns by sines from zero.
     expect(plateFragmentShader).toContain("vec2(12.0 * sin(uTime * 0.055), 4.5 * sin(uTime * 0.043))");
     expect(plateFragmentShader).toContain("sin(uTime * 0.22 + q.y * 3.0) - sin(q.y * 3.0)");
-    expect(plateFragmentShader).toContain("CYCLONE_BREATH * sin(TAU * uTime / CYCLONE_BREATH_PERIOD)");
+    expect(plateFragmentShader).toContain("CYCLONE_TURN * sin(uTime * CYCLONE_TURN_RATE) + CYCLONE_SWAY * sin(uTime * CYCLONE_SWAY_RATE)");
     expect(plateFragmentShader).toContain("smoothstep(0.0, CURRENT_EASE_IN, uTime)");
     expect(plateFragmentShader).toContain(`const float CURRENT_EASE_IN = ${glslFloat(CURRENT_EASE_IN)};`);
   });
