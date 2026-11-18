@@ -1,5 +1,6 @@
 import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
+import sharp from "sharp";
 import { describe, expect, it } from "vitest";
 import { absoluteUrl, organizationJsonLd, organizationLogoPath } from "./seo";
 
@@ -25,7 +26,27 @@ describe("organizationJsonLd", () => {
     expect(width).toBeGreaterThanOrEqual(112);
   });
 
-  it("uses the new symbol, not the old mark", () => {
+  it("uses the built mark, not a raw master or the old mark", () => {
     expect(organizationLogoPath).not.toContain("logo-mark");
+    expect(organizationLogoPath.startsWith("/brand/logo/")).toBe(true);
+  });
+
+  it("shows a dark mark that reads on white, with clear space on every side", async () => {
+    const { data, info } = await sharp(logoFile).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+    let left = info.width;
+    let right = 0;
+    let lum = 0;
+    let solid = 0;
+    for (let p = 0; p < info.width * info.height; p++) {
+      if (data[p * 4 + 3]! < 128) continue;
+      const x = p % info.width;
+      left = Math.min(left, x);
+      right = Math.max(right, x);
+      lum += (data[p * 4]! + data[p * 4 + 1]! + data[p * 4 + 2]!) / 3;
+      solid++;
+    }
+    expect(lum / solid).toBeLessThan(90);
+    expect(left).toBeGreaterThan(0);
+    expect(right).toBeLessThan(info.width - 1);
   });
 });
