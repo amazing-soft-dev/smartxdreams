@@ -24,7 +24,7 @@ export type PlateVariant = (typeof PLATE_VARIANTS)[number];
 /**
  * The cloud emblem's mask, a quarter of the master's size: white on the emblem's two strokes, black elsewhere,
  * softened at the edge. Built with the variants by scripts/build-earth-plate.mjs from the strokes traced there.
- * The scene keeps the cyclone's swirl off what it covers.
+ * The scene keeps the cyclone's turn off what it covers.
  */
 export const EMBLEM_MASK_SRC = "/brand/earth/earth-emblem-mask.png";
 
@@ -68,7 +68,7 @@ export function horizonDistance(u: number, v: number): number {
  * - sunrise: the hottest point of the sun's glare, just inside the limb, about (688, 345) px
  * - cyclone: the storm's eye at about (1458, 292) px, its painted arms reaching about 190 px out. The cloud
  *   emblem's upper stroke passes about 100 px from the eye, inside that reach; the emblem mask
- *   (EMBLEM_MASK_SRC) keeps the swirl off it
+ *   (EMBLEM_MASK_SRC) keeps the turn off it
  * - symbol: the cloud emblem, about x 1005–1540 and y 355–650 px
  */
 export const LANDMARKS = {
