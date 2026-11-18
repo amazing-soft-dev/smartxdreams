@@ -74,7 +74,7 @@ export const termsOfUse: LegalDocument = {
     {
       id: "links",
       title: "Links to other websites",
-      blocks: ["We link to other websites, such as photo credits. We are not responsible for their content or how they handle your data."],
+      blocks: ["We may link to other websites. We are not responsible for their content or how they handle your data."],
     },
     {
       id: "no-warranty",
