@@ -133,10 +133,11 @@ describe("emblem mask", () => {
     expect(existsSync(`public${EMBLEM_MASK_SRC}`)).toBe(true);
   });
 
-  it("holds the strokes in red and the distance from them in green, as emblemDistance() works it out", async () => {
+  it("is one greyscale channel, the distance from the strokes, as emblemDistance() works it out", async () => {
     const { default: sharp } = await import("sharp");
-    const { data, info } = await sharp(`public${EMBLEM_MASK_SRC}`).raw().toBuffer({ resolveWithObject: true });
-    expect(info.channels).toBeGreaterThanOrEqual(3);
+    const file = `public${EMBLEM_MASK_SRC}`;
+    expect((await sharp(file).metadata()).channels).toBe(1);
+    const { data, info } = await sharp(file).raw().toBuffer({ resolveWithObject: true });
     let worst = 0;
     for (let j = 2; j < info.height; j += 7) {
       for (let i = 3; i < info.width; i += 7) {
@@ -144,11 +145,7 @@ describe("emblem mask", () => {
         const x = ((i + 0.5) / info.width) * PLATE_ASPECT;
         const y = (j + 0.5) / info.height;
         const expected = Math.min(1, emblemDistance(x, y) / EMBLEM_REGION_RANGE);
-        worst = Math.max(worst, Math.abs(data[k + 1]! / 255 - expected));
-        // Well inside a stroke the red is mostly white (the blur softens it a little) and the distance zero.
-        if (emblemDistance(x, y) === 0 && emblemDistance(x + 0.02, y) === 0 && emblemDistance(x - 0.02, y) === 0) {
-          expect(data[k]!).toBeGreaterThan(160);
-        }
+        worst = Math.max(worst, Math.abs(data[k]! / 255 - expected));
       }
     }
     expect(worst).toBeLessThanOrEqual(1 / 255 + 1e-9);

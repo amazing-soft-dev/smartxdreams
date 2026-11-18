@@ -331,14 +331,14 @@ describe("emblem drift", () => {
     expect(total / count).toBeLessThan(0.05);
   });
 
-  it("is written into the shader, reading the distance from the mask's green channel", () => {
+  it("is written into the shader, reading the distance from the emblem mask", () => {
     expect(plateFragmentShader).toContain(`const vec2 EMBLEM_DRIFT = vec2(${glslFloat(EMBLEM_DRIFT[0])}, ${glslFloat(EMBLEM_DRIFT[1])});`);
     expect(plateFragmentShader).toContain(
       `const vec2 EMBLEM_DRIFT_RATES = vec2(${glslFloat(EMBLEM_DRIFT_RATES[0])}, ${glslFloat(EMBLEM_DRIFT_RATES[1])});`,
     );
     expect(plateFragmentShader).toContain(`const float EMBLEM_FADE = ${glslFloat(EMBLEM_FADE)};`);
     expect(plateFragmentShader).toContain(`const float EMBLEM_REGION_RANGE = ${glslFloat(EMBLEM_REGION_RANGE)};`);
-    expect(plateFragmentShader).toContain(".g * EMBLEM_REGION_RANGE;");
+    expect(plateFragmentShader).toContain(".r * EMBLEM_REGION_RANGE;");
     expect(plateFragmentShader).toContain("mix(weather(q), emblemDrift(), emblemWhole(q))");
     expect(plateFragmentShader).toContain("* motionPx();\n}");
   });

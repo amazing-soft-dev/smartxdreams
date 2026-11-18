@@ -130,7 +130,7 @@ export function weatherAt(x: number, y: number, t: number, px = MASTER_PX): { x:
 /**
  * The cloud emblem drifts, as the cloud forms on generalcontextlabs.com flow with the weather: as one rigid piece,
  * on its own slow sines, so it moves visibly while every stroke keeps its shape. The plate near it drifts with it
- * and fades back to the weather with distance from the strokes (the mask's green channel, emblemDistance()), so
+ * and fades back to the weather with distance from the strokes (the emblem mask, emblemDistance()), so
  * the open ocean between and around the strokes moves with the emblem and nothing tears at a stroke's edge.
  * Read pixel by pixel instead, the weather bent the strokes apart, so until now the emblem was calmed and only
  * followed the slow orbital drift: it looked static.
@@ -240,7 +240,7 @@ uniform vec4 uSky;          // what shows outside the planet and its glow (premu
 uniform float uTime;        // seconds the scene has been running
 uniform vec2 uFlowCells;    // the fluid grid's columns and rows (fluidGridFor(): square cells over the canvas)
 uniform sampler2D uFlow;    // the fluid wake's displacement over the canvas (fluid.ts): red x, green y, 0.5 = still
-uniform sampler2D uEmblem;  // the cloud emblem's mask over the plate (earth-emblem-mask.png): 1 on the emblem
+uniform sampler2D uEmblem;  // distance from the cloud emblem's strokes over the plate (earth-emblem-mask.png)
 
 varying vec2 vUv;
 
@@ -273,7 +273,7 @@ const float WEATHER_WAVE = ${glslFloat(WEATHER_WAVE)};
 ${WEATHER_SYSTEMS.map((s, i) => `const vec4 WEATHER_SYSTEM_${i} = vec4(${[s.x, s.y, s.width, s.height].map(glslFloat).join(", ")}); // ${s.name}`).join("\n")}
 const float MASTER_PX = ${glslFloat(MASTER_PX)};
 
-// The emblem's drift (see EMBLEM_* in plate-shader.ts), and the distance the mask's green channel spans.
+// The emblem's drift (see EMBLEM_* in plate-shader.ts), and the distance the emblem mask spans.
 const vec2 EMBLEM_DRIFT = vec2(${glslFloat(EMBLEM_DRIFT[0])}, ${glslFloat(EMBLEM_DRIFT[1])});
 const vec2 EMBLEM_DRIFT_RATES = vec2(${glslFloat(EMBLEM_DRIFT_RATES[0])}, ${glslFloat(EMBLEM_DRIFT_RATES[1])});
 const float EMBLEM_FADE = ${glslFloat(EMBLEM_FADE)};
@@ -292,11 +292,11 @@ vec2 orbital() {
 }
 
 // How much of the plate at q drifts with the cloud emblem as one piece, 0..1: all of it on the strokes, fading
-// out over EMBLEM_FADE plate heights from them (the mask's green channel is that distance, white at
-// EMBLEM_REGION_RANGE). The placeholder's white green reads as far away, so nothing drifts with the emblem until
-// the mask has loaded. Mirrors emblemWholeAt().
+// out over EMBLEM_FADE plate heights from them (the emblem mask is that distance, white at EMBLEM_REGION_RANGE).
+// The placeholder's white reads as far away, so nothing drifts with the emblem until the mask has loaded.
+// Mirrors emblemWholeAt().
 float emblemWhole(vec2 q) {
-  float distance = texture2D(uEmblem, vec2(q.x / PLATE_ASPECT, 1.0 - q.y)).g * EMBLEM_REGION_RANGE;
+  float distance = texture2D(uEmblem, vec2(q.x / PLATE_ASPECT, 1.0 - q.y)).r * EMBLEM_REGION_RANGE;
   return 1.0 - smoothstep(0.0, EMBLEM_FADE, distance);
 }
 
