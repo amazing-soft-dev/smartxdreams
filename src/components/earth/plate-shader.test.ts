@@ -86,6 +86,10 @@ describe("plate shader", () => {
     );
   });
 
+  it("is plain ASCII, which GLSL ES requires even in comments (one ² failed to compile)", () => {
+    expect(plateFragmentShader).toMatch(/^[\x00-\x7f]*$/);
+  });
+
   it("writes every uniform the scene sets", () => {
     for (const name of ["uPlate", "uPlateRect", "uResolution", "uReady", "uSky", "uTime", "uFlow", "uFlowCells", "uEmblem"]) {
       expect(plateFragmentShader).toMatch(new RegExp(`uniform \\w+ ${name};`));
@@ -200,6 +204,24 @@ describe("weather systems", () => {
       }
       expect(most, s.name).toBeGreaterThan(15);
     }
+  });
+
+  it("slide clouds past each other without zooming: no patch grows or shrinks by a fifth, and few by much", () => {
+    // Over the whole planet, for three minutes, on the master. The noise patches they replace reached 44%.
+    const motion: Motion = (x, y, t) => weatherAt(x, y, t);
+    let worst = 0;
+    let total = 0;
+    let count = 0;
+    for (let t = 0; t < 180; t += 2.3) {
+      for (const [x, y] of planet(0.03)) {
+        const change = areaChange(motion, x, y, t);
+        worst = Math.max(worst, change);
+        total += change;
+        count++;
+      }
+    }
+    expect(worst).toBeLessThan(0.2);
+    expect(total / count).toBeLessThan(0.06);
   });
 
   it("move a plate drawn smaller than the master no further, for its size, than the master", () => {
