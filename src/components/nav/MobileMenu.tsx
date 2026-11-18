@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
 import { useLenis } from "@/components/motion/SmoothScroll";
+import { ProductLogo } from "@/components/product/ProductLogo";
 import { Button } from "@/components/ui/Button";
 import { Logo } from "@/components/ui/Logo";
 import { products } from "@/content/products";
@@ -125,10 +126,13 @@ export function MobileMenu({ id, open, onOpenChange }: MobileMenuProps) {
                             href={`/products/${product.slug}`}
                             aria-current={pathname === `/products/${product.slug}` ? "page" : undefined}
                             onClick={() => onOpenChange(false)}
-                            className="flex flex-col py-2.5 pl-4"
+                            className="flex items-center gap-3.5 py-2.5 pl-4"
                           >
-                            <span className="text-body-l text-white">{product.name}</span>
-                            <span className="text-label text-white/65">{product.tagline}</span>
+                            <ProductLogo product={product} size={32} decorative />
+                            <span className="flex min-w-0 flex-col">
+                              <span className="text-body-l text-white">{product.name}</span>
+                              <span className="text-label text-white/65">{product.tagline}</span>
+                            </span>
                           </Link>
                         </li>
                       ))}
