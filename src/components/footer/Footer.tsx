@@ -1,3 +1,4 @@
+import { Reveal } from "@/components/motion/Reveal";
 import { TransitionLink } from "@/components/transition/TransitionLink";
 import { Container } from "@/components/ui/Container";
 import { Logo } from "@/components/ui/Logo";
@@ -8,6 +9,7 @@ import { SocialIcons } from "./SocialIcons";
 import { products } from "@/content/products";
 import { company, footerGroups, trademarkNote } from "@/content/site";
 import type { NavGroup } from "@/content/types";
+import { stagger } from "@/styles/motion";
 
 /** The Products group is built from the product files, so a new product appears here automatically. */
 const productGroup: NavGroup = {
@@ -43,8 +45,9 @@ export function Footer() {
           </div>
 
           <nav aria-label="Footer" className="grid grid-cols-2 gap-x-6 gap-y-10 sm:grid-cols-3">
-            {groups.map((group) => (
-              <div key={group.label}>
+            {/* The columns rise in one after another as the footer is reached. */}
+            {groups.map((group, i) => (
+              <Reveal key={group.label} preset="up50" delay={i * (stagger.group / 2)}>
                 <h2 className="text-label font-medium text-white">{group.label}</h2>
                 <ul className="mt-4 flex flex-col gap-1">
                   {group.items.map((item) => (
@@ -58,7 +61,7 @@ export function Footer() {
                     </li>
                   ))}
                 </ul>
-              </div>
+              </Reveal>
             ))}
           </nav>
         </div>
