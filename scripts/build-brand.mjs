@@ -5,6 +5,7 @@
 //   public/brand/logo/smartxdreams-mark-on-light-square-512.png        square, padded: the organisation logo
 //   public/brand/icons/…                                                favicons and home-screen icons (below)
 //   src/lib/brand-marks.json                                            each mark's size, for the Logo component
+//   public/products/logos/<slug>-<48|96|192|384>.webp                  each product's logo on a square (below)
 //
 //   npm run brand            write the files
 //   npm run check:brand      fail if a file is missing or its size or format differs from what the masters give
@@ -133,9 +134,9 @@ export async function loadArtwork(file) {
 }
 
 const outputs = [];
-/** Queues a file: written in build mode, compared in check mode. */
-function emit(file, buffer) {
-  outputs.push({ file: path.join(root, file), buffer });
+/** Queues a file: written in build mode, compared in check mode. `maxBytes` overrides the default budget. */
+function emit(file, buffer, maxBytes = MAX_BYTES) {
+  outputs.push({ file: path.join(root, file), buffer, maxBytes });
 }
 
 const MARKS = [
@@ -245,6 +246,24 @@ emit("src/app/apple-icon.png", appleIcon);
   emit("src/app/icon.svg", Buffer.from(svg));
 }
 
+// ── Product logos ────────────────────────────────────────────────────────────────────────────────────
+// public/products/logos/<slug>-<size>.webp from assets/products/<slug>.png: cleaned and trimmed like the
+// mark, then centred on a transparent square, so every product's logo fills the same box whatever its
+// shape (ToothLedger's is a full-bleed tile, Joined's a tall pin). The site draws them on a light tile,
+// because several (Acorn's black A, TrustDraft's navy arc) would disappear on ink.
+const PRODUCT_LOGO_SIZES = [48, 96, 192, 384];
+const PRODUCT_MAX_BYTES = 40 * 1024;
+const productMasters = (await fs.readdir(path.join(root, "assets/products"))).filter((f) => f.endsWith(".png")).sort();
+for (const file of productMasters) {
+  const slug = path.basename(file, ".png");
+  const artwork = await loadArtwork(path.join(root, "assets/products", file));
+  console.log(`assets/products/${file}  artwork ${artwork.width} x ${artwork.height}`);
+  for (const size of PRODUCT_LOGO_SIZES) {
+    const image = await (await square(artwork, size, 1)).webp({ quality: 88, alphaQuality: 100, effort: 6 }).toBuffer();
+    emit(`public/products/logos/${slug}-${size}.webp`, image, PRODUCT_MAX_BYTES);
+  }
+}
+
 /** An ICO file holding PNG images (every browser since IE Vista-era reads PNG entries). */
 function ico(images) {
   const header = Buffer.alloc(6 + 16 * images.length);
@@ -268,9 +287,9 @@ function ico(images) {
 }
 
 let failed = false;
-for (const { file, buffer } of outputs) {
+for (const { file, buffer, maxBytes } of outputs) {
   const rel = path.relative(root, file).replaceAll("\\", "/");
-  const over = buffer.length > MAX_BYTES;
+  const over = buffer.length > maxBytes;
   failed ||= over;
   if (check) {
     // Compare sizes, not bytes: sharp's encoders may differ by a few bytes between platforms. An ICO is
