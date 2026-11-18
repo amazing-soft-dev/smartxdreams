@@ -84,9 +84,12 @@ export function ProductProblem({ product }: ProductProps) {
   return (
     <Section labelledBy="problem-title" surface="canvas">
       <div className="mx-auto max-w-4xl text-center">
-        <Tag>The problem</Tag>
+        {/* Tag, then the problem in the user's words: the same order as every SectionHeader. */}
+        <Reveal preset="up35">
+          <Tag>The problem</Tag>
+        </Reveal>
         <h2 id="problem-title" className="mt-6 text-h3">
-          {product.problem}
+          <SplitText text={product.problem} delay={0.1} />
         </h2>
       </div>
     </Section>
