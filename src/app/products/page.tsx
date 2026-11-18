@@ -13,7 +13,7 @@ import { absoluteUrl, pageMetadata } from "@/lib/seo";
 export const metadata: Metadata = pageMetadata({
   title: "Products",
   description:
-    "Six focused AI products from SmartxDreams: JobAtlas, ApplyPilot, SiteLog, ToothLedger, Kinly and TrustDraft. Find the one made for you and join its waitlist.",
+    "Six focused AI products from SmartxDreams: Joined, Acorn, SiteLog, ToothLedger, SeniorAIPlans and TrustDraft. Find the one made for you and join its waitlist.",
   path: "/products",
 });
 
