@@ -9,6 +9,7 @@ import { Logo } from "@/components/ui/Logo";
 import { products } from "@/content/products";
 import { headerCta, mainNav } from "@/content/site";
 import { cx } from "@/lib/cx";
+import { NAV_LOGO_HEIGHT } from "./logo-size";
 
 type MobileMenuProps = {
   id: string;
@@ -71,7 +72,7 @@ export function MobileMenu({ id, open, onOpenChange }: MobileMenuProps) {
       <div className="flex min-h-full flex-col px-4 pt-3 pb-8 md:px-10 md:pt-5">
         <div className="flex h-15 items-center justify-between pr-2 pl-4">
           <Link href="/" aria-label="SmartxDreams home" onClick={() => onOpenChange(false)} className="inline-flex min-h-11 items-center rounded-md">
-            <Logo tone="light" height={26} decorative />
+            <Logo tone="light" height={NAV_LOGO_HEIGHT} decorative />
           </Link>
           <button
             type="button"
