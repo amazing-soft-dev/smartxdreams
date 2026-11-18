@@ -2,13 +2,26 @@
 // - the home and 404 HTML pages exist
 // - sitemap.xml and robots.txt exist once their routes exist in src/app
 // - the favicon, SVG icon, Apple touch icon and manifest exist, and so does every icon the manifest lists
+// - every logo and icon file scripts/build-brand.mjs writes is there
 // - every file in public/ was copied (except photo sources, which ship as WebP variants)
 // - every photo has all of its WebP variants
 // - out/api does not exist (there is no server in the static export)
 
 import { access, readdir, readFile } from "node:fs/promises";
 import path from "node:path";
+import brandMarks from "../src/lib/brand-marks.json" with { type: "json" };
 import config from "../src/lib/image-config.json" with { type: "json" };
+
+/** Browser and home-screen icons built into public/brand/icons/ (see scripts/build-brand.mjs). */
+const BRAND_ICONS = [
+  "favicon.ico",
+  "favicon-16x16.png",
+  "favicon-32x32.png",
+  "apple-touch-icon.png",
+  "android-chrome-192x192.png",
+  "android-chrome-512x512.png",
+  "maskable-512x512.png",
+];
 
 const root = path.resolve(import.meta.dirname, "..");
 const out = path.join(root, "out");
@@ -50,6 +63,15 @@ if (await exists(path.join(out, "manifest.webmanifest"))) {
   const manifest = JSON.parse(await readFile(path.join(out, "manifest.webmanifest"), "utf8"));
   for (const icon of manifest.icons ?? []) await expect(icon.src.replace(/^\//, ""), "icon listed in the manifest");
 }
+
+// The logo files scripts/build-brand.mjs writes: every width the Logo component lists in its srcset, the
+// PNGs the social card and the structured data read, and the browser and home-screen icons.
+for (const name of Object.keys(brandMarks.marks)) {
+  for (const width of brandMarks.widths) await expect(`brand/logo/${name}-${width}.webp`, "logo file in the Logo srcset");
+  await expect(`brand/logo/${name}-512.png`, "logo PNG for the social card");
+}
+await expect("brand/logo/smartxdreams-mark-on-light-square-512.png", "organisation logo in the structured data");
+for (const icon of BRAND_ICONS) await expect(`brand/icons/${icon}`, "built browser or home-screen icon");
 
 const publicDir = path.join(root, "public");
 const photoSource = path.join(root, config.sourceDir);
