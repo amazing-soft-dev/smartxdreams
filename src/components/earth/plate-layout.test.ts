@@ -62,6 +62,8 @@ const RESOLUTIONS: [number, number][] = [
 ];
 
 const EPS = 1e-9;
+/** How far below the visible hero (H) the plate must reach: the cards band rises 28 or 36 px over it. */
+const UNDER_BAND = 0.03;
 
 const byName = (name: string): PlateBreakpoint => PLATE_BREAKPOINTS.find((bp) => bp.name === name)!;
 
@@ -82,6 +84,9 @@ function placementProblems(bp: PlateBreakpoint, aspect: number): string[] {
   const { rect } = box;
   if (rect.left + rect.width < aspect - EPS) problems.push("right edge uncovered");
   if (rect.bottom > EPS) problems.push("bottom edge uncovered");
+  // The plate runs on under the cards band (28 or 36 px, at least 0.03 H on any hero), so its rounded corners
+  // show the planet.
+  if (rect.bottom > -UNDER_BAND) problems.push("plate stops at the band");
   if (!(rect.left <= EPS || plateToHero(rect, 0, horizonV(0)).y <= EPS)) problems.push("planet cut off on the left");
   if (box.left <= 0 || box.right >= aspect || box.bottom <= 0 || box.top >= 1) problems.push("emblem off screen");
   // On the planet: the emblem's top corners are below the limb.
