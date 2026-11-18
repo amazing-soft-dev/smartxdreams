@@ -1,5 +1,6 @@
 import { products } from "./products";
 import { audiences } from "./site";
+import { team } from "./team";
 import type { Audience, Product } from "./types";
 
 /** The product with this slug, or undefined. */
@@ -25,4 +26,13 @@ export function relatedProducts(product: Product): Product[] {
 /** Every product slug, for generateStaticParams. */
 export function productSlugs(): string[] {
   return products.map((p) => p.slug);
+}
+
+/** The About page's numbers, each counted from content: people on the team, its disciplines, products. */
+export function aboutStats(): { label: string; value: number }[] {
+  return [
+    { label: "People on the team", value: team.length },
+    { label: "Disciplines, from design to AI", value: new Set(team.map((p) => p.group)).size },
+    { label: "Products in development", value: products.length },
+  ];
 }
