@@ -2,6 +2,7 @@ import { TransitionLink } from "@/components/transition/TransitionLink";
 import { Container } from "@/components/ui/Container";
 import { Logo } from "@/components/ui/Logo";
 import { FooterSmoke } from "./FooterSmoke";
+import { FooterStars } from "./FooterStars";
 import { SocialIcons } from "./SocialIcons";
 import { products } from "@/content/products";
 import { company, footerGroups, trademarkNote } from "@/content/site";
@@ -16,13 +17,14 @@ const productGroup: NavGroup = {
 /** Privacy and Terms, repeated in the bottom bar. */
 const legalLinks = footerGroups.find((g) => g.label === "Legal")?.items ?? [];
 
-/** Dark site footer: brand column, link groups, and a bottom bar with the copyright, legal links and the
- * third-party trademark note. */
+/** Dark site footer under a night sky: brand column, link groups, and a bottom bar with the copyright,
+ * legal links and the third-party trademark note. The sky (stars, then the smoke) sits behind it all. */
 export function Footer() {
   const groups = [productGroup, ...footerGroups];
   const year = new Date().getFullYear();
   return (
-    <footer data-surface="dark" data-nav-theme="dark" className="relative isolate overflow-hidden bg-ink text-white">
+    <footer data-surface="dark" data-nav-theme="dark" className="relative isolate overflow-hidden bg-ink bg-linear-to-b from-space to-ink text-white">
+      <FooterStars />
       <FooterSmoke />
       <Container className="relative pt-20 pb-10 md:pt-24">
         <div className="grid gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)] lg:gap-16">
