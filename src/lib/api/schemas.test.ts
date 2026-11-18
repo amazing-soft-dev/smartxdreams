@@ -4,7 +4,7 @@ import { waitlistConsent, waitlistSchema } from "@/lib/forms/waitlist";
 import { contactRequestSchema, waitlistRequestSchema } from "./schemas";
 
 const contact = { name: "Ann Example", email: "ann@example.com", topic: "general", message: "A question for the team." };
-const waitlist = { email: "ann@example.com", product: "kinly", consent: true, consentVersion: waitlistConsent.version, elapsedMs: 5000 };
+const waitlist = { email: "ann@example.com", product: "senioraiplans", consent: true, consentVersion: waitlistConsent.version, elapsedMs: 5000 };
 
 describe("contact form schema", () => {
   it("accepts a complete message and trims it", () => {
@@ -36,7 +36,7 @@ describe("contact form schema", () => {
 
 describe("contact request schema (server)", () => {
   it("accepts a known product and the spam-guard fields", () => {
-    expect(contactRequestSchema.safeParse({ ...contact, product: "kinly", website: "", elapsedMs: 4000 }).success).toBe(true);
+    expect(contactRequestSchema.safeParse({ ...contact, product: "senioraiplans", website: "", elapsedMs: 4000 }).success).toBe(true);
   });
 
   it("rejects a product slug that does not exist", () => {
@@ -48,13 +48,13 @@ describe("contact request schema (server)", () => {
 
 describe("waitlist schemas", () => {
   it("requires consent", () => {
-    const result = waitlistSchema.safeParse({ email: "ann@example.com", product: "kinly", consent: false });
+    const result = waitlistSchema.safeParse({ email: "ann@example.com", product: "senioraiplans", consent: false });
     expect(result.success).toBe(false);
     if (!result.success) expect(fieldErrors(result.error)).toEqual({ consent: "Tick the box to agree to waitlist emails." });
   });
 
   it("accepts each of the six products and nothing else", () => {
-    for (const product of ["joined", "acorn", "sitelog", "toothledger", "kinly", "trustdraft"]) {
+    for (const product of ["joined", "acorn", "sitelog", "toothledger", "senioraiplans", "trustdraft"]) {
       expect(waitlistRequestSchema.safeParse({ ...waitlist, product }).success).toBe(true);
     }
     expect(waitlistRequestSchema.safeParse({ ...waitlist, product: "nope" }).success).toBe(false);

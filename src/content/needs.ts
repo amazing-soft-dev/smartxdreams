@@ -4,6 +4,6 @@ export const productNeeds: { need: string; slug: string }[] = [
   { need: "I retype my work history into every application form.", slug: "acorn" },
   { need: "I run a site crew and the daily report is always late.", slug: "sitelog" },
   { need: "I have a dental quote and want to know what I will pay.", slug: "toothledger" },
-  { need: "Bills and letters are hard to read, and I worry about scams.", slug: "kinly" },
+  { need: "Bills and letters are hard to read, and I worry about scams.", slug: "senioraiplans" },
   { need: "A big customer sent us a security questionnaire.", slug: "trustdraft" },
 ];

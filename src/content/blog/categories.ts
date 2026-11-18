@@ -25,7 +25,7 @@ export const blogCategories = [
     id: "later-life",
     label: "Later life",
     description: "Bills, letters, paperwork and staying safe from scams.",
-    products: ["kinly"],
+    products: ["senioraiplans"],
   },
   {
     id: "security-reviews",

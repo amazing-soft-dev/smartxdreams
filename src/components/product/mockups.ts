@@ -12,6 +12,6 @@ export const productMockups: Record<string, ComponentType<{ className?: string }
   acorn: ApplyPilotMockup,
   sitelog: SiteLogMockup,
   toothledger: ToothLedgerMockup,
-  kinly: KinlyMockup,
+  senioraiplans: KinlyMockup,
   trustdraft: TrustDraftMockup,
 };
