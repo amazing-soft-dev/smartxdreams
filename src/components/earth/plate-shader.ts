@@ -109,6 +109,23 @@ export function swirlLayers(t: number): [{ phase: number; weight: number }, { ph
   ];
 }
 
+/**
+ * On top of its turn, the cyclone breathes: its clouds ease in toward the eye and back out again, the whole
+ * spiral at once, as in footage of a storm seen from orbit.
+ * - CYCLONE_BREATH: how far the clouds move in and out at full strength, plate heights (about 11 px on the
+ *   master, 9 px on a 1475 px desktop hero)
+ * - CYCLONE_BREATH_PERIOD: seconds for one breath in and out
+ * The eye itself stays put (the breath grows from nothing over the inner fifth of the reach), so the centre
+ * never pinches.
+ */
+export const CYCLONE_BREATH = 0.012;
+export const CYCLONE_BREATH_PERIOD = 9;
+
+/** The breath at time `t` (seconds), in plate heights: positive while the clouds move in. Mirrors the shader. */
+export function cycloneBreath(t: number): number {
+  return CYCLONE_BREATH * Math.sin((2 * Math.PI * t) / CYCLONE_BREATH_PERIOD);
+}
+
 export { GLOW_BAND };
 
 export const plateFragmentShader = /* glsl */ `
@@ -143,6 +160,9 @@ const float CYCLONE_REACH = ${glslFloat(LANDMARKS.cyclone.radius)};
 const float CYCLONE_CYCLE = ${glslFloat(CYCLONE_CYCLE)};
 const float CYCLONE_SPIN = ${glslFloat(CYCLONE_SPIN)};
 const float CYCLONE_INFLOW = ${glslFloat(CYCLONE_INFLOW)};
+const float CYCLONE_BREATH = ${glslFloat(CYCLONE_BREATH)};
+const float CYCLONE_BREATH_PERIOD = ${glslFloat(CYCLONE_BREATH_PERIOD)};
+const float TAU = 6.2831853;
 
 // The cloud symbol's centre and half-size, in plate heights (plate.ts).
 const vec2 SYMBOL = vec2(${glslFloat(LANDMARKS.symbol.u * PLATE_ASPECT)}, ${glslFloat(LANDMARKS.symbol.v)});
@@ -197,6 +217,19 @@ vec2 swirl(vec2 q, float phase) {
   // The emblem's upper stroke passes within about 100 px of the eye, inside the storm's painted reach: the
   // swirl leaves it alone, so it keeps its shape while the arms beside it turn.
   return (vec2(c * r.x - sn * r.y, sn * r.x + c * r.y) * grow - r) * (1.0 - emblemAt(q));
+}
+
+// The cyclone's breath at q: where the content comes from, relative to q. While the breath is positive the
+// content at q came from further out, so the clouds move in toward the eye; then they ease back out. The
+// whole spiral breathes together, fully over the inner part of the reach and not at all past it; the eye is
+// left still (the breath grows from nothing over the inner fifth of the reach), and so is the emblem.
+vec2 breathe(vec2 q) {
+  vec2 r = q - CYCLONE;
+  float d = length(r);
+  if (d < 1e-5) return vec2(0.0);
+  float body = (1.0 - smoothstep(0.55, 1.0, d / CYCLONE_REACH)) * smoothstep(0.0, 0.2, d / CYCLONE_REACH);
+  float b = CYCLONE_BREATH * sin(TAU * uTime / CYCLONE_BREATH_PERIOD);
+  return r / d * (b * body * (1.0 - emblemAt(q)));
 }
 
 // The fluid's displacement at a point of the canvas (0..1, y up), in cells.
@@ -261,8 +294,9 @@ vec3 movedColor(vec2 q, float dist) {
   float p1 = fract(t);
   float p2 = fract(t + 0.5);
   float w1 = 1.0 - abs(2.0 * p1 - 1.0);
-  vec2 m1 = q + motion(q, dist, swirl(q, p1));
-  vec2 m2 = q + motion(q, dist, swirl(q, p2));
+  vec2 breath = breathe(q);
+  vec2 m1 = q + motion(q, dist, swirl(q, p1) + breath);
+  vec2 m2 = q + motion(q, dist, swirl(q, p2) + breath);
   return mix(plateColor(vec2(m2.x / PLATE_ASPECT, m2.y)), plateColor(vec2(m1.x / PLATE_ASPECT, m1.y)), w1);
 }
 
