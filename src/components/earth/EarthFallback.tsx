@@ -117,7 +117,9 @@ export function EarthFallback({ className }: { className?: string }) {
       next
         .decode()
         .then(() => {
-          if (cancelled) return;
+          // Decodes can finish out of order (a small variant still decoding when a resize asks for a sharper
+          // one): a late small one must not replace the sharp one.
+          if (cancelled || (image && image.naturalWidth >= next.naturalWidth)) return;
           image = next;
           scheduleDraw();
         })
