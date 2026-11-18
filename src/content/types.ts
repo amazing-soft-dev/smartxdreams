@@ -97,6 +97,8 @@ export type Person = {
   bio: string;
   /** Two or three short areas they look after, shown as chips. */
   focus: string[];
+  /** Portrait, by registry slot (src/content/photos.json): team-<slug>. */
+  photo: { slot: string };
   /**
    * True while a profile stands in for a person who has not been introduced yet (the name and portrait are
    * placeholders). Replace the profile with the real person's details and set it to false.
