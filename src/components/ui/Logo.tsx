@@ -14,6 +14,11 @@ type LogoProps = {
   /** Accessible name. Pass decorative when visible text next to the logo already names the company. */
   label?: string;
   decorative?: boolean;
+  /**
+   * "low" for logos that are not on screen when the page loads (the mobile menu, the footer, the page
+   * transition): they still load early, but after the stylesheet and fonts the first paint waits on.
+   */
+  fetchPriority?: "high" | "low" | "auto";
   className?: string;
 };
 
@@ -57,10 +62,11 @@ type MarkProps = {
   height: number;
   label: string;
   decorative: boolean;
+  fetchPriority?: "high" | "low" | "auto";
   className?: string;
 };
 
-function Mark({ tone, height, label, decorative, className }: MarkProps) {
+function Mark({ tone, height, label, decorative, fetchPriority, className }: MarkProps) {
   const width = markWidth(tone, height);
   return (
     // A plain <img>: the files are already built at fixed widths, so next/image would only add a loader the
@@ -75,6 +81,7 @@ function Mark({ tone, height, label, decorative, className }: MarkProps) {
       alt={decorative ? "" : label}
       aria-hidden={decorative ? true : undefined}
       decoding="async"
+      fetchPriority={fetchPriority}
       draggable={false}
       className={cx("block shrink-0 select-none", className)}
     />
@@ -103,10 +110,11 @@ export function Logo({
   height = 32,
   label = "SmartxDreams",
   decorative = false,
+  fetchPriority,
   className,
 }: LogoProps) {
   if (variant === "mark") {
-    return <Mark tone={tone} height={height} label={label} decorative={decorative} className={className} />;
+    return <Mark tone={tone} height={height} label={label} decorative={decorative} fetchPriority={fetchPriority} className={className} />;
   }
 
   const colors = WORDMARK_COLORS[tone];
@@ -118,7 +126,7 @@ export function Logo({
       aria-label={decorative ? undefined : label}
       aria-hidden={decorative ? true : undefined}
     >
-      <Mark tone={tone} height={height} label={label} decorative />
+      <Mark tone={tone} height={height} label={label} decorative fetchPriority={fetchPriority} />
       <span
         aria-hidden="true"
         className="font-sans leading-none font-semibold tracking-[-0.03em] whitespace-nowrap"

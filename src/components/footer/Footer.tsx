@@ -30,7 +30,7 @@ export function Footer() {
             <TransitionLink href="/" aria-label="SmartxDreams home" className="inline-flex min-h-11 items-center rounded-md">
               {/* The smoke drifts and its brightest plumes can pass behind the logo: a soft ink shadow keeps the
                   white ribbon and wordmark at the contrast they have on plain ink. */}
-              <Logo tone="light" height={30} decorative className="drop-shadow-[0_1px_10px_rgb(15_18_38/0.6)]" />
+              <Logo tone="light" height={30} decorative fetchPriority="low" className="drop-shadow-[0_1px_10px_rgb(15_18_38/0.6)]" />
             </TransitionLink>
             <p className="mt-5 text-body text-white/65">{company.tagline}</p>
             <SocialIcons />
