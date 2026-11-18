@@ -18,7 +18,7 @@ import {
 import { SCENE_PRIORITY } from "@/components/webgl/scene-budget";
 import { useThreeRenderer } from "@/components/webgl/useThreeRenderer";
 import { EARTH_IGNORE_SELECTOR, EARTH_POINTER_QUERY, isOnEarth, splatCount } from "./earth-pointer";
-import { createFluid } from "./fluid";
+import { createFluid, FLUID_HEIGHT, FLUID_WIDTH, fluidGridFor } from "./fluid";
 import { EMBLEM_MASK_SRC, pickPlateVariant } from "./plate";
 import { type PlateRect, plateBreakpointFor, plateRect, plateUniform } from "./plate-layout";
 import { plateFragmentShader, plateVertexShader } from "./plate-shader";
@@ -52,14 +52,19 @@ export default function EarthScene() {
       const quad = new PlaneGeometry(2, 2);
       const canvas = renderer.domElement;
 
-      // The fluid wake: simulated on the CPU, uploaded as a small texture while it moves.
-      const fluid = createFluid();
-      const flowPixels = new Uint8Array(fluid.width * fluid.height * 4);
-      fluid.pack(flowPixels);
-      const flow = new DataTexture(flowPixels, fluid.width, fluid.height);
-      flow.minFilter = LinearFilter;
-      flow.magFilter = LinearFilter;
-      flow.needsUpdate = true;
+      // The fluid wake: simulated on the CPU, uploaded as a small texture while it moves. Its grid has square
+      // cells over the canvas (fluidGridFor()), so it is rebuilt, still, when a resize changes the grid.
+      const makeFlow = (width: number, height: number) => {
+        const sim = createFluid(width, height);
+        const pixels = new Uint8Array(sim.width * sim.height * 4);
+        sim.pack(pixels);
+        const texture = new DataTexture(pixels, sim.width, sim.height);
+        texture.minFilter = LinearFilter;
+        texture.magFilter = LinearFilter;
+        texture.needsUpdate = true;
+        return { sim, pixels, texture };
+      };
+      let { sim: fluid, pixels: flowPixels, texture: flow } = makeFlow(FLUID_WIDTH, FLUID_HEIGHT);
       let flowing = false;
       let rect: PlateRect = { left: 0, bottom: 0, width: 1, height: 1 };
 
@@ -80,6 +85,7 @@ export default function EarthScene() {
           uSky: { value: CLEAR_SKY },
           uTime: { value: 0 },
           uFlow: { value: flow },
+          uFlowCells: { value: new Vector2(fluid.width, fluid.height) },
           uEmblem: { value: placeholderEmblem },
         },
         // The quad covers the canvas and writes premultiplied colour straight to it.
@@ -193,6 +199,15 @@ export default function EarthScene() {
           material.uniforms.uPlateRect!.value.set(...plateUniform(rect));
           material.uniforms.uResolution!.value.set(width, height);
           loadPlate(rect.width * height * Math.min(window.devicePixelRatio || 1, 2));
+          // A grid with square cells for this canvas; a new shape starts the wake afresh.
+          const grid = fluidGridFor(width, height);
+          if (grid.width !== fluid.width || grid.height !== fluid.height) {
+            flow.dispose();
+            ({ sim: fluid, pixels: flowPixels, texture: flow } = makeFlow(grid.width, grid.height));
+            flowing = false;
+            material.uniforms.uFlow!.value = flow;
+            material.uniforms.uFlowCells!.value.set(fluid.width, fluid.height);
+          }
         },
         dispose: () => {
           disposed = true;

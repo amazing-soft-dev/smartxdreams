@@ -1,10 +1,11 @@
 /**
  * A small stable-fluid simulation for the pointer wake over the Earth (after Jos Stam, "Stable Fluids", 1999).
  *
- * The grid covers the canvas, `width` × `height` cells (128 × 64 by default), x right and y up. A pointer move
- * splats velocity and displacement into it; each step advects the velocity through itself, damps it, adds
- * back the small swirls that coarse grids lose (vorticity confinement), and projects it to be divergence-free,
- * so the flow curls around the pointer instead of piling up. The displacement is carried along by the flow,
+ * The grid covers the canvas, `width` × `height` cells (128 × 64 by default; fluidGridFor() fits it to the
+ * canvas so the cells are square), x right and y up. A pointer move splats velocity and displacement into it;
+ * each step advects the velocity through itself, damps it, adds back the small swirls that coarse grids lose
+ * (vorticity confinement), and projects it to be divergence-free, so the flow curls around the pointer instead
+ * of piling up. The displacement is carried along by the flow,
  * fed by it, and decays, so the picture is pushed, swirls, and settles back where it was.
  *
  * Velocity is in cells per second and displacement in cells. Plain typed arrays, no DOM, so it can be tested
@@ -13,6 +14,20 @@
 
 export const FLUID_WIDTH = 128;
 export const FLUID_HEIGHT = 64;
+
+/** The fewest and most rows a grid gets, whatever the canvas's shape (a 32:9 hero, an upright tablet). */
+export const FLUID_MIN_HEIGHT = 32;
+export const FLUID_MAX_HEIGHT = 128;
+
+/**
+ * The grid for a canvas `width` × `height` (any units): FLUID_WIDTH columns, and as many rows as keep the cells
+ * square, within FLUID_MIN_HEIGHT..FLUID_MAX_HEIGHT. Square cells keep every splat and eddy round on screen;
+ * with a fixed 128 × 64 grid they were stretched sideways on a 21:9 hero and squashed on a 4:3 one.
+ */
+export function fluidGridFor(width: number, height: number): { width: number; height: number } {
+  const rows = width > 0 && height > 0 ? Math.round((FLUID_WIDTH * height) / width) : FLUID_HEIGHT;
+  return { width: FLUID_WIDTH, height: Math.min(FLUID_MAX_HEIGHT, Math.max(FLUID_MIN_HEIGHT, rows)) };
+}
 
 /** Velocity and displacement are clamped to these, so a flick cannot tear the picture. */
 export const MAX_VELOCITY = 30; // cells per second
