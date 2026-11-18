@@ -65,7 +65,7 @@ export const joined: Product = {
   ],
   footnote: trademarkNote,
   photo: { slot: "product-joined" },
-  logo: { alt: "Joined logo: a red map pin with a tie inside" },
+  logo: { alt: "Joined logo: a red map pin with a tie inside", tile: { background: "#FFECEC" } },
   related: ["acorn"],
   seo: {
     title: "Joined: search the major job boards at once",

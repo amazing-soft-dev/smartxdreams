@@ -15,9 +15,14 @@ type ProductLogoProps = {
   size?: number;
   /**
    * On a light tile (the default): several logos are dark or navy and would disappear on ink, so wherever
-   * the surface may be dark the logo sits on white, like an app icon. Pass false on light surfaces only.
+   * the surface may be dark the logo sits on a square, like an app icon. Pass false on light surfaces only.
    */
   tile?: boolean;
+  /**
+   * The tile's colour for this use only, overriding the product's own `logo.tile.background`. Any CSS colour.
+   * Ignored for a product whose tile is "none": its icon is never put on a second square.
+   */
+  tileBackground?: string;
   /** Hide from assistive technology when the product's name is right next to the logo. */
   decorative?: boolean;
   /**
@@ -30,9 +35,20 @@ type ProductLogoProps = {
 };
 
 /** A product's logo, square, at any size: the browser picks the sharpest built file for the screen. */
-export function ProductLogo({ product, size = 40, tile = true, decorative = false, loading = "lazy", className }: ProductLogoProps) {
+export function ProductLogo({
+  product,
+  size = 40,
+  tile = true,
+  tileBackground,
+  decorative = false,
+  loading = "lazy",
+  className,
+}: ProductLogoProps) {
+  // A logo whose artwork already is an app icon (tile "none") is its own tile: drawn edge to edge, never
+  // inset on a second square, whatever tileBackground asks for.
+  const ownIcon = product.logo.tile === "none";
   // The tile's padding is a share of its size, so the logo keeps the same air at every size.
-  const inner = tile ? Math.round(size * 0.72) : size;
+  const inner = tile && !ownIcon ? Math.round(size * 0.72) : size;
   const smallest = PRODUCT_LOGO_SIZES.find((s) => s >= inner * 2) ?? 384;
   const img = (
     // A plain <img>: the files are already built at fixed sizes, and the static export has no image loader
@@ -55,13 +71,31 @@ export function ProductLogo({ product, size = 40, tile = true, decorative = fals
     />
   );
   if (!tile) return img;
+  if (ownIcon) {
+    // Same box as a tile, so layouts and hover transforms on className behave alike. The shadow follows the
+    // icon's own rounded corners (drop-shadow reads its alpha), where a box-shadow would draw a square.
+    return (
+      <span
+        className={cx(
+          "inline-flex shrink-0 items-center justify-center drop-shadow-[0_1px_2px_rgb(15_18_38/0.12)]",
+          className,
+        )}
+        data-logo-tile="none"
+        style={{ width: size, height: size }}
+      >
+        {img}
+      </span>
+    );
+  }
+  const background = tileBackground ?? (product.logo.tile === "none" ? undefined : product.logo.tile.background);
   return (
     <span
       className={cx(
-        "inline-flex shrink-0 items-center justify-center rounded-[28%] bg-white shadow-[0_1px_2px_rgb(15_18_38/0.08)] ring-1 ring-ink/5",
+        "inline-flex shrink-0 items-center justify-center rounded-[28%] shadow-[0_1px_2px_rgb(15_18_38/0.08)] ring-1 ring-ink/5",
         className,
       )}
-      style={{ width: size, height: size }}
+      data-logo-tile=""
+      style={{ width: size, height: size, backgroundColor: background }}
     >
       {img}
     </span>
