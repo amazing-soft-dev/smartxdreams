@@ -8,11 +8,11 @@ const listings = [
 ];
 
 /**
- * JobAtlas product mockup: a search bar, filters, and one list of jobs from several sources. Source names
+ * Joined product mockup: a search bar, filters, and one list of jobs from several sources. Source names
  * are plain text chips (no third-party logos), and merged duplicates show how many places a job was posted.
  * Illustrative data. Decorative (the frame is aria-hidden).
  */
-export function JobAtlasFeedMockup({ className }: { className?: string }) {
+export function JoinedFeedMockup({ className }: { className?: string }) {
   return (
     <MockupFrame title="JobAtlas" caption="Product design · Europe" className={className}>
       <div className="flex items-center gap-2 rounded-xl border border-ink/10 px-3 py-2 text-ink/60">
@@ -79,11 +79,11 @@ export function CompanyDrawerMockup({ className }: { className?: string }) {
   );
 }
 
-/** The JobAtlas hero mockup: the feed, with the company drawer overlapping its lower corner on wider screens. */
-export function JobAtlasMockup({ className }: { className?: string }) {
+/** The Joined hero mockup: the feed, with the company drawer overlapping its lower corner on wider screens. */
+export function JoinedMockup({ className }: { className?: string }) {
   return (
     <div aria-hidden="true" className={`relative ${className ?? ""}`}>
-      <JobAtlasFeedMockup className="sm:mr-16" />
+      <JoinedFeedMockup className="sm:mr-16" />
       <CompanyDrawerMockup className="mt-3 sm:absolute sm:-right-2 sm:-bottom-10 sm:mt-0 sm:w-64" />
     </div>
   );

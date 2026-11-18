@@ -9,11 +9,11 @@ const fields = [
 ];
 
 /**
- * ApplyPilot product mockup: a browser window on an employer's application form. Fields filled from the
+ * Acorn product mockup: a browser window on an employer's application form. Fields filled from the
  * profile are highlighted with where each answer came from, one question is left for the person, and the
  * extension panel ends with "Review before you submit". Illustrative data; aria-hidden.
  */
-export function ApplyPilotMockup({ className }: { className?: string }) {
+export function AcornMockup({ className }: { className?: string }) {
   return (
     <div
       aria-hidden="true"
