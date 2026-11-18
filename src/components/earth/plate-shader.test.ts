@@ -14,9 +14,17 @@ import {
   GLOW_BAND,
   glslFloat,
   horizonChunk,
+  MASTER_PX,
+  motionPx,
   plateFragmentShader,
   WAKE_BLUR,
   WAKE_GAIN,
+  WEATHER_BANDS,
+  WEATHER_RATES,
+  WEATHER_SYSTEMS,
+  WEATHER_WAVE,
+  weatherAt,
+  weatherField,
 } from "./plate-shader";
 
 /** Plate heights per master pixel. */
@@ -25,26 +33,29 @@ const PX = 1 / 948;
 type Motion = (x: number, y: number, t: number) => { x: number; y: number };
 
 /**
- * The largest change in area, as a fraction, that `motion` (where the content at a point comes from, relative to
- * it) gives any small patch of the plate within `radius` of `centre`, over the first 80 s. It is |det J - 1| of
- * the map q -> q + motion(q): 0 for a pure turn or slide, and what reads as a zoom when it pulses.
+ * The change in area, as a fraction, that `motion` (where the content at a point comes from, relative to it)
+ * gives a small patch of the plate at (x, y) at time t. It is |det J - 1| of the map q -> q + motion(q): 0 for a
+ * pure turn or slide, and what reads as a zoom when it pulses.
  */
-function worstAreaChange(motion: Motion, centre: { x: number; y: number }, radius: number, seconds = 80): number {
+function areaChange(motion: Motion, x: number, y: number, t: number): number {
   const h = 1e-4;
+  const px = motion(x + h, y, t);
+  const mx = motion(x - h, y, t);
+  const py = motion(x, y + h, t);
+  const my = motion(x, y - h, t);
+  const a = 1 + (px.x - mx.x) / (2 * h);
+  const b = (py.x - my.x) / (2 * h);
+  const c = (px.y - mx.y) / (2 * h);
+  const d = 1 + (py.y - my.y) / (2 * h);
+  return Math.abs(a * d - b * c - 1);
+}
+
+/** The largest areaChange() within `radius` of `centre` (a square around it), over the first 80 s. */
+function worstAreaChange(motion: Motion, centre: { x: number; y: number }, radius: number, seconds = 80): number {
   let worst = 0;
   for (let t = 0; t < seconds; t += 2.7) {
     for (let x = centre.x - radius; x <= centre.x + radius; x += radius / 12) {
-      for (let y = centre.y - radius; y <= centre.y + radius; y += radius / 12) {
-        const px = motion(x + h, y, t);
-        const mx = motion(x - h, y, t);
-        const py = motion(x, y + h, t);
-        const my = motion(x, y - h, t);
-        const a = 1 + (px.x - mx.x) / (2 * h);
-        const b = (py.x - my.x) / (2 * h);
-        const c = (px.y - mx.y) / (2 * h);
-        const d = 1 + (py.y - my.y) / (2 * h);
-        worst = Math.max(worst, Math.abs(a * d - b * c - 1));
-      }
+      for (let y = centre.y - radius; y <= centre.y + radius; y += radius / 12) worst = Math.max(worst, areaChange(motion, x, y, t));
     }
   }
   return worst;
@@ -73,6 +84,10 @@ describe("plate shader", () => {
     expect(plateFragmentShader).toContain(
       `const vec2 SYMBOL = vec2(${glslFloat(symbol.u * PLATE_ASPECT)}, ${glslFloat(symbol.v)});`,
     );
+  });
+
+  it("is plain ASCII, which GLSL ES requires even in comments (one ² failed to compile)", () => {
+    expect(plateFragmentShader).toMatch(/^[\x00-\x7f]*$/);
   });
 
   it("writes every uniform the scene sets", () => {
@@ -144,6 +159,100 @@ describe("glow coverage", () => {
     expect(plateFragmentShader).toContain("smoothstep(-GLOW_BAND, -GLOW_EDGE, dist)");
     // The old brightness-as-coverage, blue included, is gone.
     expect(plateFragmentShader).not.toContain("max(color.g, color.b)");
+  });
+});
+
+describe("weather systems", () => {
+  /** Points on the planet with full motion (deeper than FULL_MOTION), every `step` plate heights. */
+  function* planet(step: number) {
+    for (let x = 0.02; x < PLATE_ASPECT; x += step) {
+      for (let y = 0.02; y < 1; y += step) if (horizonDistance(x / PLATE_ASPECT, y) >= FULL_MOTION) yield [x, y] as const;
+    }
+  }
+
+  it("start from zero, so the scene's first frame is the still plate, and stay bounded", () => {
+    for (const [x, y] of planet(0.05)) {
+      expect(weatherAt(x, y, 0)).toEqual({ x: 0, y: 0 });
+      for (const t of [7, 61, 333, 4000]) {
+        const w = weatherAt(x, y, t);
+        expect(Math.abs(w.x) / PX).toBeLessThanOrEqual(2 * WEATHER_BANDS[0] + 1e-9);
+        expect(Math.abs(w.y) / PX).toBeLessThanOrEqual(2 * WEATHER_BANDS[1] + 1e-9);
+      }
+    }
+  });
+
+  it("sit over the open ocean, deep inside the limb", () => {
+    for (const s of WEATHER_SYSTEMS) {
+      expect(horizonDistance(s.x / PLATE_ASPECT, s.y), s.name).toBeGreaterThan(FULL_MOTION * 2);
+      expect(weatherField(s.x, s.y)).toBe(1);
+    }
+  });
+
+  it("leave the land almost still: the continents' interiors move a few percent of the clouds' slide", () => {
+    // On the master, in pixels: the Great Plains, Florida, and the Amazon.
+    for (const [px, py] of [[713, 497], [853, 626], [1015, 864]] as const) {
+      expect(weatherField(px * PX, py * PX)).toBeLessThan(0.2);
+    }
+  });
+
+  it("move the clouds visibly: tens of pixels over half a minute in every system", () => {
+    for (const s of WEATHER_SYSTEMS) {
+      let most = 0;
+      for (let t = 0; t < 30; t += 0.5) {
+        const w = weatherAt(s.x, s.y, t);
+        most = Math.max(most, Math.hypot(w.x, w.y) / PX);
+      }
+      expect(most, s.name).toBeGreaterThan(15);
+    }
+  });
+
+  it("slide clouds past each other without zooming: no patch grows or shrinks by a fifth, and few by much", () => {
+    // Over the whole planet, for three minutes, on the master. The noise patches they replace reached 44%.
+    const motion: Motion = (x, y, t) => weatherAt(x, y, t);
+    let worst = 0;
+    let total = 0;
+    let count = 0;
+    for (let t = 0; t < 180; t += 2.3) {
+      for (const [x, y] of planet(0.03)) {
+        const change = areaChange(motion, x, y, t);
+        worst = Math.max(worst, change);
+        total += change;
+        count++;
+      }
+    }
+    expect(worst).toBeLessThan(0.2);
+    expect(total / count).toBeLessThan(0.06);
+  });
+
+  it("move a plate drawn smaller than the master no further, for its size, than the master", () => {
+    expect(MASTER_PX).toBeCloseTo(PX, 12);
+    expect(motionPx(PX / 2)).toBe(PX / 2); // a plate drawn larger: screen pixels
+    expect(motionPx(PX * 2)).toBe(PX); // a phone's smaller plate: master pixels
+    expect(plateFragmentShader).toContain("min(pxToPlate(), MASTER_PX)");
+    expect(plateFragmentShader).toContain("* motionPx();");
+  });
+
+  it("are written into the shader, with no curl-noise currents or noise patches left", () => {
+    expect(plateFragmentShader).toContain(`const vec2 WEATHER_BANDS = vec2(${glslFloat(WEATHER_BANDS[0])}, ${glslFloat(WEATHER_BANDS[1])});`);
+    expect(plateFragmentShader).toContain(`const vec2 WEATHER_RATES = vec2(${glslFloat(WEATHER_RATES[0])}, ${glslFloat(WEATHER_RATES[1])});`);
+    expect(plateFragmentShader).toContain(`const float WEATHER_WAVE = ${glslFloat(WEATHER_WAVE)};`);
+    WEATHER_SYSTEMS.forEach((s, i) => {
+      expect(plateFragmentShader).toContain(
+        `const vec4 WEATHER_SYSTEM_${i} = vec4(${[s.x, s.y, s.width, s.height].map(glslFloat).join(", ")}); // ${s.name}`,
+      );
+      expect(plateFragmentShader).toContain(`weatherSystem(q, WEATHER_SYSTEM_${i})`);
+    });
+    expect(plateFragmentShader).toContain("return orbital() + weather(q) - wake(q);");
+    for (const gone of ["noise3", "currents(", "CURRENT_", "patches"]) expect(plateFragmentShader).not.toContain(gone);
+  });
+
+  it("agree with the scene's first frame: the drift, the bands and the cyclone are all sines from zero", () => {
+    expect(plateFragmentShader).toContain("vec2(12.0 * sin(uTime * 0.055), 4.5 * sin(uTime * 0.043))");
+    expect(plateFragmentShader).toContain("sin(uTime * WEATHER_RATES.x + q.y * WEATHER_WAVE) - sin(q.y * WEATHER_WAVE)");
+    expect(plateFragmentShader).toContain("sin(uTime * WEATHER_RATES.y + q.x * WEATHER_WAVE) - sin(q.x * WEATHER_WAVE)");
+    expect(plateFragmentShader).toContain(
+      "CYCLONE_TURN * sin(uTime * CYCLONE_TURN_RATE) + CYCLONE_SWAY * sin(uTime * CYCLONE_SWAY_RATE)",
+    );
   });
 });
 
