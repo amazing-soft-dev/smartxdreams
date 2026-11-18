@@ -152,5 +152,15 @@ changes). Each line was checked in `src/content`, `src/components` and the blog 
    and submitting. Confirm against those sites' terms for the target markets.
 3. **ToothLedger and SeniorAIPlans disclaimers.** Health, insurance and financial-adjacent wording, with SeniorAIPlans
    aimed at older adults.
-4. **Data commitments** on the product pages ("never sold", "stored encrypted", "deleted on request") must
+4. **The new product names (renamed November 2026: JobAtlas, ApplyPilot and Kinly became Joined, Acorn
+   and SeniorAIPlans).** Two need a check before launch:
+   - **Acorn** is close to **Acorns**, a US micro-investing app with registered marks in financial
+     services. Acorn is a job-application tool, a different class, but run a trademark search (USPTO,
+     EUIPO, UKIPO) before launch and keep the copy free of money and investing language.
+   - **SeniorAIPlans** speaks of "plans" to older adults. Copy must never read as a Medicare, Medicare
+     Advantage, supplement or insurance plan offer: in the US those are regulated marketing (CMS Medicare
+     Communications and Marketing Guidelines, and state insurance rules). Keep "plans" meaning the user's
+     own plans and paperwork, keep the "not medical, legal or financial advice" disclaimer, and never
+     name an insurer, a plan type or a premium as something SeniorAIPlans offers.
+5. **Data commitments** on the product pages ("never sold", "stored encrypted", "deleted on request") must
    match the privacy policy and the products at launch; see docs/legal.md.
