@@ -49,7 +49,7 @@ describe("plate shader", () => {
   });
 
   it("writes every uniform the scene sets", () => {
-    for (const name of ["uPlate", "uPlateRect", "uResolution", "uReady", "uSky", "uTime", "uFlow", "uEmblem"]) {
+    for (const name of ["uPlate", "uPlateRect", "uResolution", "uReady", "uSky", "uTime", "uFlow", "uFlowCells", "uEmblem"]) {
       expect(plateFragmentShader).toMatch(new RegExp(`uniform \\w+ ${name};`));
     }
   });
