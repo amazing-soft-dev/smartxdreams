@@ -1,7 +1,7 @@
 import { TransitionLink } from "@/components/transition/TransitionLink";
 import { Container } from "@/components/ui/Container";
 import { Logo } from "@/components/ui/Logo";
-import { FooterSmoke } from "./FooterSmoke";
+import { FooterAurora } from "./FooterAurora";
 import { FooterStars } from "./FooterStars";
 import { SocialIcons } from "./SocialIcons";
 import { products } from "@/content/products";
@@ -18,19 +18,19 @@ const productGroup: NavGroup = {
 const legalLinks = footerGroups.find((g) => g.label === "Legal")?.items ?? [];
 
 /** Dark site footer under a night sky: brand column, link groups, and a bottom bar with the copyright,
- * legal links and the third-party trademark note. The sky (stars, then the smoke) sits behind it all. */
+ * legal links and the third-party trademark note. The sky (stars, then the aurora) sits behind it all. */
 export function Footer() {
   const groups = [productGroup, ...footerGroups];
   const year = new Date().getFullYear();
   return (
     <footer data-surface="dark" data-nav-theme="dark" className="relative isolate overflow-hidden bg-ink bg-linear-to-b from-space to-ink text-white">
       <FooterStars />
-      <FooterSmoke />
+      <FooterAurora />
       <Container className="relative pt-20 pb-10 md:pt-24">
         <div className="grid gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)] lg:gap-16">
           <div className="max-w-sm">
             <TransitionLink href="/" aria-label="SmartxDreams home" className="inline-flex min-h-11 items-center rounded-md">
-              {/* The smoke drifts and its brightest plumes can pass behind the logo: a soft ink shadow keeps the
+              {/* The aurora sways and its brightest curtains can pass behind the logo: a soft ink shadow keeps the
                   white ribbon and wordmark at the contrast they have on plain ink. */}
               <Logo tone="light" height={30} decorative fetchPriority="low" className="drop-shadow-[0_1px_10px_rgb(15_18_38/0.6)]" />
             </TransitionLink>

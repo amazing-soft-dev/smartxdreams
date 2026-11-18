@@ -25,4 +25,4 @@ export function isTopScene(id: string): boolean {
 }
 
 /** Scene priorities. */
-export const SCENE_PRIORITY = { earth: 3, astra: 2, aurora: 1, smoke: 1 } as const;
+export const SCENE_PRIORITY = { earth: 3, astra: 2, aurora: 1 } as const;
