@@ -1,15 +1,17 @@
 "use client";
 
 import { motion, useMotionValueEvent, useReducedMotion, useScroll, useSpring } from "motion/react";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Container } from "@/components/ui/Container";
 import { Photo } from "@/components/ui/Photo";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { processSteps } from "@/content/process";
 import { cx } from "@/lib/cx";
 
-/** Number of ticks in the progress bar above the steps. */
-const TICKS = 40;
+/** The tick bar fills the content row: one tick every 7 px (2 px tick, 5 px gap), as many as fit. */
+const TICK_PITCH = 7;
+/** Ticks drawn before the row is measured (the server render, and the first frame). */
+const TICKS_BEFORE_MEASURE = 40;
 
 /**
  * "How we build": four steps. On desktop the section is three viewports tall and its content sticks under
@@ -31,15 +33,34 @@ export function ProcessStepper() {
   // so a wave travels along the bar as you scroll. Heights are written directly to the DOM, not to state,
   // so scrolling does not re-render the section 60 times a second.
   const ticks = useRef<Array<HTMLSpanElement | null>>([]);
-  useMotionValueEvent(scrollYProgress, "change", (p) => {
-    const centre = p * (TICKS - 1);
+  // How many ticks fit between the row's left edge and the step counter, measured as the row resizes.
+  const track = useRef<HTMLDivElement>(null);
+  const [tickCount, setTickCount] = useState(TICKS_BEFORE_MEASURE);
+  useEffect(() => {
+    const el = track.current;
+    if (!el) return;
+    const measure = () => setTickCount(Math.max(2, Math.floor((el.clientWidth + TICK_PITCH - 2) / TICK_PITCH)));
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [scrub]);
+  const paint = (p: number) => {
+    const count = ticks.current.length;
+    const centre = p * (count - 1);
     ticks.current.forEach((tick, i) => {
       if (!tick) return;
       const d = i - centre;
       tick.style.height = `${8 + 22 * Math.exp(-(d * d) / 18)}px`;
       tick.style.backgroundColor = i <= centre ? "var(--color-coral-500)" : "rgb(15 18 38 / 0.18)";
     });
-  });
+  };
+  useMotionValueEvent(scrollYProgress, "change", paint);
+  // A new tick count redraws the wave where the visitor already is.
+  useEffect(() => {
+    ticks.current.length = tickCount;
+    paint(scrollYProgress.get());
+  }, [tickCount, scrollYProgress]);
   useMotionValueEvent(scrollYProgress, "change", (p) => {
     const next = Math.min(processSteps.length - 1, Math.floor(p * processSteps.length));
     setActive((current) => (current === next ? current : next));
@@ -63,17 +84,20 @@ export function ProcessStepper() {
           />
           {/* Tick bar and step counter (desktop, decorative). */}
           {scrub ? (
-          <div aria-hidden="true" className="mt-10 hidden h-8 items-end gap-[5px] lg:flex">
-            {Array.from({ length: TICKS }, (_, i) => (
-              <span
-                key={i}
-                ref={(el) => {
-                  ticks.current[i] = el;
-                }}
-                className="block h-2 w-[2px] rounded-full bg-ink/20"
-              />
-            ))}
-            <span className="ml-auto font-mono text-micro tracking-[0.06em] text-ink">
+          <div aria-hidden="true" className="mt-10 hidden h-8 items-end gap-6 lg:flex">
+            {/* The ticks run the whole row, from the content's left edge up to the counter. */}
+            <div ref={track} className="flex h-full min-w-0 flex-1 items-end justify-between">
+              {Array.from({ length: tickCount }, (_, i) => (
+                <span
+                  key={i}
+                  ref={(el) => {
+                    ticks.current[i] = el;
+                  }}
+                  className="block h-2 w-[2px] shrink-0 rounded-full bg-ink/20"
+                />
+              ))}
+            </div>
+            <span className="shrink-0 font-mono text-micro tracking-[0.06em] text-ink">
               {String(active + 1).padStart(2, "0")} / {String(processSteps.length).padStart(2, "0")}
             </span>
           </div>
