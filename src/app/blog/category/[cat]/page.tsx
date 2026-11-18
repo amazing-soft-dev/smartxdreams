@@ -13,6 +13,7 @@ import type { Product } from "@/content/types";
 import { cx } from "@/lib/cx";
 import { listedPosts, publishedPosts } from "@/lib/blog/posts";
 import { pageMetadata } from "@/lib/seo";
+import { SplitText } from "@/components/motion/SplitText";
 
 type CategoryPageProps = { params: Promise<{ cat: string }> };
 
@@ -60,7 +61,7 @@ export default async function BlogCategoryPage({ params }: CategoryPageProps) {
         <Container className="text-center">
           <Tag tone="dark">Blog category</Tag>
           <h1 id="category-title" className="mx-auto mt-6 max-w-3xl text-display">
-            {category.label}
+            <SplitText text={category.label} tone="dark" aboveFold />
           </h1>
           <p className="mx-auto mt-6 max-w-2xl text-body-l text-white/70">{category.description}</p>
         </Container>

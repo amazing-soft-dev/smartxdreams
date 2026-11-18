@@ -6,10 +6,10 @@ import { SplitText } from "./SplitText";
 const render = (text: string, tone?: "light" | "dark") => renderToStaticMarkup(createElement(SplitText, { text, tone }));
 
 describe("SplitText", () => {
-  it("gives screen readers the plain heading once and hides the split words", () => {
+  it("keeps the heading's text exactly once, as the plain sentence", () => {
     const html = render("One studio, *six focused products.*");
-    expect(html).toContain('<span class="sr-only">One studio, six focused products.</span>');
-    expect(html).toMatch(/<span aria-hidden="true">/);
+    expect(html.replace(/<[^>]+>/g, "")).toBe("One studio, six focused products.");
+    expect(html).not.toContain("aria-hidden");
   });
 
   it("splits into one word per span, each starting 75 px low and almost transparent", () => {

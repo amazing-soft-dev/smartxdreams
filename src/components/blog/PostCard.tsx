@@ -63,7 +63,7 @@ export function PostCard({
       onPointerMove={onPointerMove}
       className={cx(
         styles.card,
-        "relative h-full rounded-[30px] bg-white p-2",
+        "group relative h-full rounded-[30px] bg-white p-2",
         featured ? "grid gap-2 md:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]" : "flex flex-col",
       )}
     >
@@ -101,7 +101,8 @@ export function PostCard({
             className={cx(styles.lift, "mt-8 inline-flex w-fit items-center gap-2 text-label font-medium text-ink")}
           >
             Read article
-            <svg viewBox="0 0 16 16" width="14" height="14" fill="none">
+            {/* The arrow turns up and out on hover and focus, to the pose Beemas' arrows rest in. */}
+            <svg viewBox="0 0 16 16" width="14" height="14" fill="none" className="inline-block transition-transform duration-500 ease-[var(--ease-out-quint)] group-hover:-rotate-30 group-has-[a:focus-visible]:-rotate-30 motion-reduce:transition-none">
               <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </span>

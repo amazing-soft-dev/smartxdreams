@@ -34,6 +34,7 @@ export const spring = {
    * overdamped spring, no overshoot, settled to 1% in about 1.5 s.
    */
   rise: { type: "spring", stiffness: 90, damping: 33, mass: 1 },
+  // Its CSS twin is --ease-rise in globals.css (the same curve sampled as linear()).
   /** Beemas' side slides from 200 px: critically damped, quicker than the rise (settled in about 0.8 s). */
   slide: { type: "spring", stiffness: 64, damping: 16, mass: 1 },
   /** Beemas' header appear: long and soft, with a little give at the end. */

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/Button";
 import { type FilterOption, FilterChips } from "@/components/ui/FilterChips";
 import { FilterList } from "@/components/ui/FilterList";
 import { useUrlFilter } from "@/hooks/useUrlFilter";
+import { Reveal } from "@/components/motion/Reveal";
 
 /** Articles per step. "Show more" appears only when a view has more than this. */
 export const BLOG_PAGE_SIZE = 9;
@@ -72,17 +73,20 @@ export function BlogBrowser({ items, options, featuredSlug }: BlogBrowserProps) 
           liveMessage={category === "all" ? `Showing all articles` : `Showing ${count} in ${label}`}
         />
       </div>
-      <FilterList
-        items={visible}
-        getKey={(i) => i.slug}
-        renderItem={(i) => (
-          <div id={`post-card-${i.slug}`} className="h-full">
-            {i.card}
-          </div>
-        )}
-        className="mt-10 gap-3 md:grid-cols-2 lg:grid-cols-3"
-        empty={<p className="mt-10 text-body-l text-ink/70">No other articles yet. The featured post above is the newest.</p>}
-      />
+      {/* The list rises in as one block the first time it is reached; filtering then animates the cards. */}
+      <Reveal preset="up75">
+        <FilterList
+          items={visible}
+          getKey={(i) => i.slug}
+          renderItem={(i) => (
+            <div id={`post-card-${i.slug}`} className="h-full">
+              {i.card}
+            </div>
+          )}
+          className="mt-10 gap-3 md:grid-cols-2 lg:grid-cols-3"
+          empty={<p className="mt-10 text-body-l text-ink/70">No other articles yet. The featured post above is the newest.</p>}
+        />
+      </Reveal>
       {remaining > 0 ? (
         <div className="mt-12 flex justify-center">
           <Button type="button" variant="ink" onClick={showMore}>

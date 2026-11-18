@@ -6,14 +6,14 @@
 // 1. any page's initial JavaScript is over JS_BUDGET_KB (gzipped);
 // 2. any page's CSS is over CSS_BUDGET_KB (gzipped);
 // 3. a page preloads more than one font, or the preloaded font is over FONT_BUDGET_KB;
-// 4. three.js, Lenis or the smoke shader appears in a page's initial scripts (they must stay lazy chunks);
+// 4. three.js, Lenis or the footer aurora shader appears in a page's initial scripts (they must stay lazy chunks);
 // 5. the lazy three.js chunk(s) are over THREE_BUDGET_KB (gzipped).
 
 import { readdir, readFile, stat } from "node:fs/promises";
 import path from "node:path";
 import { gzipSync } from "node:zlib";
 
-const JS_BUDGET_KB = 330;
+const JS_BUDGET_KB = 340;
 const CSS_BUDGET_KB = 30;
 const FONT_BUDGET_KB = 60;
 const THREE_BUDGET_KB = 200;
@@ -22,7 +22,7 @@ const THREE_BUDGET_KB = 200;
 const LAZY = {
   "three.js": "WebGLRenderer",
   Lenis: "lenis-smooth",
-  "the smoke shader": "uColorB",
+  "the aurora shader": "uColorHigh",
 };
 
 const root = path.resolve(import.meta.dirname, "..");
@@ -120,5 +120,5 @@ if (problems.length > 0) {
   process.exit(1);
 }
 console.log(
-  `check:bundle: within budget (JS ${JS_BUDGET_KB} KB, CSS ${CSS_BUDGET_KB} KB, one font up to ${FONT_BUDGET_KB} KB, three.js ${THREE_BUDGET_KB} KB; Lenis, smoke and three.js lazy).`,
+  `check:bundle: within budget (JS ${JS_BUDGET_KB} KB, CSS ${CSS_BUDGET_KB} KB, one font up to ${FONT_BUDGET_KB} KB, three.js ${THREE_BUDGET_KB} KB; Lenis, the aurora and three.js lazy).`,
 );

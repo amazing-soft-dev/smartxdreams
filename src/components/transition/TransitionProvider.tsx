@@ -18,6 +18,13 @@ const ROUTE_TIMEOUT_MS = 1500;
 /** Extra time before a stalled panel animation is forced to finish. */
 const SAFETY_MARGIN_MS = 600;
 
+/**
+ * While the panels cover the page, <html> carries data-page-covered. When they start to leave, the provider
+ * removes it and fires PAGE_REVEALED on window, so the new page can start its entrance (its title rising)
+ * when it can be seen instead of behind the cover.
+ */
+export const PAGE_REVEALED = "sxd:page-revealed";
+
 type TransitionApi = {
   /** Navigate to an internal href behind the panel transition. */
   navigate: (href: string) => void;
@@ -171,6 +178,7 @@ export function TransitionProvider({ children }: { children: ReactNode }) {
       busy.current = true;
       router.prefetch(href);
       el.dataset.state = "active";
+      document.documentElement.dataset.pageCovered = "";
       const word = label.current;
       const layer = content.current;
       if (word) word.textContent = routeLabel(url.pathname);
@@ -220,6 +228,9 @@ export function TransitionProvider({ children }: { children: ReactNode }) {
       // The panels start moving 100 ms into the fade, so the two overlap.
       layer?.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 200, fill: "forwards" });
       await new Promise((resolve) => window.setTimeout(resolve, 100));
+      // The panels are about to leave: let the new page begin its entrance as it comes into sight.
+      delete document.documentElement.dataset.pageCovered;
+      window.dispatchEvent(new Event(PAGE_REVEALED));
       await animatePanels("out");
       for (const node of [...panels(), word, layer, logo]) node?.getAnimations().forEach((a) => a.cancel());
       delete el.dataset.state;

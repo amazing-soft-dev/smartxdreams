@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { BlogBrowser } from "@/components/blog/BlogBrowser";
 import { PostTeaser } from "@/components/blog/PostTeaser";
-import { Accent } from "@/components/ui/Accent";
 import { Container } from "@/components/ui/Container";
 import { Glow } from "@/components/ui/Glow";
 import { Section } from "@/components/ui/Section";
@@ -10,6 +9,7 @@ import { Tag } from "@/components/ui/Tag";
 import { blogCategories } from "@/content/blog/categories";
 import { featuredPost, listedPosts, type Post } from "@/lib/blog/posts";
 import { pageMetadata } from "@/lib/seo";
+import { SplitText } from "@/components/motion/SplitText";
 
 export const metadata: Metadata = pageMetadata({
   title: "Blog",
@@ -54,7 +54,7 @@ export default function BlogPage() {
         <Container className="text-center">
           <Tag tone="dark">Blog</Tag>
           <h1 id="blog-title" className="mx-auto mt-6 max-w-3xl text-display">
-            <Accent text="Notes on the *problems* we are solving." tone="dark" />
+            <SplitText text="Notes on the *problems* we are solving." tone="dark" aboveFold />
           </h1>
           <p className="mx-auto mt-6 max-w-2xl text-body-l text-white/70">
             Plain-language guides on job search, site reports, dental costs, paperwork and security reviews, plus notes on how we build.

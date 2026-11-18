@@ -2,7 +2,7 @@
 
 import { motion, type Variants } from "motion/react";
 import type { ReactNode } from "react";
-import { revealPresets, type RevealPreset } from "./Reveal";
+import { restingState, revealPresets, type RevealPreset } from "./Reveal";
 
 /** Attributes passed through to the rendered element: an accessible name, data-* hooks for tests. */
 type PassThrough = { "aria-label"?: string } & { [key: `data-${string}`]: string | undefined };
@@ -54,7 +54,7 @@ type RevealItemProps = PassThrough & {
 /** One staggered child of a RevealGroup. */
 export function RevealItem({ children, preset = "up60", className, as = "div", ...rest }: RevealItemProps) {
   const { hidden, transition } = revealPresets[preset];
-  const variants: Variants = { hidden, visible: { opacity: 1, x: 0, y: 0, transition } };
+  const variants: Variants = { hidden, visible: { ...restingState(hidden), transition } };
   const Component = motion[as];
   return (
     <Component {...rest} data-reveal="" className={className} variants={variants}>

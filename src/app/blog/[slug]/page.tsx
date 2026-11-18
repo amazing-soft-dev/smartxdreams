@@ -13,6 +13,7 @@ import { extractHeadings } from "@/lib/blog/headings";
 import { blogPostingJsonLd } from "@/lib/blog/json-ld";
 import { allPosts, postBySlug, postCategory, postContent } from "@/lib/blog/posts";
 import { pageMetadata } from "@/lib/seo";
+import { SplitText } from "@/components/motion/SplitText";
 
 type PostPageProps = { params: Promise<{ slug: string }> };
 
@@ -79,7 +80,7 @@ export default async function PostPage({ params }: PostPageProps) {
                 <span>{post.readingMinutes} min read</span>
               </p>
               <h1 id="post-title" className="mt-5 text-h2">
-                {post.title}
+                <SplitText text={post.title} aboveFold />
               </h1>
               <p className="mt-5 max-w-3xl text-body-l text-ink/70">{post.description}</p>
               <p className="mt-6 text-label text-ink/65">

@@ -2,7 +2,7 @@
 
 import { animate, inView } from "motion";
 import { Fragment, useEffect, useRef } from "react";
-import { plainText } from "@/components/ui/Accent";
+import { PAGE_REVEALED } from "@/components/transition/TransitionProvider";
 import { spring, stagger } from "@/styles/motion";
 
 type SplitTextProps = {
@@ -38,8 +38,9 @@ function words(text: string): { word: string; accent: boolean }[] {
  * same and keeps kerning and ligatures intact. Lines are found after layout, from each word's position, so
  * they follow the heading's real wrapping at any width.
  *
- * Screen readers get the plain heading once; the animated words are hidden from them. Without JavaScript
- * (data-reveal) or with reduced motion (data-motion) the words show in place.
+ * The words stay real text in reading order, so the heading's text (what screen readers, search engines
+ * and tests read) is exactly the original sentence, once. Without JavaScript (data-reveal) or with reduced
+ * motion (data-motion) the words show in place.
  */
 export function SplitText({ text, tone = "light", aboveFold = false, delay = 0 }: SplitTextProps) {
   const root = useRef<HTMLSpanElement>(null);
@@ -62,6 +63,20 @@ export function SplitText({ text, tone = "light", aboveFold = false, delay = 0 }
         });
     };
     if (aboveFold) {
+      // Arriving through the page transition: wait for the panels to start leaving, so the title rises as
+      // it comes into sight (with a fallback, should the transition never finish).
+      if (document.documentElement.dataset.pageCovered !== undefined) {
+        const go = () => {
+          window.clearTimeout(fallback);
+          rise();
+        };
+        const fallback = window.setTimeout(go, 2000);
+        window.addEventListener(PAGE_REVEALED, go, { once: true });
+        return () => {
+          window.clearTimeout(fallback);
+          window.removeEventListener(PAGE_REVEALED, go);
+        };
+      }
       rise();
       return;
     }
@@ -71,8 +86,7 @@ export function SplitText({ text, tone = "light", aboveFold = false, delay = 0 }
   const list = words(text);
   return (
     <>
-      <span className="sr-only">{plainText(text)}</span>
-      <span ref={root} aria-hidden="true">
+      <span ref={root}>
         {list.map(({ word, accent: isAccent }, i) => (
           <Fragment key={i}>
             <span
