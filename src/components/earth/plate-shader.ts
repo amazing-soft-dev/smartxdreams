@@ -14,7 +14,7 @@
  */
 
 import { FLUID_HEIGHT, FLUID_WIDTH, MAX_DISPLACEMENT } from "./fluid";
-import { GLOW_BAND, HORIZON, LANDMARKS, PLATE_ASPECT } from "./plate";
+import { GLOW_BAND, GLOW_EDGE, GLOW_RISE, HORIZON, LANDMARKS, PLATE_ASPECT, SKY_FLOOR } from "./plate";
 
 /** A GLSL float literal: always with a decimal point, and with a sign when negative. */
 export function glslFloat(value: number): string {
@@ -126,6 +126,9 @@ ${horizonChunk}
 ${noiseChunk}
 
 const float GLOW_BAND = ${glslFloat(GLOW_BAND)};
+const float GLOW_EDGE = ${glslFloat(GLOW_EDGE)};
+const float SKY_FLOOR = ${glslFloat(SKY_FLOOR)};
+const float GLOW_RISE = ${glslFloat(GLOW_RISE)};
 const float CALM_LIMB = ${glslFloat(CALM_LIMB)};
 const float FULL_MOTION = ${glslFloat(FULL_MOTION)};
 const vec2 FLUID_CELLS = vec2(${glslFloat(FLUID_WIDTH)}, ${glslFloat(FLUID_HEIGHT)});
@@ -270,10 +273,13 @@ void main() {
   vec3 color = movedColor(q, dist);
   float alpha = 1.0;
   if (dist < 0.0) {
-    // In the sky: the painted glow is bright and the painted sky is black, so brightness is the glow's
-    // coverage. It also fades out across the band, which drops the painted stars beyond it.
-    float glow = clamp(max(color.r, max(color.g, color.b)) * 1.25, 0.0, 1.0);
-    alpha = glow * smoothstep(-GLOW_BAND, -0.008, dist);
+    // In the sky: only the atmosphere glow, not the painted sky (plate.ts glowCoverage()). The sky is navy, dark
+    // in red and green and blue only in its haze, while the rim, the sunrise and the high streaks are bright in
+    // red or green, so the brighter of those above the sky's own floor is the glow's coverage. Brightness with
+    // blue counted would lay the navy haze over our sky as a veil. It also fades out across the band
+    // (glowFade()), which drops the painted stars beyond it.
+    float glow = smoothstep(SKY_FLOOR, SKY_FLOOR + GLOW_RISE, max(color.r, color.g));
+    alpha = glow * smoothstep(-GLOW_BAND, -GLOW_EDGE, dist);
   }
   // Premultiplied: the plate over the sky.
   gl_FragColor = vec4(color * alpha, alpha) + uSky * (1.0 - alpha);
