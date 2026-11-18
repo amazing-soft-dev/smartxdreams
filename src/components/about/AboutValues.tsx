@@ -4,6 +4,7 @@ import { Photo } from "@/components/ui/Photo";
 import { Section } from "@/components/ui/Section";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { about } from "@/content/about";
+import { stagger } from "@/styles/motion";
 
 /** "How we work": the four values as numbered cards, beside a photo as tall as the block. */
 export function AboutValues() {
@@ -23,7 +24,7 @@ export function AboutValues() {
         <ul className="grid gap-3 md:grid-cols-2 lg:col-span-2">
           {about.values.map((value, i) => (
             <li key={value.title}>
-              <Reveal delay={i * 0.08} className="h-full">
+              <Reveal preset="up75" delay={(i % 2) * stagger.group} className="h-full">
                 <Card tone="canvas" padding="lg" className="h-full">
                   <span aria-hidden="true" className="font-mono text-label text-ink/70">
                     {String(i + 1).padStart(2, "0")}

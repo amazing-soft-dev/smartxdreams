@@ -5,6 +5,7 @@ import { SectionHeader } from "@/components/ui/SectionHeader";
 import { company } from "@/content/site";
 import { HonestStats } from "./HonestStats";
 import { RoadmapStrip } from "./RoadmapStrip";
+import { stagger } from "@/styles/motion";
 
 /** Small line icons for the three principles, in order. Decorative. */
 const icons = [
@@ -32,7 +33,7 @@ export function Principles() {
       <ul className="mt-14 grid gap-3 md:grid-cols-3">
         {company.principles.map((principle, i) => (
           <li key={principle.title}>
-            <Reveal delay={i * 0.08} className="h-full">
+            <Reveal preset="up75" delay={i * stagger.group} className="h-full">
               <Card tone="canvas" padding="lg" className="h-full">
                 <span aria-hidden="true" className="inline-flex size-11 items-center justify-center rounded-xl bg-ink text-white">
                   <svg viewBox="0 0 16 16" width="18" height="18" fill="none">
