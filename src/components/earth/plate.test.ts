@@ -11,31 +11,36 @@ import {
 } from "./plate";
 
 /**
- * Where the blue atmosphere starts, read off the 1774 × 887 master in a few columns away from the sun's
- * glare (x, y px). The fitted horizon must pass within 6 px of each.
+ * Where the bright rim starts, read off the 1659 × 948 master in columns away from the sun's glare (which
+ * hides the rim from about 460 to 960 px) and from cloud tops over the rim (x, y px). The fitted horizon must
+ * pass within 8 px of each.
  */
 const LIMB_SAMPLES: [number, number][] = [
-  [0, 687],
-  [110, 597],
-  [220, 518],
-  [330, 449],
-  [440, 389],
-  [550, 337],
-  [880, 206],
-  [990, 177],
-  [1100, 156],
-  [1210, 140],
-  [1320, 127],
-  [1540, 117],
-  [1650, 122],
-  [1760, 132],
+  [60, 760],
+  [160, 659],
+  [260, 575],
+  [360, 499],
+  [440, 448],
+  [1000, 212],
+  [1100, 183],
+  [1200, 174],
+  [1400, 163],
+  [1500, 163],
+  [1600, 172],
+  [1650, 178],
 ];
 
 describe("horizon", () => {
-  it("follows the measured limb within 6 px", () => {
+  it("follows the measured rim within 8 px", () => {
     for (const [x, y] of LIMB_SAMPLES) {
-      expect(Math.abs(horizonV(x / PLATE.width) * PLATE.height - y), `column ${x}`).toBeLessThanOrEqual(6);
+      expect(Math.abs(horizonV(x / PLATE.width) * PLATE.height - y), `column ${x}`).toBeLessThanOrEqual(8);
     }
+  });
+
+  it("does not follow the painted haze above the rim", () => {
+    // The navy haze is already blue 90 to 170 some 60 to 80 px above the rim on the right; the limb is the
+    // rim itself.
+    expect(horizonV(1400 / PLATE.width) * PLATE.height).toBeGreaterThan(150);
   });
 
   it("is a cubic with four coefficients", () => {
@@ -90,7 +95,12 @@ describe("variants", () => {
     expect(pickPlateVariant(500).width).toBe(768);
     expect(pickPlateVariant(768).width).toBe(768);
     expect(pickPlateVariant(769).width).toBe(1200);
-    expect(pickPlateVariant(5000).width).toBe(1774);
+    expect(pickPlateVariant(1659).width).toBe(1659);
+    expect(pickPlateVariant(5000).width).toBe(1659);
+  });
+
+  it("are the emblem art's WebP files", () => {
+    for (const { width, src } of PLATE_VARIANTS) expect(src).toBe(`/brand/earth/earth-emblem-${width}.webp`);
   });
 
 });

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { horizonDistance, horizonV, LANDMARKS } from "./plate";
+import { horizonDistance, horizonV, LANDMARKS, PLATE_ASPECT } from "./plate";
 import {
   heroToPlate,
   PLATE_BREAKPOINTS,
@@ -68,16 +68,17 @@ describe("plateRect", () => {
   });
 
   it("draws the symbol at its target height unless covering the hero needs more", () => {
-    const target = { right: 0.55, bottom: 0.48, height: 0.4 };
-    const rect = plateRect(target, 2);
+    const target = { right: 0.35, bottom: 0.48, height: 0.4 };
+    const rect = plateRect(target, 1.6);
     expect(LANDMARKS.symbol.height * rect.height).toBeCloseTo(0.4, 9);
     // A very wide hero grows the plate, and the symbol with it.
     expect(LANDMARKS.symbol.height * plateRect(target, 3).height).toBeGreaterThan(0.4);
   });
 
-  it("keeps the plate twice as wide as it is tall", () => {
+  it("keeps the plate's own shape", () => {
     const rect = plateRect({ right: 0.3, bottom: 0.25, height: 0.22 }, 0.8);
-    expect(rect.width / rect.height).toBeCloseTo(1774 / 887, 9);
+    expect(rect.width / rect.height).toBeCloseTo(PLATE_ASPECT, 9);
+    expect(PLATE_ASPECT).toBeCloseTo(1659 / 948, 9);
   });
 });
 
