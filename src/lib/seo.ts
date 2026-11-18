@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import { company } from "@/content/site";
 import { publicEnv } from "./env";
+import { photoBySlot } from "@/content/photos";
+import { team } from "@/content/team";
+import imageLoader from "./image-loader";
 
 /** Canonical origin without a trailing slash, from NEXT_PUBLIC_SITE_URL. */
 export const siteUrl = publicEnv.NEXT_PUBLIC_SITE_URL;
@@ -74,6 +77,24 @@ export function organizationJsonLd(): Record<string, unknown> {
     logo: absoluteUrl(organizationLogoPath),
     description: company.description,
   };
+}
+
+/**
+ * The team as schema.org Person entries, each an employee of the Organization. The image is the portrait as
+ * the deployed site serves it: the 1024 px WebP variant in the static export (which ships no originals),
+ * the original photo on the server build.
+ */
+export function teamJsonLd(): Record<string, unknown>[] {
+  return team.map((person) => {
+    const src = photoBySlot(person.photo.slot).src;
+    return {
+      "@type": "Person",
+      name: person.name,
+      jobTitle: person.role,
+      image: absoluteUrl(process.env.NEXT_PUBLIC_STATIC_EXPORT === "true" ? imageLoader({ src, width: 1024 }) : src),
+      worksFor: { "@id": `${siteUrl}/#organization` },
+    };
+  });
 }
 
 /** schema.org WebSite, linked to the Organization. */
