@@ -4,6 +4,7 @@ import { Section } from "@/components/ui/Section";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { about } from "@/content/about";
 import { PhotoReveal } from "@/components/motion/PhotoReveal";
+import { WordReveal } from "@/components/motion/WordReveal";
 
 /** "Our story": why the studio started, beside a photo that slides in from the right. */
 export function AboutStory() {
@@ -13,8 +14,9 @@ export function AboutStory() {
         <div>
           <SectionHeader id="story-title" tag="Our story" title={about.story.title} align="left" />
           <div className="mt-6 flex max-w-[62ch] flex-col gap-5 text-body-l text-ink/75">
+            {/* Each paragraph sharpens word by word as it is reached, like the home statement. */}
             {about.story.paragraphs.map((p) => (
-              <p key={p}>{p}</p>
+              <WordReveal key={p} text={p} amount={0.3} />
             ))}
           </div>
         </div>
