@@ -68,6 +68,12 @@ export type Product = {
   footnote?: string;
   /** Photo for the "who it is for" section, by registry slot (src/content/photos.json). */
   photo?: { slot: string };
+  /**
+   * The product's logo, built by scripts/build-brand.mjs from assets/products/<slug>.png into
+   * public/products/logos/<slug>-<size>.webp. `alt` describes the artwork, for where the logo stands alone;
+   * next to the product's name it is decorative.
+   */
+  logo: { alt: string };
   /** Slugs of related products. */
   related: string[];
   seo: {
