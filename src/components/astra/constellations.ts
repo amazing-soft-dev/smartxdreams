@@ -16,7 +16,7 @@ export const CONSTELLATION_Z = -1.2;
 
 export const constellations: Constellation[] = [
   {
-    slug: "jobatlas",
+    slug: "joined",
     points: [[-6.2, 2.6], [-5.4, 3.3], [-4.5, 2.9], [-3.8, 3.6], [-3.1, 3.1]],
     lines: [[0, 1], [1, 2], [2, 3], [3, 4]],
   },
