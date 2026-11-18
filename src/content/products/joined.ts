@@ -44,7 +44,7 @@ export const joined: Product = {
   whoFor: ["People searching for a new job", "Anyone tired of checking several job boards"],
   limits: [
     "Joined covers the sources listed in the app, not every job site; some roles are only on sites we do not search yet.",
-    "Joined links you to the original posting; you apply on the employer's site or through ApplyPilot.",
+    "Joined links you to the original posting; you apply on the employer's site or through Acorn.",
     "Listings can change or close on the source site before Joined refreshes.",
   ],
   faq: [
@@ -56,7 +56,7 @@ export const joined: Product = {
     {
       question: "Do I apply through Joined?",
       answer:
-        "No. Each job links to its original posting, where you apply as usual. If you use ApplyPilot, it can fill the application form for you to review.",
+        "No. Each job links to its original posting, where you apply as usual. If you use Acorn, it can fill the application form for you to review.",
     },
     {
       question: "Is Joined affiliated with LinkedIn, Indeed or the other sites?",

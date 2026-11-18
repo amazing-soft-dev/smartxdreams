@@ -16,6 +16,12 @@ describe("products", () => {
     expect([...slugs].sort()).toEqual(["acorn", "joined", "senioraiplans", "sitelog", "toothledger", "trustdraft"]);
   });
 
+  it("never name a product by its retired name", () => {
+    // JobAtlas, ApplyPilot and Kinly were renamed Joined, Acorn and SeniorAIPlans.
+    const copy = JSON.stringify(products);
+    for (const retired of ["JobAtlas", "ApplyPilot", "Kinly", "jobatlas", "applypilot", "kinly"]) expect(copy).not.toContain(retired);
+  });
+
   it("have URL-safe slugs and unique names", () => {
     for (const p of products) expect(p.slug).toMatch(SLUG);
     expect(new Set(products.map((p) => p.name)).size).toBe(products.length);
