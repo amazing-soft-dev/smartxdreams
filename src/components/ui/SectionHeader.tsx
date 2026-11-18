@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { cx } from "@/lib/cx";
-import { Accent } from "./Accent";
+import { SplitText } from "@/components/motion/SplitText";
 import { Tag } from "./Tag";
 
 type SectionHeaderProps = {
@@ -41,7 +41,7 @@ export function SectionHeader({
       ) : null}
       <div className={cx("flex flex-col gap-3", centered && "items-center")}>
         <Heading id={id} className="text-h2">
-          <Accent text={title} tone={tone} />
+          <SplitText text={title} tone={tone} />
         </Heading>
         {description ? (
           <p className={cx("max-w-2xl text-body-l", tone === "dark" ? "text-white/65" : "text-ink/65")}>{description}</p>
