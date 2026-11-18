@@ -18,30 +18,54 @@ import { horizonV, LANDMARKS, PLATE_ASPECT } from "./plate";
 export type SymbolTarget = { right: number; bottom: number; height: number };
 
 export type PlateBreakpoint = {
-  /** Applies from this viewport width (CSS px) up to the next breakpoint. */
+  /** A short name, for tests and docs. */
+  name: string;
+  /** Applies from this viewport width (CSS px)... */
   minWidth: number;
+  /** ...and, when set, only from this viewport aspect (width / height) up. */
+  minAspect?: number;
   symbol: SymbolTarget;
 };
 
 /**
- * Phone, tablet and desktop. The copy sits over the sky: across the top on phones and tablets, in a left
- * column on desktop. The symbol stays clear of it, low on the right. On desktop the planet rises from the
- * bottom of the copy column to the right edge, so the limb passes under the copy instead of through it.
+ * From phones to ultrawides, in cascade order: the last breakpoint that matches the viewport wins, as the
+ * fallback's media queries do. The copy sits over the sky: across the top on phones and tablets, in a left
+ * column on desktops and landscape phones. The emblem stays clear of it, low on the right. Where the copy is a
+ * column, the planet rises from the bottom of the copy column to the right edge, so the limb passes under the
+ * copy instead of through it.
+ *
+ * Width alone cannot tell a 4:3 laptop from a 21:9 ultrawide, a phone on its side or a large tablet held
+ * upright, so the shapes are picked by aspect too. A wide hero has room on the right for a larger emblem; the
+ * targets grow with it. The desktop column needs a landscape window: a 1024 × 1366 tablet held upright keeps
+ * the tablet's copy across the top (HomeHero's `desktop` variant matches the same query).
  */
 export const PLATE_BREAKPOINTS: readonly PlateBreakpoint[] = [
-  // Phone: the hero keeps a band below the copy for the planet (HomeHero), and the symbol sits in it.
-  { minWidth: 0, symbol: { right: 0.15, bottom: 0.1, height: 0.14 } },
-  { minWidth: 640, symbol: { right: 0.3, bottom: 0.18, height: 0.3 } },
-  { minWidth: 1024, symbol: { right: 0.3, bottom: 0.18, height: 0.3 } },
+  // Phone: the hero keeps a band below the copy for the planet (HomeHero), and the emblem sits in it.
+  { name: "phone", minWidth: 0, symbol: { right: 0.17, bottom: 0.18, height: 0.13 } },
+  { name: "tablet", minWidth: 640, symbol: { right: 0.3, bottom: 0.18, height: 0.3 } },
+  // A phone on its side (or a short window): too short for the copy across the top, so the copy is a left
+  // column, as on desktop (HomeHero's landscape-phone variant).
+  { name: "landscape phone", minWidth: 640, minAspect: 1.6, symbol: { right: 0.36, bottom: 0.22, height: 0.3 } },
+  { name: "desktop", minWidth: 1024, minAspect: 1, symbol: { right: 0.3, bottom: 0.2, height: 0.3 } },
+  // 21:9 ultrawides and very short laptops.
+  { name: "wide", minWidth: 1024, minAspect: 2.2, symbol: { right: 0.34, bottom: 0.2, height: 0.34 } },
+  // 32:9 super-ultrawides.
+  { name: "ultrawide", minWidth: 1024, minAspect: 2.9, symbol: { right: 0.44, bottom: 0.3, height: 0.44 } },
 ];
 
 /** Height (v) of the limb at the plate's left edge: below it, the planet runs down that edge. */
 const LIMB_AT_LEFT = horizonV(0);
 
-/** The breakpoint in force at a viewport width (CSS px). */
-export function plateBreakpointFor(viewportWidth: number): PlateBreakpoint {
+/**
+ * The breakpoint in force for a viewport (CSS px). Without a height, only the width counts and the aspect
+ * breakpoints are skipped.
+ */
+export function plateBreakpointFor(viewportWidth: number, viewportHeight?: number): PlateBreakpoint {
+  const aspect = viewportHeight ? viewportWidth / viewportHeight : 0;
   let match = PLATE_BREAKPOINTS[0]!;
-  for (const bp of PLATE_BREAKPOINTS) if (viewportWidth >= bp.minWidth) match = bp;
+  for (const bp of PLATE_BREAKPOINTS) {
+    if (viewportWidth >= bp.minWidth && (bp.minAspect === undefined || aspect >= bp.minAspect)) match = bp;
+  }
   return match;
 }
 
@@ -89,6 +113,17 @@ export function plateUniform(rect: PlateRect): [number, number, number, number] 
 const round = (n: number) => Number(n.toFixed(5));
 
 /**
+ * The media query a breakpoint applies in, or "" for the first (it applies everywhere). The aspect is written
+ * as a ratio over 1000 (`min-aspect-ratio` takes integers).
+ */
+export function plateMediaQuery({ minWidth, minAspect }: PlateBreakpoint): string {
+  const parts: string[] = [];
+  if (minWidth > 0) parts.push(`(min-width:${minWidth}px)`);
+  if (minAspect !== undefined) parts.push(`(min-aspect-ratio:${Math.round(minAspect * 1000)}/1000)`);
+  return parts.join(" and ");
+}
+
+/**
  * The placement for the CSS fallback, on `selector`: the symbol landmark and the plate's aspect as constants,
  * each breakpoint's symbol target in a media query, and plateRect() itself written in CSS, so the fallback
  * needs no JavaScript to line up with the scene:
@@ -118,9 +153,11 @@ export function plateLayoutCss(selector: string): string {
     "--plate-left:calc(100cqw - var(--plate-symbol-right) * 100cqh - var(--plate-su) * var(--plate-aspect) * var(--plate-height))",
     "--plate-bottom:calc(var(--plate-symbol-bottom) * 100cqh - (1 - var(--plate-sv)) * var(--plate-height))",
   ].join(";");
-  const targets = PLATE_BREAKPOINTS.map(({ minWidth, symbol }) => {
+  const targets = PLATE_BREAKPOINTS.map((bp) => {
+    const { symbol } = bp;
     const rule = `${selector}{--plate-symbol-right:${symbol.right};--plate-symbol-bottom:${symbol.bottom};--plate-symbol-height:${symbol.height}}`;
-    return minWidth === 0 ? rule : `@media (min-width:${minWidth}px){${rule}}`;
+    const query = plateMediaQuery(bp);
+    return query ? `@media ${query}{${rule}}` : rule;
   });
   return `${selector}{${base}}${targets.join("")}`;
 }
