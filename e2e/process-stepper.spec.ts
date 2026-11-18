@@ -37,7 +37,8 @@ test.describe("with reduced motion", () => {
 
   test("there is no tick line, and every step is listed", async ({ page }) => {
     await page.goto("/");
-    await expect(page.locator(tickLine)).toHaveCount(0);
+    // The tick line is in the markup either way (server and client must match) and CSS hides it.
+    await expect(page.locator(tickLine)).toBeHidden();
     await expect(page.locator("#how-we-build ol > li")).toHaveCount(4);
   });
 });

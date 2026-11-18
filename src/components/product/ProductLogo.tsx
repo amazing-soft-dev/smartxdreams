@@ -21,8 +21,9 @@ type ProductLogoProps = {
   /** Hide from assistive technology when the product's name is right next to the logo. */
   decorative?: boolean;
   /**
-   * "lazy" (the default) for lists down the page; "eager" inside menus, which are hidden until opened, so
-   * the logos are there the moment the menu appears.
+   * "lazy" (the default): lists down the page, and menus that are closed when the page loads (the logos load
+   * as the menu opens; they are 2 to 3 KB). "eager" only for a logo visible in the first screen, such as the
+   * product hero's.
    */
   loading?: "lazy" | "eager";
   className?: string;
@@ -46,6 +47,8 @@ export function ProductLogo({ product, size = 40, tile = true, decorative = fals
       alt={decorative ? "" : product.logo.alt}
       aria-hidden={decorative ? true : undefined}
       loading={loading}
+      // An eager logo is fetched early but after the stylesheet and fonts the first paint waits on.
+      fetchPriority={loading === "eager" ? "low" : undefined}
       decoding="async"
       draggable={false}
       className={cx("block shrink-0 select-none", !tile && className)}

@@ -2,7 +2,9 @@ import { Reveal } from "@/components/motion/Reveal";
 import { TransitionLink } from "@/components/transition/TransitionLink";
 import { Container } from "@/components/ui/Container";
 import { Logo } from "@/components/ui/Logo";
-import { FooterSmoke } from "./FooterSmoke";
+import { FooterAurora } from "./FooterAurora";
+import { FooterHorizon } from "./FooterHorizon";
+import { FooterStars } from "./FooterStars";
 import { SocialIcons } from "./SocialIcons";
 import { products } from "@/content/products";
 import { company, footerGroups, trademarkNote } from "@/content/site";
@@ -18,25 +20,29 @@ const productGroup: NavGroup = {
 /** Privacy and Terms, repeated in the bottom bar. */
 const legalLinks = footerGroups.find((g) => g.label === "Legal")?.items ?? [];
 
-/** Dark site footer: brand column, link groups, and a bottom bar with the copyright, legal links and the
- * third-party trademark note. */
+/** Dark site footer under a night sky: brand column, link groups, and a bottom bar with the copyright,
+ * legal links and the third-party trademark note. Behind it all: the stars, the aurora, and the ridge the
+ * aurora rises behind. */
 export function Footer() {
   const groups = [productGroup, ...footerGroups];
   const year = new Date().getFullYear();
   return (
-    <footer data-surface="dark" data-nav-theme="dark" className="relative isolate overflow-hidden bg-ink text-white">
-      <FooterSmoke />
-      <Container className="relative pt-20 pb-10 md:pt-24">
+    <footer data-surface="dark" data-nav-theme="dark" className="relative isolate overflow-hidden bg-ink bg-linear-to-b from-space to-ink text-white">
+      <FooterStars />
+      <FooterAurora />
+      {/* Every line of text carries a soft night-ink halo (text-shadow is inherited), so the muted links keep
+          4.5:1 even where a bright curtain passes behind them. */}
+      <Container className="relative pt-20 pb-10 [text-shadow:0_0_14px_rgb(7_1_23/0.9),0_0_5px_rgb(7_1_23/0.85)] md:pt-24">
         <div className="grid gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)] lg:gap-16">
           <div className="max-w-sm">
             <TransitionLink href="/" aria-label="SmartxDreams home" className="inline-flex min-h-11 items-center rounded-md">
-              {/* The smoke drifts and its brightest plumes can pass behind the logo: a soft ink shadow keeps the
+              {/* The aurora sways and its brightest curtains can pass behind the logo: a soft ink shadow keeps the
                   white ribbon and wordmark at the contrast they have on plain ink. */}
-              <Logo tone="light" height={30} decorative className="drop-shadow-[0_1px_10px_rgb(15_18_38/0.6)]" />
+              <Logo tone="light" height={30} decorative fetchPriority="low" className="drop-shadow-[0_1px_10px_rgb(15_18_38/0.6)]" />
             </TransitionLink>
             {/* The studio's line comes out of a soft blur, as Ignivo's text does. */}
             <Reveal preset="blur10" delay={0.15}>
-              <p className="mt-5 text-body text-white/65">{company.tagline}</p>
+              <p className="mt-5 text-body text-white/75">{company.tagline}</p>
             </Reveal>
             <SocialIcons />
           </div>
@@ -51,7 +57,7 @@ export function Footer() {
                     <li key={item.href}>
                       <TransitionLink
                         href={item.href}
-                        className="inline-flex min-h-11 min-w-11 items-center text-label text-white/65 transition-colors duration-250 ease-[var(--ease-standard)] hover:text-white"
+                        className="inline-flex min-h-11 min-w-11 items-center text-label text-white/75 transition-colors duration-250 ease-[var(--ease-standard)] hover:text-white"
                       >
                         {item.label}
                       </TransitionLink>
@@ -63,7 +69,9 @@ export function Footer() {
           </nav>
         </div>
 
-        <div className="mt-16 flex flex-col gap-4 border-t border-white/10 pt-8 text-micro text-white/60">
+        {/* The bottom bar stands on the ground: the ridge's crest takes the place of a divider line. */}
+        <div className="relative mt-16 flex flex-col gap-4 pt-8 text-micro text-white/60">
+          <FooterHorizon />
           <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2">
             <p>
               © {year} {company.name}. All rights reserved.

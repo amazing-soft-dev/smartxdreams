@@ -10,11 +10,11 @@ statically generated page (gzipped) and fails when any budget is exceeded:
 
 | Budget | Limit | Now (2026-11-16) |
 |---|---|---|
-| Initial JavaScript per page | 330 KB | Home 305.1 KB, other pages about 288 KB |
+| Initial JavaScript per page | 340 KB | Home 331.6 KB, other pages about 308 KB (2026-11-18, with the motion work #380–#391) |
 | CSS per page | 30 KB | 13.4–13.8 KB |
 | Preloaded fonts | 1 file, up to 60 KB | 1 Latin woff2, 44 KB |
 | three.js (lazy chunk) | 200 KB | 131.2 KB |
-| Not in initial scripts | three.js, Lenis, smoke shader | all lazy |
+| Not in initial scripts | three.js, Lenis, aurora shader | all lazy |
 
 `npm run check:images` holds the photo budget: masters at most 2400 px, 800 KB each, 12 MB total.
 
@@ -28,9 +28,11 @@ statically generated page (gzipped) and fails when any budget is exceeded:
   painted plate drawn on canvas (768 / 1200 / 1659 px WebP, picked like the scene's and shared with it; a
   canvas is never the LCP, so the plate cannot take it from the text). The fluid wake steps
   on the CPU only while it moves. See [earth.md](earth.md).
-- **Footer smoke (WebGL):** requested only when the footer is within 600 px of the viewport, and paused
-  off-screen. If the browser drops its WebGL context, it pauses and the static gradient shows; when the
-  context comes back it rebuilds its shader program and carries on.
+- **Footer aurora (WebGL):** requested only when the footer is within 600 px of the viewport, drawn at
+  half resolution, and paused off-screen. If the browser drops its WebGL context, it pauses and the still
+  CSS aurora shows; when the context comes back it rebuilds its shader program and carries on. The
+  footer's drifting stars are box-shadows on three elements, moved by compositor-only transforms, with
+  no JavaScript.
 - **Photos:** responsive AVIF/WebP with intrinsic sizes and blur placeholders. Only the largest image
   above the fold uses `priority`.
 

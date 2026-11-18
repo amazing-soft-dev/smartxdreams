@@ -4,14 +4,13 @@ import { expect, test } from "@playwright/test";
  * Home's Core Web Vitals on a throttled phone, the launch target in docs/performance.md:
  * LCP under 2.5 s and CLS under 0.05. Throttling matches Lighthouse's mobile defaults: "slow 4G"
  * (150 ms latency, 1.6 Mbps down, 750 kbps up) and a 4x CPU slowdown, applied through the Chrome DevTools
- * Protocol. Runs on the phone project only.
+ * Protocol. Runs in the `vitals` project only (playwright.config.ts): a Pixel 7, after every other test has
+ * finished, so no other test competes for the CPU while it measures.
  */
 const LCP_BUDGET_MS = 2500;
 const CLS_BUDGET = 0.05;
 
 test("Home meets the LCP and CLS targets on a throttled phone", async ({ page }, testInfo) => {
-  test.skip(testInfo.project.name !== "mobile", "throttled vitals are measured on the phone profile");
-
   const cdp = await page.context().newCDPSession(page);
   await cdp.send("Network.enable");
   await cdp.send("Network.emulateNetworkConditions", {

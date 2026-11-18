@@ -65,7 +65,7 @@ The script never upscales (the widest variant is the master's width) and fails i
 |---|---|---|
 | Header bar | `<Logo>` twice, both tones stacked; the one that suits the section behind (`useNavTheme`) is shown and they cross-fade | charcoal on light sections, white on dark |
 | Mobile menu | `<Logo tone="light">`, same height as the header (`NAV_LOGO_HEIGHT`) | white |
-| Footer | `<Logo tone="light" height={30}>` with a soft ink shadow against the smoke | white |
+| Footer | `<Logo tone="light" height={30}>` with a soft ink shadow against the aurora | white |
 | Page transition | `<Logo variant="mark" tone="light" height={36}>`, decoded while idle, scaling in with the panels | white |
 | Browser tab (Chrome, Edge, Firefox, Safari 18+) | `src/app/icon.svg` | charcoal, white in dark mode |
 | Browser tab fallback | `src/app/favicon.ico` | charcoal |

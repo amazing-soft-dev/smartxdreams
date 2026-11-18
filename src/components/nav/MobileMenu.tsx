@@ -73,7 +73,7 @@ export function MobileMenu({ id, open, onOpenChange }: MobileMenuProps) {
       <div className="flex min-h-full flex-col px-4 pt-3 pb-8 md:px-10 md:pt-5">
         <div className="flex h-15 items-center justify-between pr-2 pl-4">
           <Link href="/" aria-label="SmartxDreams home" onClick={() => onOpenChange(false)} className="inline-flex min-h-11 items-center rounded-md">
-            <Logo tone="light" height={NAV_LOGO_HEIGHT} decorative />
+            <Logo tone="light" height={NAV_LOGO_HEIGHT} decorative fetchPriority="low" />
           </Link>
           <button
             type="button"
@@ -128,7 +128,7 @@ export function MobileMenu({ id, open, onOpenChange }: MobileMenuProps) {
                             onClick={() => onOpenChange(false)}
                             className="flex items-center gap-3.5 py-2.5 pl-4"
                           >
-                            <ProductLogo product={product} size={32} decorative loading="eager" />
+                            <ProductLogo product={product} size={32} decorative />
                             <span className="flex min-w-0 flex-col">
                               <span className="text-body-l text-white">{product.name}</span>
                               <span className="text-label text-white/65">{product.tagline}</span>

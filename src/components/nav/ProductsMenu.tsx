@@ -157,7 +157,7 @@ export function ProductsMenu({ theme }: ProductsMenuProps) {
                     index === active ? "bg-white/[0.08]" : "hover:bg-white/[0.06]",
                   )}
                 >
-                  <ProductLogo product={product} size={36} decorative loading="eager" className="mt-0.5" />
+                  <ProductLogo product={product} size={36} decorative className="mt-0.5" />
                   <span className="min-w-0">
                     <span className="block text-[15px] leading-snug font-medium">{product.name}</span>
                     <span className="mt-0.5 block text-[12.5px] leading-snug text-white/65">{product.tagline}</span>
@@ -180,7 +180,7 @@ function ProductPreview({ slug }: { slug: string }) {
   return (
     <div className="relative flex w-[290px] animate-[menu-preview_500ms_var(--ease-out-quint)] flex-col justify-between overflow-hidden rounded-[14px] bg-[linear-gradient(160deg,#6D4AFF_0%,#371D93_55%,#0F1226_100%)] p-5">
       <div>
-        <ProductLogo product={product} size={52} decorative loading="eager" className="mb-4" />
+        <ProductLogo product={product} size={52} decorative className="mb-4" />
         <span className="block text-micro font-semibold tracking-[0.06em] text-white/70 uppercase">
           For {audienceLabel(product.audience).toLowerCase()}
         </span>

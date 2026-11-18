@@ -55,7 +55,7 @@ The Ignivo audit described a SaaS template. This plan turns it into a **company 
 | Product names | I propose names (§3); you approve or edit |
 | Bootstrap | **You** create `dev`, add the `GH_TOKEN` secret and import rulesets (§7) |
 | Visuals | Ignivo layout, **your brand colors** |
-| Motion | **Full Ignivo parity** (page transition, Lenis smooth scroll, WebGL smoke footer, hero selection box, scroll-scrubbed stepper, cursor-badge cards, rolling buttons, digit counters), with the accessibility fixes from the audit |
+| Motion | **Full Ignivo parity** (page transition, Lenis smooth scroll, WebGL aurora footer (originally smoke), hero selection box, scroll-scrubbed stepper, cursor-badge cards, rolling buttons, digit counters), with the accessibility fixes from the audit |
 | Imagery | **Updated:** real photos searched and downloaded from **Unsplash and Pexels** (§5.1). The product hero UIs stay code-built mockups, and photos are used for the supporting spots around them |
 | Third-party brands | Names as plain text only; no logos; trademark footnote |
 
@@ -145,7 +145,7 @@ src/
   app/                      routes, layout, sitemap, robots, opengraph, llms.txt, api/{contact,waitlist}
   components/
     ui/                     Button(RollingLabel) Tag Section Card Glow Accordion FilterChips DigitRoller Ticker Logo
-    motion/                 Reveal SmoothScroll(Lenis) TransitionProvider SmokeBackground
+    motion/                 Reveal SmoothScroll(Lenis) TransitionProvider AuroraBackground
     nav/                    Header MegaMenu MobileMenu
     sections/               Hero ProductGrid Statement Process Principles Faq Cta
     mockups/                Joined Acorn SiteLog ToothLedger SeniorAIPlans TrustDraft (HTML/CSS, aria-hidden or labelled)
@@ -169,7 +169,7 @@ A star-field behind the Home hero, with our palette:
 - **Rendering:** `THREE.Points` with a small custom shader (size attenuation, soft round sprites, twinkle), about 4–6k stars, white with a few violet and coral stars. A slow drift and pointer parallax.
 - **Product constellations:** six faint star clusters, one per product. Hovering a product card or a hero chip brightens that constellation's lines (`LineSegments`) and dims the rest. This ties the visual to the six products.
 - **Loading:** imperative three.js in a client component, loaded with `next/dynamic` (`ssr: false`) after the headline paints, so it can't hurt LCP. Budget: **≤ 200 KB gzipped** extra on Home only.
-- **Fallbacks:** a static CSS star gradient for reduced motion, no WebGL, save-data, and low-power devices; pauses off-screen and on hidden tabs; DPR capped at 1.75; full `dispose()` on unmount; two WebGL contexts (AstraField + smoke footer) never render at the same time.
+- **Fallbacks:** a static CSS star gradient for reduced motion, no WebGL, save-data, and low-power devices; pauses off-screen and on hidden tabs; DPR capped at 1.75; full `dispose()` on unmount; two WebGL contexts (AstraField + aurora footer) never render at the same time.
 - **Accessibility:** decorative (`aria-hidden`), no information carried only by the animation, content readable over it (contrast checked on the darkest and brightest star areas).
 
 ### 5.1 Imagery: sourcing photos from Unsplash and Pexels
@@ -211,7 +211,7 @@ When we reach the image issues, I will search both sites in the built-in browser
 | Header | Hide on scroll down, show on up; theme by IntersectionObserver (`data-nav-theme`), **no 800 ms polling** |
 | Mega-menu | Real `<button aria-expanded>`, hover and keyboard, Esc closes, 140 ms hover grace |
 | Mobile menu | `<dialog>` modal, lists **all** pages (the original dropped Features and Pricing), scroll lock |
-| Smoke footer | Raw WebGL fragment shader, paused off-screen and on hidden tabs, static gradient fallback |
+| Aurora footer (replaced the smoke, #438) | Raw WebGL curtain shader with a brand colour loop over CSS drifting stars, paused off-screen and on hidden tabs, still CSS aurora fallback |
 | Hero selection box | Cycles words every 2.35 s, paused under reduced motion, `aria-hidden` overlay |
 | Process stepper | Sticky and scroll-scrubbed on desktop, plain stacked list on mobile |
 | Cursor badge cards | 84 px "Read ↗" badge on `(hover:hover) and (pointer:fine)` only |
@@ -449,7 +449,7 @@ Parallel branches are fine when they touch different files. `site.ts` and `globa
 | `GH_TOKEN` PAT leaks or expires | Fine-grained, single repo, expiry noted in `docs/pipeline.md`; never exposed to fork PRs; I never print it |
 | PAT owner can bypass rules | Rulesets have **no bypass list**, so even admins and the PAT go through PRs (verified in #70) |
 | Auto-merge with no human review | Intentional per your design; the safety net is the required "CI passed", `--match-head-commit`, and the guard checks |
-| Static export vs. WebGL | AstraField and the smoke footer render only on the client; the static build ships the CSS fallback HTML |
+| Static export vs. WebGL | AstraField and the aurora footer render only on the client; the static build ships the CSS fallback HTML |
 | three.js weight | Lazy-loaded, ≤ 200 KB gz budget (#73), Home only |
 | Latest-Node drift in CI | Node version is printed in the CI summary; if a new Node breaks the build, pin in a `ci/` fix |
 | Pasted pipeline doc belongs to another project (bridgewide.org, hire/CV/salary APIs) | Only the workflow mechanics are reused; routes and domain are replaced. **I need the real SmartxDreams domain** (default `NEXT_PUBLIC_SITE_URL` placeholder) |
