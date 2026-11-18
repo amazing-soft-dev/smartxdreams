@@ -13,6 +13,7 @@ import { blogCategories } from "@/content/blog/categories";
 import { allPosts } from "@/lib/blog/posts";
 import { cx } from "@/lib/cx";
 import { readyRoutes } from "@/lib/routes";
+import { SplitText } from "@/components/motion/SplitText";
 
 /** Suggestions come from the site content: the main pages (except Home, which has its own button)
  * followed by the products. Nothing is hard-coded here. */
@@ -75,7 +76,7 @@ export default function NotFound() {
             Error 404 · Page not found
           </Tag>
           <h1 id="not-found-title" className="mt-5 max-w-2xl text-h2">
-            This page took a <span className="text-violet-300">wrong turn.</span>
+            <SplitText text="This page took a *wrong turn.*" tone="dark" aboveFold />
           </h1>
           <p className="mt-4 max-w-md text-body-l text-white/65">
             The link may be old, or the page may have moved. Here are the places people usually look for.
