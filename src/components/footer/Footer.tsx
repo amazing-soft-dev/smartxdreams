@@ -2,6 +2,7 @@ import { TransitionLink } from "@/components/transition/TransitionLink";
 import { Container } from "@/components/ui/Container";
 import { Logo } from "@/components/ui/Logo";
 import { FooterAurora } from "./FooterAurora";
+import { FooterHorizon } from "./FooterHorizon";
 import { FooterStars } from "./FooterStars";
 import { SocialIcons } from "./SocialIcons";
 import { products } from "@/content/products";
@@ -18,7 +19,8 @@ const productGroup: NavGroup = {
 const legalLinks = footerGroups.find((g) => g.label === "Legal")?.items ?? [];
 
 /** Dark site footer under a night sky: brand column, link groups, and a bottom bar with the copyright,
- * legal links and the third-party trademark note. The sky (stars, then the aurora) sits behind it all. */
+ * legal links and the third-party trademark note. Behind it all: the stars, the aurora, and the ridge the
+ * aurora rises behind. */
 export function Footer() {
   const groups = [productGroup, ...footerGroups];
   const year = new Date().getFullYear();
@@ -59,7 +61,9 @@ export function Footer() {
           </nav>
         </div>
 
-        <div className="mt-16 flex flex-col gap-4 border-t border-white/10 pt-8 text-micro text-white/60">
+        {/* The bottom bar stands on the ground: the ridge's crest takes the place of a divider line. */}
+        <div className="relative mt-16 flex flex-col gap-4 pt-8 text-micro text-white/60">
+          <FooterHorizon />
           <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2">
             <p>
               © {year} {company.name}. All rights reserved.
