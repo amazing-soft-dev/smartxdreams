@@ -29,6 +29,27 @@ export const spring = {
   a: { type: "spring", bounce: 0.2, duration: 0.6 },
   /** Hero mockup cards. */
   b: { type: "spring", bounce: 0.3, duration: 1.1 },
+  /**
+   * Beemas' rise (docs/motion-audit.md): every heading line and block fade-up, whatever its distance. An
+   * overdamped spring, no overshoot, settled to 1% in about 1.5 s.
+   */
+  rise: { type: "spring", stiffness: 90, damping: 33, mass: 1 },
+  /** Beemas' side slides from 200 px: critically damped, quicker than the rise (settled in about 0.8 s). */
+  slide: { type: "spring", stiffness: 64, damping: 16, mass: 1 },
+  /** Beemas' header appear: long and soft, with a little give at the end. */
+  appear: { type: "spring", duration: 2.7, bounce: 0.2 },
+} as const;
+
+/** Staggers and first delays measured on Beemas, in seconds (docs/motion-audit.md). */
+export const stagger = {
+  /** Between the lines of a heading or paragraph that rises line by line. */
+  line: 0.16,
+  /** Before the first line starts, once the text is in view. */
+  lineDelay: 0.27,
+  /** Between sibling cards in a group. */
+  group: 0.2,
+  /** Before the first card of a group starts. */
+  groupDelay: 0.4,
 } as const;
 
 /** Durations in milliseconds, for timelines that are not springs. */
