@@ -44,7 +44,7 @@ export default async function OpenGraphImage() {
             width: 620,
             height: 620,
             borderRadius: 9999,
-            background: "radial-gradient(closest-side, rgba(109,74,255,0.55), rgba(109,74,255,0))",
+            background: "radial-gradient(circle at center, rgba(109,74,255,0.55) 0%, rgba(109,74,255,0) 70%)",
           }}
         />
         <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
