@@ -128,7 +128,7 @@ pull request.
 | Item | Owner | Where |
 |---|---|---|
 | Legal review of the privacy policy and terms, then remove the draft notes | Counsel | docs/legal.md |
-| Counsel items: JobAtlas sources, ApplyPilot automation, ToothLedger and Kinly disclaimers, data commitments | Counsel | docs/compliance.md |
+| Counsel items: Joined sources, Acorn automation, ToothLedger and SeniorAIPlans disclaimers, data commitments | Counsel | docs/compliance.md |
 | Review the six seed blog posts and set `draft: false` on the ones to publish | Content | docs/blog.md |
 | Real domain and sender address (sections 2 and 3) | Owner | this file |
 | Social profile URLs, if any: fill `socialLinks` in `src/content/site.ts` (the footer icons appear automatically) | Owner | src/content/site.ts |

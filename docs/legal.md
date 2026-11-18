@@ -28,8 +28,8 @@ retention periods, entity details or governing law that we have not decided.
 6. **Children.** The age threshold (16 is used now).
 7. **Terms.** Governing law and courts, the liability and warranty wording, and how consumer-law
    carve-outs apply in each market.
-8. **Product disclaimers.** ApplyPilot (automation of job sites and their terms of service), ToothLedger
-   (insurance estimates) and Kinly (not medical, legal or financial advice). Review these alongside the
+8. **Product disclaimers.** Acorn (automation of job sites and their terms of service), ToothLedger
+   (insurance estimates) and SeniorAIPlans (not medical, legal or financial advice). Review these alongside the
    product copy audit in issue #59.
 9. **Products.** Each product needs its own privacy notice and terms before anyone can use it.
 
