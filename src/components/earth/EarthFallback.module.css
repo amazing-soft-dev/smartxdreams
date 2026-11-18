@@ -19,3 +19,56 @@
   width: calc(var(--plate-height) * var(--plate-aspect));
 }
 
+/*
+ * The still planet's drift, where the scene will never run but motion is welcome (EarthFallback sets
+ * data-drift; see fallbackDrifts()). It is the scene's orbital drift (plate-shader.ts orbital()): 12 px across
+ * on a 114 s sine and 4.5 px up and down on a 146 s one, as two alternating ease-in-out runs of half a period,
+ * which is close to a sine. Each axis animates its own registered property, so the two periods never line up
+ * into a loop you can see. The planet and its glow canvas move together. Browsers without @property keep the
+ * planet still.
+ */
+@property --drift-x {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+
+@property --drift-y {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+
+@keyframes drift-x {
+  from {
+    --drift-x: -12px;
+  }
+  to {
+    --drift-x: 12px;
+  }
+}
+
+@keyframes drift-y {
+  from {
+    --drift-y: -4.5px;
+  }
+  to {
+    --drift-y: 4.5px;
+  }
+}
+
+.root[data-drift] .plate {
+  translate: var(--drift-x) var(--drift-y);
+  /* Starting a quarter period in, so the planet starts where the layout put it and moves from there. */
+  animation:
+    drift-x 57s ease-in-out -28.5s infinite alternate,
+    drift-y 73s ease-in-out -36.5s infinite alternate;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .root[data-drift] .plate {
+    animation: none;
+    translate: none;
+  }
+}
+
