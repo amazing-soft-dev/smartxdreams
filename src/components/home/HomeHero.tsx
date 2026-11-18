@@ -48,20 +48,24 @@ export function HomeHero() {
         className="pointer-events-none absolute inset-0 -z-10 hidden bg-[radial-gradient(48%_62%_at_20%_52%,rgb(7_1_23/0.7),rgb(7_1_23/0.35)_60%,rgb(7_1_23/0)_100%)] desktop:block landscape-phone:block"
       />
       <Container>
-        <div className="max-w-xl desktop:max-w-[min(44vw,620px)] landscape-phone:max-w-[52vw]">
+        {/* The column grows with large screens (up to 860 px from 1800 px wide), so the copy is not a small
+            block in the corner of a 1440p or 4K window. */}
+        <div className="max-w-xl desktop:max-w-[min(44vw,620px)] min-[1800px]:max-w-[min(40vw,860px)] landscape-phone:max-w-[52vw]">
           <Reveal aboveFold preset="left60" delay={0.2}>
             <Tag tone="dark">{company.tagline}</Tag>
           </Reveal>
           <Reveal aboveFold delay={0.4} className="w-full">
+            {/* From 1024 px the headline follows the window's height as well as its width (7.4svh), so a short
+                laptop's copy still fits above the limb, and it grows to 88 px on large screens. */}
             <SelectionHeadline
               id="home-hero-title"
               text={headline}
               targets={targets}
-              className="mt-7 text-display md:mt-9 landscape-phone:mt-5! landscape-phone:text-[length:clamp(1.75rem,9svh,2.5rem)]"
+              className="mt-7 text-display md:mt-9 desktop:text-[length:clamp(2.5rem,min(1.6rem+3.2vw,7.4svh),5.5rem)] landscape-phone:mt-5! landscape-phone:text-[length:clamp(1.75rem,9svh,2.5rem)]"
             />
           </Reveal>
           <Reveal aboveFold delay={0.5}>
-            <p className="mt-5 max-w-lg text-body-l text-white/70 md:mt-6 landscape-phone:mt-3! landscape-phone:text-body">
+            <p className="mt-5 max-w-lg text-body-l text-white/70 md:mt-6 min-[1800px]:max-w-[36rem] min-[1800px]:text-[1.3125rem] landscape-phone:mt-3! landscape-phone:text-body">
               Job searches, applications, site reports, dental bills, paperwork and security questionnaires. Each
               product does one job, shows its sources and leaves the final call to you.
             </p>
