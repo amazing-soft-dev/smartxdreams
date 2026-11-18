@@ -1,6 +1,6 @@
 "use client";
 
-import { useInView, useReducedMotion } from "motion/react";
+import { useInView } from "motion/react";
 import { type CSSProperties, useRef } from "react";
 import { cx } from "@/lib/cx";
 import styles from "./DigitRoller.module.css";
@@ -22,9 +22,10 @@ const DIGITS = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"];
 export function DigitRoller({ value, className, countUp = true }: DigitRollerProps) {
   const ref = useRef<HTMLSpanElement>(null);
   const inView = useInView(ref, { once: true, amount: 0.2 });
-  const reduced = useReducedMotion();
-  // Until the number is on screen every digit waits at 0; reduced motion shows the value at once.
-  const settled = !countUp || inView || reduced === true;
+  // Until the number is on screen every digit waits at 0. Reduced motion is not checked here: the server
+  // cannot know the setting, so a client-only switch would leave the server's digits at 0 (React does not
+  // patch mismatched attributes after hydration). The global reduced-motion rule makes the roll instant.
+  const settled = !countUp || inView;
   const chars = Array.from(value);
   return (
     <span ref={ref} className={cx(styles.roller, className)}>
