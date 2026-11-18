@@ -36,7 +36,7 @@ export const constellations: Constellation[] = [
     lines: [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6], [6, 0]],
   },
   {
-    slug: "kinly",
+    slug: "senioraiplans",
     points: [[-1.6, -3.2], [-0.6, -2.4], [0.4, -3.2], [0.4, -4.1], [-1.6, -4.1]],
     lines: [[0, 1], [1, 2], [2, 3], [3, 4], [4, 0]],
   },

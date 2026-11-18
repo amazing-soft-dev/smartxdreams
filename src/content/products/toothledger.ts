@@ -65,7 +65,7 @@ export const toothledger: Product = {
     "We never sell them or share them with insurers or dentists.",
   ],
   photo: { slot: "product-toothledger" },
-  related: ["kinly"],
+  related: ["senioraiplans"],
   seo: {
     title: "ToothLedger: what your dental treatment will really cost",
     description:

@@ -24,11 +24,11 @@ test.describe("every page", () => {
 });
 
 test("an unknown address gets the 404 page with a suggestion", async ({ page }) => {
-  const response = await page.goto("/prodcts/kinly");
+  const response = await page.goto("/prodcts/senioraiplans");
   expect(response?.status()).toBe(404);
   await expect(page).toHaveTitle(/Page not found/);
   await expect(page.locator("h1")).toHaveCount(1);
-  await expect(page.getByRole("link", { name: "/products/kinly" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "/products/senioraiplans" })).toBeVisible();
 });
 
 test("mixed-case addresses redirect to lowercase", async ({ request }) => {
