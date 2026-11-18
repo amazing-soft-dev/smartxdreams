@@ -30,9 +30,9 @@ export type PlateBreakpoint = {
  */
 export const PLATE_BREAKPOINTS: readonly PlateBreakpoint[] = [
   // Phone: the hero keeps a band below the copy for the planet (HomeHero), and the symbol sits in it.
-  { minWidth: 0, symbol: { right: 0.2, bottom: 0.11, height: 0.12 } },
-  { minWidth: 640, symbol: { right: 0.3, bottom: 0.25, height: 0.22 } },
-  { minWidth: 1024, symbol: { right: 0.42, bottom: 0.17, height: 0.28 } },
+  { minWidth: 0, symbol: { right: 0.15, bottom: 0.1, height: 0.14 } },
+  { minWidth: 640, symbol: { right: 0.3, bottom: 0.18, height: 0.3 } },
+  { minWidth: 1024, symbol: { right: 0.3, bottom: 0.18, height: 0.3 } },
 ];
 
 /** Height (v) of the limb at the plate's left edge: below it, the planet runs down that edge. */

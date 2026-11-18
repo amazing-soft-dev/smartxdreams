@@ -1,22 +1,22 @@
 /**
- * The painted Earth plate behind the Home hero (`public/brand/earth`, see docs/brand.md): its files, the curve
- * of its limb and where its landmarks are.
+ * The painted Earth plate behind the Home hero (`public/brand/earth`, see docs/brand.md): the Cloud-Formed
+ * Emblem art, its files, the curve of its limb and where its landmarks are.
  *
  * Plate coordinates: `u` runs 0..1 left to right and `v` 0..1 top to bottom over the whole image. The plate is
- * twice as wide as it is tall, so one unit of `u` is two plate heights wide.
+ * 1.75 times as wide as it is tall, so one unit of `u` is PLATE_ASPECT plate heights wide.
  */
 
 /** Size of the master, in px. */
-export const PLATE = { width: 1774, height: 887 } as const;
+export const PLATE = { width: 1659, height: 948 } as const;
 
 /** Width over height. */
 export const PLATE_ASPECT = PLATE.width / PLATE.height;
 
 /** The WebP variants, narrowest first. */
 export const PLATE_VARIANTS = [
-  { width: 768, src: "/brand/earth/earth-plate-768.webp" },
-  { width: 1200, src: "/brand/earth/earth-plate-1200.webp" },
-  { width: 1774, src: "/brand/earth/earth-plate-1774.webp" },
+  { width: 768, src: "/brand/earth/earth-emblem-768.webp" },
+  { width: 1200, src: "/brand/earth/earth-emblem-1200.webp" },
+  { width: 1659, src: "/brand/earth/earth-emblem-1659.webp" },
 ] as const;
 
 export type PlateVariant = (typeof PLATE_VARIANTS)[number];
@@ -27,11 +27,11 @@ export function pickPlateVariant(pixels: number): PlateVariant {
 }
 
 /**
- * The limb as a cubic: v = h0 + h1·u + h2·u² + h3·u³ is where the atmosphere starts in each column. Fitted by
- * scripts/measure-earth-plate.mjs (192 of 222 columns, within 6 px over the full width); run it again if the
- * art changes.
+ * The limb as a cubic: v = h0 + h1·u + h2·u² + h3·u³ is where the bright rim starts in each column. Fitted by
+ * scripts/measure-earth-plate.mjs (130 of 145 columns from 40 to 1656 px, within 8.5 px; the sun's glare
+ * hides the rim from 460 to 960 px, so those columns are not measured); run it again if the art changes.
  */
-export const HORIZON = [0.76936, -1.61125, 1.15802, -0.16701] as const;
+export const HORIZON = [0.8629, -1.85294, 1.47685, -0.30074] as const;
 
 /** Height (v) of the limb at `u`. */
 export function horizonV(u: number): number {
@@ -56,20 +56,21 @@ export function horizonDistance(u: number, v: number): number {
 }
 
 /**
- * Landmarks, measured by eye on the 1774 × 887 master (see docs/earth.md). `u` and `v` are centres; the
+ * Landmarks, measured by eye on the 1659 × 948 master (see docs/earth.md). `u` and `v` are centres; the
  * cyclone's `radius` and the symbol's `height` are in plate heights, its `width` in `u`.
- * - sunrise: the hottest point of the sun's glare on the limb, about (730, 285) px
- * - cyclone: the storm's eye at about (1545, 262) px, its spiral reaching about 120 px out
- * - symbol: the S and D in clouds, about x 1065–1470 and y 310–635 px
+ * - sunrise: the hottest point of the sun's glare, just inside the limb, about (688, 345) px
+ * - cyclone: the storm's eye at about (1458, 292) px. Its painted arms reach about 190 px out, but the cloud
+ *   emblem's upper stroke is only about 95 px from the eye, so the turning reach is kept to 105 px
+ * - symbol: the cloud emblem, about x 1005–1540 and y 355–650 px
  */
 export const LANDMARKS = {
-  sunrise: { u: 730 / PLATE.width, v: 285 / PLATE.height },
-  cyclone: { u: 1545 / PLATE.width, v: 262 / PLATE.height, radius: 120 / PLATE.height },
+  sunrise: { u: 688 / PLATE.width, v: 345 / PLATE.height },
+  cyclone: { u: 1458 / PLATE.width, v: 292 / PLATE.height, radius: 105 / PLATE.height },
   symbol: {
-    u: (1065 + 1470) / 2 / PLATE.width,
-    v: (310 + 635) / 2 / PLATE.height,
-    width: (1470 - 1065) / PLATE.width,
-    height: (635 - 310) / PLATE.height,
+    u: (1005 + 1540) / 2 / PLATE.width,
+    v: (355 + 650) / 2 / PLATE.height,
+    width: (1540 - 1005) / PLATE.width,
+    height: (650 - 355) / PLATE.height,
   },
 } as const;
 

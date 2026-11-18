@@ -3,10 +3,10 @@ import { expect, test } from "@playwright/test";
 const hero = 'section[aria-labelledby="home-hero-title"]';
 
 /**
- * The cloud symbol's box in the painted plate, as fractions of the plate (src/components/earth/plate.ts:
- * x 1065–1470 and y 310–635 px of 1774 × 887).
+ * The cloud emblem's box in the painted plate, as fractions of the plate (src/components/earth/plate.ts:
+ * x 1005–1540 and y 355–650 px of 1659 × 948).
  */
-const SYMBOL = { left: 1065 / 1774, right: 1470 / 1774, top: 310 / 887, bottom: 635 / 887 };
+const SYMBOL = { left: 1005 / 1659, right: 1540 / 1659, top: 355 / 948, bottom: 650 / 948 };
 
 type Box = { x: number; y: number; width: number; height: number };
 const overlaps = (a: Box, b: Box) =>
