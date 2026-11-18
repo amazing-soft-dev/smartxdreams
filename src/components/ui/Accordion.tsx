@@ -118,8 +118,10 @@ function PlusIcon({ open, tone }: { open: boolean; tone: "light" | "dark" }) {
     <span
       aria-hidden="true"
       className={cx(
-        "relative inline-flex size-8 shrink-0 items-center justify-center rounded-full transition-transform duration-300 ease-[var(--ease-back)] hover:scale-108 motion-reduce:hover:scale-100",
+        "relative inline-flex size-8 shrink-0 items-center justify-center rounded-full transition-[scale,rotate] duration-700 ease-[var(--ease-rise)] hover:scale-108 motion-reduce:hover:scale-100",
         tone === "light" ? "bg-ink text-white" : "bg-white text-ink",
+        // The whole icon turns a half circle as its answer opens, while its upright bar folds into the minus.
+        open && "rotate-180",
       )}
     >
       <span className="absolute h-0.5 w-3 rounded-full bg-current" />
