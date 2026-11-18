@@ -8,7 +8,7 @@ export const dynamic = "force-static";
  * Install icons. The PNGs are the dark mark, which sits on the light background_color below;
  * the SVG switches to the light strokes by itself in dark mode.
  */
-const ICON_SET = "/brand/smartxdreams-dark-1x1-transparent";
+const ICON_SET = "/brand/smartxdreams-dark";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {

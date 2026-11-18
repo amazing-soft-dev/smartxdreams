@@ -21,8 +21,8 @@ These are logo colours only. The UI palette (`violet-500` `#6D4AFF`, `coral-500`
 
 | File | Colourway | Format | Used by |
 |---|---|---|---|
-| `smartxdreams-dark-1x1-transparent.png` | dark mark, for light surfaces | PNG 1254 x 1254, transparent | Organization logo in the JSON-LD (`organizationLogoPath` in `src/lib/seo.ts`) |
-| `smartxdreams-white-1x1-transparent.png` | white mark, for dark surfaces | PNG 1254 x 1254, transparent | Social card (`src/app/opengraph-image.tsx`) |
+| `smartxdreams-dark.png` | dark mark, for light surfaces | PNG 1254 x 1254, transparent | Organization logo in the JSON-LD (`organizationLogoPath` in `src/lib/seo.ts`) |
+| `smartxdreams-white.png` | white mark, for dark surfaces | PNG 1254 x 1254, transparent | Social card (`src/app/opengraph-image.tsx`) |
 
 The header, footer and page transition still draw the stroke symbol in code (`src/lib/brand-symbol.ts` and `src/app/icon.svg`), not from these PNGs. The gaps where those strokes cross are cut with `<mask>` and `<clipPath>`; keep those if you redraw that symbol, or the weave turns into a plain overlap.
 
@@ -44,7 +44,7 @@ node -e "const s=require('sharp');for(const [w,q] of [[1774,82],[1200,80],[768,7
 
 Keep each file under 800 KB (the photo budget). If the new art moves the limb, the sun, the cyclone or the symbol, measure them again for the hero layout.
 
-### Icon sets (`public/brand/smartxdreams-{dark,white}-1x1-transparent/`)
+### Icon sets (`public/brand/smartxdreams-{dark,white}/`)
 
 Generated from the raster masters, one folder per colourway:
 
@@ -69,7 +69,7 @@ The generator also writes a `site.webmanifest`. Do not add it: its name is empty
 | iOS home screen | `src/app/apple-icon.png` (copy of the white-mark `apple-touch-icon.png`) | white mark: iOS fills transparency with black |
 | Installed app (manifest) | dark-mark `android-chrome-192x192.png` and `-512x512.png`, plus `/icon.svg` | dark mark, on `background_color` `#F5F2EE` |
 | Link previews | `/opengraph-image` | white mark on ink |
-| Search results (Organization JSON-LD) | `smartxdreams-dark-1x1-transparent.png` | dark mark on white |
+| Search results (Organization JSON-LD) | `smartxdreams-dark.png` | dark mark on white |
 
 ## The `Logo` component
 
