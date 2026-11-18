@@ -31,7 +31,7 @@ export function JobFeedCard({ className }: { className?: string }) {
     { role: "Data Analyst", company: "Bluebird", sources: ["Dice", "Jobright"], merged: true },
   ];
   return (
-    <MockupFrame title="JobAtlas" caption="12,408 jobs" className={className}>
+    <MockupFrame title="Joined" caption="12,408 jobs" className={className}>
       {jobs.map((job) => (
         <div key={job.role} className="rounded-xl bg-canvas px-3 py-2">
           <p className="font-medium">{job.role}</p>
@@ -56,7 +56,7 @@ export function AutofillCard({ className }: { className?: string }) {
     { label: "Years of experience", value: "6" },
   ];
   return (
-    <MockupFrame title="ApplyPilot" caption="Filling 3 of 9" className={className}>
+    <MockupFrame title="Acorn" caption="Filling 3 of 9" className={className}>
       {fields.map((f) => (
         <div key={f.label}>
           <p className="text-ink/65">{f.label}</p>
@@ -123,7 +123,7 @@ export function CostBarCard({ className }: { className?: string }) {
 /** SeniorAIPlans: a letter explained in plain words, with a scam warning. */
 export function BillExplainerCard({ className }: { className?: string }) {
   return (
-    <MockupFrame title="Kinly" caption="Letter from your insurer" className={className}>
+    <MockupFrame title="SeniorAIPlans" caption="Letter from your insurer" className={className}>
       <p className="rounded-xl bg-canvas px-3 py-2 text-[0.8125rem] leading-snug">
         Your monthly premium goes up by <strong className="font-medium">$12</strong> from 1 March. You do not need to do
         anything.

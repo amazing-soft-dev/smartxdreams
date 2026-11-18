@@ -7,7 +7,7 @@ import { MockupFrame } from "./MockupFrame";
  */
 export function SeniorAIPlansLetterMockup({ className }: { className?: string }) {
   return (
-    <MockupFrame title="Kinly" caption="Letter from your insurer" className={className}>
+    <MockupFrame title="SeniorAIPlans" caption="Letter from your insurer" className={className}>
       <p className="text-[0.75rem] text-ink/70">What this letter says</p>
       <p className="rounded-xl bg-canvas px-3.5 py-3 text-[1rem] leading-snug text-ink">
         Your monthly payment goes up by <strong className="font-semibold">$12</strong> from 1 March. You do not need to
