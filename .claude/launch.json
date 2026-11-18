@@ -36,6 +36,24 @@
         "cd /d E:\\1.workspace\\1Mine\\smartxdreams-hero && npx next dev --turbopack -p 3101"
       ],
       "port": 3101
+    },
+    {
+      "name": "v2",
+      "runtimeExecutable": "cmd",
+      "runtimeArgs": [
+        "/c",
+        "cd /d E:\\1.workspace\\1Mine\\smartxdreams-v2 && npx next dev --turbopack -p 3110"
+      ],
+      "port": 3110
+    },
+    {
+      "name": "aurora",
+      "runtimeExecutable": "cmd",
+      "runtimeArgs": [
+        "/c",
+        "cd /d E:\\1.workspace\\1Mine\\smartxdreams-aurora && npx next dev --turbopack -p 3120"
+      ],
+      "port": 3120
     }
   ]
 }
