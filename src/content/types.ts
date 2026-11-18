@@ -82,6 +82,28 @@ export type Product = {
   };
 };
 
+/** Which part of the work a person does, in the order the About page lists the groups. */
+export type TeamGroup = "founders" | "engineering" | "design" | "data" | "ai";
+
+/** Someone on the team, as the About page introduces them (src/content/team.ts). */
+export type Person = {
+  /** URL-safe id, also the portrait's photo slot suffix (team-<slug>). */
+  slug: string;
+  name: string;
+  /** Job title, as it appears under the name. */
+  role: string;
+  group: TeamGroup;
+  /** One or two plain sentences about what they do here. */
+  bio: string;
+  /** Two or three short areas they look after, shown as chips. */
+  focus: string[];
+  /**
+   * True while a profile stands in for a person who has not been introduced yet (the name and portrait are
+   * placeholders). Replace the profile with the real person's details and set it to false.
+   */
+  illustrative: boolean;
+};
+
 export type PostCategory = "guides" | "case-studies" | "engineering" | "perspectives";
 
 export type Post = {
