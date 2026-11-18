@@ -214,10 +214,16 @@ icon("favicon-16x16.png", faviconPngs[16]);
 icon("favicon-32x32.png", faviconPngs[32]);
 icon("favicon.ico", ico([16, 32, 48].map((size) => ({ size, png: faviconPngs[size] }))));
 for (const size of [192, 512]) icon(`android-chrome-${size}x${size}.png`, await (await square(onLight, size, 0.86)).png(PNG).toBuffer());
-icon("apple-touch-icon.png", await (await square(onDark, 180, 0.64, INK)).removeAlpha().png().toBuffer());
+const appleIcon = await (await square(onDark, 180, 0.64, INK)).removeAlpha().png().toBuffer();
+icon("apple-touch-icon.png", appleIcon);
 // A square inside the 80% circle is at most 0.8 / sqrt(2) = 0.566 of the icon; the mark is not a square, so
 // 0.56 of the icon on its longer side keeps every corner of it inside.
 icon("maskable-512x512.png", await (await square(onDark, 512, 0.56, INK)).removeAlpha().png(PNG).toBuffer());
+
+// ── App icons (Next.js file conventions in src/app) ─────────────────────────────────────────────────
+// - favicon.ico and apple-icon.png: the same files as in public/brand/icons/.
+emit("src/app/favicon.ico", ico([16, 32, 48].map((size) => ({ size, png: faviconPngs[size] }))));
+emit("src/app/apple-icon.png", appleIcon);
 
 /** An ICO file holding PNG images (every browser since IE Vista-era reads PNG entries). */
 function ico(images) {
