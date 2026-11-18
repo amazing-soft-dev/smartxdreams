@@ -1,4 +1,5 @@
 import { Reveal } from "@/components/motion/Reveal";
+import { ProductLogo } from "@/components/product/ProductLogo";
 import { TransitionLink } from "@/components/transition/TransitionLink";
 import { Section } from "@/components/ui/Section";
 import { SectionHeader } from "@/components/ui/SectionHeader";
@@ -44,12 +45,21 @@ export function ProductGrid() {
                     tone.surface,
                   )}
                 >
-                  {/* Who it is for, and where it is in its launch. */}
-                  <div className="mb-6 flex flex-wrap gap-2">
-                    <span className={pill}>{audienceLabel(product.audience)}</span>
-                    <span className={pill}>
-                      {product.status === "waitlist" ? "Waitlist open" : product.status === "beta" ? "Beta" : "Available"}
-                    </span>
+                  {/* The product's logo on its white tile, then who it is for and where it is in its launch. */}
+                  <div className="mb-6 flex items-start justify-between gap-4">
+                    {/* On hover the logo tile tilts and grows a touch, as the arrow tile used to. */}
+                    <ProductLogo
+                      product={product}
+                      size={56}
+                      decorative
+                      className="transition-transform duration-500 ease-[var(--ease-out-quint)] group-hover:-rotate-6 group-hover:scale-106 motion-reduce:group-hover:rotate-0 motion-reduce:group-hover:scale-100"
+                    />
+                    <div className="flex flex-wrap justify-end gap-2">
+                      <span className={pill}>{audienceLabel(product.audience)}</span>
+                      <span className={pill}>
+                        {product.status === "waitlist" ? "Waitlist open" : product.status === "beta" ? "Beta" : "Available"}
+                      </span>
+                    </div>
                   </div>
                   <div className="flex items-start justify-between gap-4">
                     <h3 className="text-h4">
@@ -62,15 +72,22 @@ export function ProductGrid() {
                         {product.name}
                       </TransitionLink>
                     </h3>
-                    {/* Arrow tile: tilts and nudges on hover, like the site buttons. */}
+                    {/* The arrow stays as the cue that the whole card is a link. */}
                     <span
                       aria-hidden="true"
                       className={cx(
-                        "inline-flex size-10 shrink-0 items-center justify-center rounded-xl transition-transform duration-500 ease-[var(--ease-out-quint)] group-hover:-rotate-8 group-hover:scale-106 motion-reduce:group-hover:rotate-0 motion-reduce:group-hover:scale-100",
-                        tone.dark ? "bg-white text-ink" : "bg-ink text-white",
+                        "inline-flex size-10 shrink-0 items-center justify-center rounded-xl transition-colors duration-500",
+                        tone.dark ? "bg-white/15 text-white group-hover:bg-white group-hover:text-ink" : "bg-ink/[0.07] text-ink group-hover:bg-ink group-hover:text-white",
                       )}
                     >
-                      <svg viewBox="0 0 16 16" width="16" height="16" fill="none">
+                      {/* The arrow travels out along its own direction on hover. */}
+                      <svg
+                        viewBox="0 0 16 16"
+                        width="16"
+                        height="16"
+                        fill="none"
+                        className="transition-transform duration-500 ease-[var(--ease-out-quint)] group-hover:translate-x-0.5 group-hover:-translate-y-0.5 motion-reduce:group-hover:translate-0"
+                      >
                         <path
                           d="M4.5 11.5l7-7M6 4.5h5.5V10"
                           stroke="currentColor"
