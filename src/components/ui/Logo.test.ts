@@ -34,8 +34,8 @@ describe("Logo", () => {
     });
 
     it("colours the x with the accent of each tone", () => {
-      expect(render({ tone: "dark" })).toContain('<span style="color:#6E56F0">x</span>');
-      expect(render({ tone: "light" })).toContain('<span style="color:#A99BFF">x</span>');
+      expect(render({ tone: "dark" })).toContain('<span style="color:#6D4AFF">x</span>');
+      expect(render({ tone: "light" })).toContain('<span style="color:#AA97FF">x</span>');
     });
 
     it("scales the wordmark with the height", () => {
