@@ -36,8 +36,12 @@ export type Feature = {
   body: string;
 };
 
-/** The square behind a product's logo: a background colour as a hex, such as "#FFF6D1". */
-export type ProductLogoTile = { background: `#${string}` };
+/**
+ * The square behind a product's logo: a background colour as a hex, such as "#FFF6D1", or "none" when the
+ * artwork already is a filled app icon (ToothLedger's blue rounded square). A "none" logo is drawn edge to
+ * edge at the tile's size instead of inset on a second square.
+ */
+export type ProductLogoTile = { background: `#${string}` } | "none";
 
 export type Product = {
   /** URL segment: /products/<slug>. */
@@ -75,9 +79,9 @@ export type Product = {
    * The product's logo, built by scripts/build-brand.mjs from assets/products/<slug>.png into
    * public/products/logos/<slug>-<size>.webp. `alt` describes the artwork, for where the logo stands alone;
    * next to the product's name it is decorative. `tile` is the square the logo sits on wherever it may meet a
-   * dark surface (see ProductLogo); white when it is left out.
+   * dark surface (see ProductLogo).
    */
-  logo: { alt: string; tile?: ProductLogoTile };
+  logo: { alt: string; tile: ProductLogoTile };
   /** Slugs of related products. */
   related: string[];
   seo: {

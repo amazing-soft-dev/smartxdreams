@@ -19,8 +19,8 @@ type ProductLogoProps = {
    */
   tile?: boolean;
   /**
-   * The tile's colour for this use only, overriding the product's own `logo.tile.background` (white when the
-   * product names none). Any CSS colour.
+   * The tile's colour for this use only, overriding the product's own `logo.tile.background`. Any CSS colour.
+   * Ignored for a product whose tile is "none": its icon is never put on a second square.
    */
   tileBackground?: string;
   /** Hide from assistive technology when the product's name is right next to the logo. */
@@ -44,8 +44,11 @@ export function ProductLogo({
   loading = "lazy",
   className,
 }: ProductLogoProps) {
+  // A logo whose artwork already is an app icon (tile "none") is its own tile: drawn edge to edge, never
+  // inset on a second square, whatever tileBackground asks for.
+  const ownIcon = product.logo.tile === "none";
   // The tile's padding is a share of its size, so the logo keeps the same air at every size.
-  const inner = tile ? Math.round(size * 0.72) : size;
+  const inner = tile && !ownIcon ? Math.round(size * 0.72) : size;
   const smallest = PRODUCT_LOGO_SIZES.find((s) => s >= inner * 2) ?? 384;
   const img = (
     // A plain <img>: the files are already built at fixed sizes, and the static export has no image loader
@@ -68,6 +71,23 @@ export function ProductLogo({
     />
   );
   if (!tile) return img;
+  if (ownIcon) {
+    // Same box as a tile, so layouts and hover transforms on className behave alike. The shadow follows the
+    // icon's own rounded corners (drop-shadow reads its alpha), where a box-shadow would draw a square.
+    return (
+      <span
+        className={cx(
+          "inline-flex shrink-0 items-center justify-center drop-shadow-[0_1px_2px_rgb(15_18_38/0.12)]",
+          className,
+        )}
+        data-logo-tile="none"
+        style={{ width: size, height: size }}
+      >
+        {img}
+      </span>
+    );
+  }
+  const background = tileBackground ?? (product.logo.tile === "none" ? undefined : product.logo.tile.background);
   return (
     <span
       className={cx(
@@ -75,7 +95,7 @@ export function ProductLogo({
         className,
       )}
       data-logo-tile=""
-      style={{ width: size, height: size, backgroundColor: tileBackground ?? product.logo.tile?.background ?? "#FFFFFF" }}
+      style={{ width: size, height: size, backgroundColor: background }}
     >
       {img}
     </span>
