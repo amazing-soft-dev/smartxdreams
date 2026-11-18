@@ -426,6 +426,10 @@ vec3 plateColor(vec2 uv) {
 // The shared motion (with its many wake samples) is worked out once; only pixels within the cyclone's reach
 // pay for the second plate sample.
 vec3 movedColor(vec2 q, float dist) {
+  // Nothing moves in the calm band or outside the limb (limbSafe() would zero it), so those pixels skip the
+  // motion entirely: the currents' noise, the wake's texture reads and the cyclone's second sample. That is
+  // the whole glow band and the band just inside the limb.
+  if (dist <= CALM_LIMB) return plateColor(vec2(q.x / PLATE_ASPECT, q.y));
   vec2 shared = sharedMotion(q);
   if (length(q - CYCLONE) >= CYCLONE_REACH) {
     vec2 moved = q + limbSafe(shared, dist);
