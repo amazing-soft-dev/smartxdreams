@@ -3,7 +3,7 @@
 The Home hero's backdrop, split along the planet's oval limb:
 
 - **Outside the limb (the sky):** the starfield of the Framer reference, recreated in `src/components/sky` (see [sky.md](sky.md)), with only the painted atmosphere (rim, sunrise, high streaks) crossing the limb into it. It never reacts to the pointer.
-- **Inside the limb (the Earth):** the painted Earth plate (`public/brand/earth`, the Cloud-Formed Emblem art, with the SmartxDreams emblem in its clouds), animated as on generalcontextlabs.com: a slow drift, weather bands, curling ambient currents and a cyclone that turns and breathes around its eye, and a fluid wake that curls around the cursor where it moves over the planet, and only there.
+- **Inside the limb (the Earth):** the painted Earth plate (`public/brand/earth`, the Cloud-Formed Emblem art, with the SmartxDreams emblem in its clouds), animated as on generalcontextlabs.com: a slow drift, weather bands, curling ambient currents and a cyclone that turns forward and back around its eye, and a fluid wake that curls around the cursor where it moves over the planet, and only there.
 
 Code lives in `src/components/earth`; the shared WebGL helpers are in `src/components/webgl`.
 
@@ -62,7 +62,7 @@ Plate coordinates: `u` 0..1 left to right, `v` 0..1 top to bottom. The plate is 
 | Landmark | Plate px | Use |
 |---|---|---|
 | Sunrise | about (688, 345), just inside the limb | the hot point on the limb |
-| Cyclone | eye about (1458, 292); painted arms about 190 px (the reach) | turns and breathes around its eye in the scene |
+| Cyclone | eye about (1458, 292); painted arms about 190 px (the reach) | turns forward and back around its eye in the scene |
 | Cloud emblem | about x 1005–1540, y 355–650 | placed per breakpoint; kept legible |
 
 The emblem's upper stroke passes only about 100 px from the eye, inside the cyclone's reach. The **emblem mask** (`EMBLEM_MASK_SRC`, `public/brand/earth/earth-emblem-mask.png`, 415 × 237) keeps the storm's motion off it: white on the emblem's two cloud strokes (traced as centre lines in `scripts/build-earth-plate.mjs`, the inner hook and the outer C, with about 8 px of margin and a soft edge), black elsewhere. The script builds it with the variants.
@@ -119,8 +119,7 @@ Motion moves where the plate is sampled, in plate heights (the limb distance's u
 | Orbital drift | 12 px and 4.5 px on sines of 0.055 and 0.043 rad/s | everywhere on the planet |
 | Weather bands | up to 28 px and 12 px, 0.22 and 0.18 rad/s | static noise patches, calmed over the cloud emblem |
 | Ambient currents | curl noise, up to about 13 px (4 px on average), drifting across the planet and slowly changing | everywhere on the planet; the emblem rides them whole |
-| Cyclone turn | counter-clockwise (as seen): 0.16 rad/s inside a 28 px core, then the same speed along every ring; clouds drifting in at 3.3 px/s | the painted spiral, 190 px around the eye; not the emblem |
-| Cyclone breath | in toward the eye and back out, 11 px each way, every 9 s | the same, the eye itself still |
+| Cyclone turn | forward and back: 0.19 rad on a 0.16 rad/s sine (39 s) plus 0.035 rad on a 0.23 rad/s one (27 s), rigid inside a 38 px core | the painted spiral, 190 px around the eye; not the emblem |
 
 (px are master pixels; on screen they scale with the plate.)
 
@@ -130,15 +129,12 @@ Motion moves where the plate is sampled, in plate heights (the limb distance's u
 
 `plate-shader.test.ts` checks that the generated GLSL uses `plate.ts`'s horizon and landmarks and that the bands suit the landmarks.
 
-**How the cyclone moves:** clouds go round one point, the eye, and toward it, as in a storm seen from orbit.
+**How the cyclone moves:** as on generalcontextlabs.com, the storm turns around its eye, forward and then back (`cyclone()`, mirrored by `cycloneAt()`).
 
-- **Turn and inflow:** a real storm turns one way and its bands spiral in, so the cyclone spins continuously instead of rocking. Turning the picture without end would wind the spiral tighter forever, so, as flow-map water shaders do, two layers swirl the plate half a 3 s cycle apart (`CYCLONE_CYCLE`): each turns a small, bounded amount from the middle of its cycle, and they are crossfaded with weights 1 - |2p - 1| (`swirlLayers()` mirrors them) so neither restart shows.
-- **No ghosting:** where the two layers sample different points, the crossfade shows both, a ghost of every bright edge. So the turn is a real vortex's, not a rigid one: rigid inside `CYCLONE_CORE` (0.03 plate heights, about 28 px), then the same speed along every ring further out (the angle falls off as 1/r); and the inflow is a constant speed (`CYCLONE_INFLOW`, 0.0035 plate heights/s), growing from nothing over the core so the eye never pinches. The layers stay within about 8.5 px of each other anywhere in the storm (`swirlLayerGap()`); a rigid turn of the whole reach would put them 24 px apart.
-- **Breath:** on top of the turn, the whole spiral moves in toward the eye and eases back out: the content comes from `cycloneBreath(t)` (11 px, a 9 s sine) further out along the radius. It is bounded, so it needs no crossfade and is the same in both layers. The eye stays still (the breath grows over the inner fifth of the reach).
-- **Reach:** turn, inflow and breath are full over the inner 55% of the 190 px reach and gone at its edge; only pixels inside the reach take the second plate sample. The arms above the eye run up to the limb, where the calm band stills them.
-- **Emblem:** all three are multiplied by 1 minus the emblem mask (`emblemAt()`), so the emblem keeps its shape while the arms beside it turn. Until the mask has loaded, the scene's placeholder counts everything as emblem and the storm holds still.
-
-`plate-shader.test.ts` checks the layer gap over the whole reach, the vortex profile, that the breath is bounded and returns to rest after any number of breaths, and that the shader keeps all of it off the eye and the emblem.
+- **Turn:** the storm is turned by an angle that swings slowly both ways (`cycloneAngle()`): `CYCLONE_TURN` (0.19 rad) on a 39 s sine plus `CYCLONE_SWAY` (0.035 rad) on a 27 s one, so the turn never quite repeats, about 12 degrees each way at most. It is zero at t = 0.
+- **Shape:** the turn is rigid inside `CYCLONE_CORE` (a fifth of the reach, about 38 px) and fades to nothing at the edge of the 190 px reach (`cycloneBody()`), so the outer arms lag the core: the spiral winds a little tighter as it turns forward and unwinds as it turns back. The arms above the eye run up to the limb, where the calm band stills them.
+- **No zoom:** the angle depends only on the distance from the eye, so every cloud moves along its own ring and keeps its area (`plate-shader.test.ts` checks both). The turn it replaced spun one way without end, so it had to be drawn in two crossfaded layers that restart every 3 s, with the clouds drifting in toward the eye and the whole spiral breathing in and out on a 9 s cycle. Near the eye that grew and shrank patches of cloud by up to double their area, and it read as the picture zooming in and out rather than a storm turning. This is one plate sample, with nothing to crossfade or ghost.
+- **Emblem:** the angle is multiplied by 1 minus the emblem mask (`emblemAt()`), so the emblem keeps its shape while the arms beside it turn. Until the mask has loaded, the scene's placeholder counts everything as emblem and the storm holds still.
 
 ### Pointer wake (`fluid.ts`, `earth-pointer.ts`)
 
@@ -169,7 +165,7 @@ What shows without WebGL, and under the scene everywhere:
 
 **Why canvases, not images:** a canvas is never a Largest Contentful Paint candidate. Drawn as an `<img>`, the large decorative plate became Home's LCP on a throttled phone (3.47 s in CI, over the 2.5 s budget), taking it from the description paragraph. With canvases the paragraph is the LCP again (`e2e/vitals.spec.ts`: 1.49 s locally with the emblem plate).
 
-**Handoff to the scene:** with the scene's canvas hidden, the fallback is indistinguishable from the scene's first frame. Every motion starts from zero (the drift, weather and breath are sines from t = 0, the cyclone's layers start untouched, the wake is still) and the ambient currents, whose field is never zero, grow in over the scene's first 4 s (`CURRENT_EASE_IN`), so the scene fades in over the still plate without a jump.
+**Handoff to the scene:** with the scene's canvas hidden, the fallback is indistinguishable from the scene's first frame. Every motion starts from zero (the drift, the weather and the cyclone's turn are sines from t = 0, the wake is still) and the ambient currents, whose field is never zero, grow in over the scene's first 4 s (`CURRENT_EASE_IN`), so the scene fades in over the still plate without a jump.
 
 `e2e/earth.spec.ts` checks the sky and that both plate canvases are drawn; that reduced motion creates no scene canvas, stops the stars, keeps the planet still and still draws the plate; that a low-power device's planet drifts, both canvases together, with no scene; and that the scene fades in where WebGL 2 is available.
 
