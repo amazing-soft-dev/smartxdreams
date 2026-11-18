@@ -1,15 +1,15 @@
 import { Button } from "@/components/ui/Button";
 import { DigitRoller } from "@/components/ui/DigitRoller";
 import { Photo } from "@/components/ui/Photo";
-import { PhotoCredits } from "@/components/ui/PhotoCredits";
 import { Section } from "@/components/ui/Section";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { about } from "@/content/about";
 import { aboutStats } from "@/content/selectors";
+import { TeamProfiles } from "./TeamProfiles";
 
 /**
  * "Team", laid out like Ignivo's team bento: a wide card about building with the studio, with a few numbers
- * and a way to get in touch, then the people. The credits for every photo on the site close the section.
+ * and a way to get in touch, then the people.
  */
 export function AboutTeam() {
   const { join } = about.team;
@@ -44,8 +44,7 @@ export function AboutTeam() {
         </div>
       </div>
 
-      {/* Every photo on the site is credited here, as the Unsplash and Pexels licenses ask. */}
-      <PhotoCredits className="mt-20 border-t border-ink/10 pt-10" />
+      <TeamProfiles />
     </Section>
   );
 }
