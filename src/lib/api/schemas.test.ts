@@ -60,6 +60,13 @@ describe("waitlist schemas", () => {
     expect(waitlistRequestSchema.safeParse({ ...waitlist, product: "nope" }).success).toBe(false);
   });
 
+  it("accepts a renamed product's old slug and records the new one", () => {
+    const result = waitlistRequestSchema.safeParse({ ...waitlist, product: "kinly" });
+    expect(result.success && result.data.product).toBe("senioraiplans");
+    const contactResult = contactRequestSchema.safeParse({ ...contact, product: "jobatlas", website: "", elapsedMs: 4000 });
+    expect(contactResult.success && contactResult.data.product).toBe("joined");
+  });
+
   it("asks for a reload when the consent wording has changed", () => {
     const result = waitlistRequestSchema.safeParse({ ...waitlist, consentVersion: "2000-01-01" });
     expect(result.success).toBe(false);
