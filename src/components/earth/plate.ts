@@ -21,6 +21,13 @@ export const PLATE_VARIANTS = [
 
 export type PlateVariant = (typeof PLATE_VARIANTS)[number];
 
+/**
+ * The cloud emblem's mask, a quarter of the master's size: white on the emblem's two strokes, black elsewhere,
+ * softened at the edge. Built with the variants by scripts/build-earth-plate.mjs from the strokes traced there.
+ * The scene keeps the cyclone's swirl off what it covers.
+ */
+export const EMBLEM_MASK_SRC = "/brand/earth/earth-emblem-mask.png";
+
 /** The narrowest variant at least `pixels` wide (device pixels the plate covers), or the master above that. */
 export function pickPlateVariant(pixels: number): PlateVariant {
   return PLATE_VARIANTS.find((variant) => variant.width >= pixels) ?? PLATE_VARIANTS[PLATE_VARIANTS.length - 1]!;
@@ -59,13 +66,14 @@ export function horizonDistance(u: number, v: number): number {
  * Landmarks, measured by eye on the 1659 × 948 master (see docs/earth.md). `u` and `v` are centres; the
  * cyclone's `radius` and the symbol's `height` are in plate heights, its `width` in `u`.
  * - sunrise: the hottest point of the sun's glare, just inside the limb, about (688, 345) px
- * - cyclone: the storm's eye at about (1458, 292) px. Its painted arms reach about 190 px out, but the cloud
- *   emblem's upper stroke is only about 95 px from the eye, so the turning reach is kept to 105 px
+ * - cyclone: the storm's eye at about (1458, 292) px, its painted arms reaching about 190 px out. The cloud
+ *   emblem's upper stroke passes about 100 px from the eye, inside that reach; the emblem mask
+ *   (EMBLEM_MASK_SRC) keeps the swirl off it
  * - symbol: the cloud emblem, about x 1005–1540 and y 355–650 px
  */
 export const LANDMARKS = {
   sunrise: { u: 688 / PLATE.width, v: 345 / PLATE.height },
-  cyclone: { u: 1458 / PLATE.width, v: 292 / PLATE.height, radius: 105 / PLATE.height },
+  cyclone: { u: 1458 / PLATE.width, v: 292 / PLATE.height, radius: 190 / PLATE.height },
   symbol: {
     u: (1005 + 1540) / 2 / PLATE.width,
     v: (355 + 650) / 2 / PLATE.height,

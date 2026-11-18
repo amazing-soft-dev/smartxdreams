@@ -77,9 +77,10 @@ describe("landmarks", () => {
   it("put the sunrise on the limb, and the cyclone and symbol on the planet", () => {
     expect(Math.abs(horizonDistance(LANDMARKS.sunrise.u, LANDMARKS.sunrise.v))).toBeLessThan(0.08);
     const { symbol, cyclone } = LANDMARKS;
-    // The whole symbol and the cyclone's spiral sit below the limb.
+    // The whole emblem and the cyclone's full-strength core (the inner 55% of its reach) sit below the limb. The
+    // painted arms above the eye run up to the limb, where limbSafe() calms them.
     expect(horizonDistance(symbol.u, symbol.v - symbol.height / 2)).toBeGreaterThan(0);
-    expect(horizonDistance(cyclone.u, cyclone.v - cyclone.radius)).toBeGreaterThan(0);
+    expect(horizonDistance(cyclone.u, cyclone.v - cyclone.radius * 0.55)).toBeGreaterThan(0);
   });
 });
 
@@ -117,5 +118,14 @@ describe("horizonPath", () => {
     expect(path.startsWith(`M0 ${(horizonV(0) * PLATE.height).toFixed(1)}`)).toBe(true);
     expect(path).toContain(`L${PLATE.width} ${(horizonV(1) * PLATE.height).toFixed(1)}`);
     expect(path.endsWith(`L${PLATE.width} ${PLATE.height}L0 ${PLATE.height}Z`)).toBe(true);
+  });
+});
+
+describe("emblem mask", () => {
+  it("is built next to the variants", async () => {
+    const { existsSync } = await import("node:fs");
+    const { EMBLEM_MASK_SRC } = await import("./plate");
+    expect(EMBLEM_MASK_SRC).toBe("/brand/earth/earth-emblem-mask.png");
+    expect(existsSync(`public${EMBLEM_MASK_SRC}`)).toBe(true);
   });
 });
