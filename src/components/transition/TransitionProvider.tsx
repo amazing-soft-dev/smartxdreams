@@ -264,15 +264,22 @@ export function TransitionProvider({ children }: { children: ReactNode }) {
             style={{ transform: offscreen(i, "in") }}
           />
         ))}
-        {/* Destination label over a soft brand glow, shown while the panels cover the page. */}
+        {/*
+          The brand lockup and the destination over one soft glow, shown while the panels cover the page. Where
+          the reference glows in its own ember orange, the glow is the brand's: violet-500 at the heart, warming
+          to coral-500 at the rim, kept dim so the white type reads on it.
+        */}
         <div ref={content} className="absolute inset-0 flex flex-col items-center justify-center gap-5 opacity-0">
           <div
             ref={glow}
-            className="absolute top-1/2 left-1/2 size-[60vmin] -translate-1/2 rounded-full opacity-60"
-            style={{ background: "radial-gradient(closest-side, rgb(109 74 255 / 0.85), rgb(255 107 61 / 0.35) 60%, rgb(255 107 61 / 0))" }}
+            className="absolute top-1/2 left-1/2 size-[70vmin] -translate-1/2 rounded-full"
+            style={{
+              background:
+                "radial-gradient(closest-side, rgb(109 74 255 / 0.42), rgb(109 74 255 / 0.24) 32%, rgb(182 90 158 / 0.13) 58%, rgb(255 107 61 / 0.05) 80%, rgb(255 107 61 / 0))",
+            }}
           />
           <span ref={mark} className="relative block">
-            <Logo variant="mark" tone="light" height={36} decorative fetchPriority="low" />
+            <Logo variant="full" tone="light" height={28} decorative fetchPriority="low" />
           </span>
           <div className="relative overflow-hidden px-1">
             <span
