@@ -63,8 +63,22 @@ export function Header() {
           )}
         >
           <Link href="/" aria-label="SmartxDreams home" className="inline-flex min-h-11 shrink-0 items-center rounded-md">
-            {/* White artwork on dark sections, ink artwork on light ones. */}
-            <Logo tone={onDark ? "light" : "dark"} height={26} decorative />
+            {/* White artwork on dark sections, ink artwork on light ones. Both are in the page from the start
+                and cross-fade with the bar, so crossing into a light section never waits on a download. */}
+            <span className="grid *:col-start-1 *:row-start-1">
+              {(["light", "dark"] as const).map((tone) => (
+                <Logo
+                  key={tone}
+                  tone={tone}
+                  height={26}
+                  decorative
+                  className={cx(
+                    "transition-opacity duration-400 ease-[var(--ease-standard)]",
+                    (tone === "light") === onDark ? "opacity-100" : "opacity-0",
+                  )}
+                />
+              ))}
+            </span>
           </Link>
           <DesktopNav theme={theme} />
           <div className="flex items-center gap-2">
