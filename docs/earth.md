@@ -3,7 +3,7 @@
 The Home hero's backdrop, split along the planet's oval limb:
 
 - **Outside the limb (the sky):** the starfield of the Framer reference, recreated in `src/components/sky` (see [sky.md](sky.md)), with only the painted atmosphere (rim, sunrise, high streaks) crossing the limb into it. It never reacts to the pointer.
-- **Inside the limb (the Earth):** the painted Earth plate (`public/brand/earth`, the Cloud-Formed Emblem art, with the SmartxDreams emblem in its clouds), animated as on generalcontextlabs.com: a slow drift, weather bands and a turning cyclone, and a fluid wake where a mouse moves over the planet, and only there.
+- **Inside the limb (the Earth):** the painted Earth plate (`public/brand/earth`, the Cloud-Formed Emblem art, with the SmartxDreams emblem in its clouds), animated as on generalcontextlabs.com: a slow drift, weather bands and a cyclone that turns and breathes around its eye, and a fluid wake where a mouse moves over the planet, and only there.
 
 Code lives in `src/components/earth`; the shared WebGL helpers are in `src/components/webgl`.
 
@@ -62,10 +62,10 @@ Plate coordinates: `u` 0..1 left to right, `v` 0..1 top to bottom. The plate is 
 | Landmark | Plate px | Use |
 |---|---|---|
 | Sunrise | about (688, 345), just inside the limb | the hot point on the limb |
-| Cyclone | eye about (1458, 292); painted arms about 190 px, turning reach 105 px | turns around its eye in the scene |
+| Cyclone | eye about (1458, 292); painted arms about 190 px (the reach) | turns and breathes around its eye in the scene |
 | Cloud emblem | about x 1005–1540, y 355–650 | placed per breakpoint; kept legible |
 
-The cyclone's turning reach is smaller than its painted arms because the emblem's upper stroke passes only about 95 px below the eye; a larger reach would bend it.
+The emblem's upper stroke passes only about 100 px from the eye, inside the cyclone's reach. The **emblem mask** (`EMBLEM_MASK_SRC`, `public/brand/earth/earth-emblem-mask.png`, 415 × 237) keeps the storm's motion off it: white on the emblem's two cloud strokes (traced as centre lines in `scripts/build-earth-plate.mjs`, the inner hook and the outer C, with about 8 px of margin and a soft edge), black elsewhere. The script builds it with the variants.
 
 If the art changes, run both scripts, update `PLATE`, `HORIZON` and the landmarks, and run `npm test`.
 
@@ -118,11 +118,20 @@ Motion moves where the plate is sampled, in plate heights (the limb distance's u
 |---|---|---|
 | Orbital drift | 12 px and 4.5 px on sines of 0.055 and 0.043 rad/s | everywhere on the planet |
 | Weather bands | up to 28 px and 12 px, 0.22 and 0.18 rad/s | static noise patches, calmed over the cloud symbol |
-| Cyclone | turns counter-clockwise (as seen) at 0.16 rad/s at the eye, clouds drifting in 3%/s | around the painted eye, fading out past its reach |
+| Cyclone turn | counter-clockwise (as seen): 0.16 rad/s inside a 28 px core, then the same speed along every ring; clouds drifting in at 3.3 px/s | the painted spiral, 190 px around the eye; not the emblem |
+| Cyclone breath | in toward the eye and back out, 11 px each way, every 9 s | the same, the eye itself still |
 
 The cloud symbol keeps its shape: the bands fade out over a soft ellipse around it, so it rides the orbital drift as one piece. `plate-shader.test.ts` checks that the generated GLSL uses `plate.ts`'s horizon and landmarks and that the bands suit the landmarks.
 
-**How the cyclone turns:** a real storm turns one way and its bands spiral in, so the cyclone spins continuously instead of rocking. Turning the picture without end would wind the spiral tighter forever, so, as flow-map water shaders do, two layers swirl the plate half a 4 s cycle apart (`CYCLONE_CYCLE`): each turns a small, bounded amount from the middle of its cycle (`CYCLONE_SPIN`, `CYCLONE_INFLOW`), and they are crossfaded with weights 1 - |2p - 1| (`swirlLayers()` mirrors them) so neither restart shows. Only pixels within the cyclone's reach take the second texture sample.
+**How the cyclone moves:** clouds go round one point, the eye, and toward it, as in a storm seen from orbit.
+
+- **Turn and inflow:** a real storm turns one way and its bands spiral in, so the cyclone spins continuously instead of rocking. Turning the picture without end would wind the spiral tighter forever, so, as flow-map water shaders do, two layers swirl the plate half a 3 s cycle apart (`CYCLONE_CYCLE`): each turns a small, bounded amount from the middle of its cycle, and they are crossfaded with weights 1 - |2p - 1| (`swirlLayers()` mirrors them) so neither restart shows.
+- **No ghosting:** where the two layers sample different points, the crossfade shows both, a ghost of every bright edge. So the turn is a real vortex's, not a rigid one: rigid inside `CYCLONE_CORE` (0.03 plate heights, about 28 px), then the same speed along every ring further out (the angle falls off as 1/r); and the inflow is a constant speed (`CYCLONE_INFLOW`, 0.0035 plate heights/s), growing from nothing over the core so the eye never pinches. The layers stay within about 8.5 px of each other anywhere in the storm (`swirlLayerGap()`); a rigid turn of the whole reach would put them 24 px apart.
+- **Breath:** on top of the turn, the whole spiral moves in toward the eye and eases back out: the content comes from `cycloneBreath(t)` (11 px, a 9 s sine) further out along the radius. It is bounded, so it needs no crossfade and is the same in both layers. The eye stays still (the breath grows over the inner fifth of the reach).
+- **Reach:** turn, inflow and breath are full over the inner 55% of the 190 px reach and gone at its edge; only pixels inside the reach take the second plate sample. The arms above the eye run up to the limb, where the calm band stills them.
+- **Emblem:** all three are multiplied by 1 minus the emblem mask (`emblemAt()`), so the emblem keeps its shape while the arms beside it turn. Until the mask has loaded, the scene's placeholder counts everything as emblem and the storm holds still.
+
+`plate-shader.test.ts` checks the layer gap over the whole reach, the vortex profile, that the breath is bounded and returns to rest after any number of breaths, and that the shader keeps all of it off the eye and the emblem.
 
 ### Pointer wake (`fluid.ts`, `earth-pointer.ts`)
 

@@ -87,13 +87,32 @@ export const WAKE_BLUR = 1.5;
  * toward the eye. Turning the picture continuously would wind the spiral tighter forever, so, as flow-map
  * water shaders do, two layers turn it, half a cycle apart: each turns a small, bounded amount before it
  * starts again, and they are crossfaded so neither restart shows.
+ *
+ * Where the two layers differ, the crossfade shows both: a ghost of every bright cloud edge. They differ most
+ * a quarter of a cycle from each restart, by the distance the content travels in half a cycle. So the turn
+ * is that of a real vortex rather than a rigid one: rigid inside a small core, then the same speed along every
+ * ring further out (the angle falls off as 1/r), and the inflow is a constant speed rather than a fraction of
+ * the distance. A rigid turn of the whole 190 px reach would put the layers up to 24 px apart; this keeps
+ * them within about 8.5 px.
  * - CYCLONE_CYCLE: seconds per layer cycle
- * - CYCLONE_SPIN: turn at the eye, radians per second
- * - CYCLONE_INFLOW: inward drift, as a fraction of the distance to the eye per second
+ * - CYCLONE_SPIN: turn inside the core, radians per second
+ * - CYCLONE_CORE: radius of the rigid core, plate heights (about 28 px on the master)
+ * - CYCLONE_INFLOW: inward drift, plate heights per second (about 3.3 px/s on the master)
  */
-export const CYCLONE_CYCLE = 4;
+export const CYCLONE_CYCLE = 3;
 export const CYCLONE_SPIN = 0.16;
-export const CYCLONE_INFLOW = 0.03;
+export const CYCLONE_CORE = 0.03;
+export const CYCLONE_INFLOW = 0.0035;
+
+/**
+ * How far apart (plate heights) the two swirl layers' sample points are, at most, at distance `d` from the eye:
+ * the turn and the inflow over half a cycle. Mirrors the shader; the ghost a crossfade can show is this wide.
+ */
+export function swirlLayerGap(d: number): number {
+  const half = CYCLONE_CYCLE / 2;
+  const turn = CYCLONE_SPIN * half * Math.min(1, CYCLONE_CORE / Math.max(d, 1e-6)) * d;
+  return Math.hypot(turn, CYCLONE_INFLOW * half);
+}
 
 /**
  * The two swirl layers at time `t` (seconds): each one's phase (0..1 through its cycle) and its weight in the
@@ -109,6 +128,23 @@ export function swirlLayers(t: number): [{ phase: number; weight: number }, { ph
   ];
 }
 
+/**
+ * On top of its turn, the cyclone breathes: its clouds ease in toward the eye and back out again, the whole
+ * spiral at once, as in footage of a storm seen from orbit.
+ * - CYCLONE_BREATH: how far the clouds move in and out at full strength, plate heights (about 11 px on the
+ *   master, 9 px on a 1475 px desktop hero)
+ * - CYCLONE_BREATH_PERIOD: seconds for one breath in and out
+ * The eye itself stays put (the breath grows from nothing over the inner fifth of the reach), so the centre
+ * never pinches.
+ */
+export const CYCLONE_BREATH = 0.012;
+export const CYCLONE_BREATH_PERIOD = 9;
+
+/** The breath at time `t` (seconds), in plate heights: positive while the clouds move in. Mirrors the shader. */
+export function cycloneBreath(t: number): number {
+  return CYCLONE_BREATH * Math.sin((2 * Math.PI * t) / CYCLONE_BREATH_PERIOD);
+}
+
 export { GLOW_BAND };
 
 export const plateFragmentShader = /* glsl */ `
@@ -119,6 +155,7 @@ uniform float uReady;       // 1 once the plate texture has loaded
 uniform vec4 uSky;          // what shows outside the planet and its glow (premultiplied; alpha 0 lets the page show)
 uniform float uTime;        // seconds the scene has been running
 uniform sampler2D uFlow;    // the fluid wake's displacement over the canvas (fluid.ts): red x, green y, 0.5 = still
+uniform sampler2D uEmblem;  // the cloud emblem's mask over the plate (earth-emblem-mask.png): 1 on the emblem
 
 varying vec2 vUv;
 
@@ -141,7 +178,11 @@ const vec2 CYCLONE = vec2(${glslFloat(LANDMARKS.cyclone.u * PLATE_ASPECT)}, ${gl
 const float CYCLONE_REACH = ${glslFloat(LANDMARKS.cyclone.radius)};
 const float CYCLONE_CYCLE = ${glslFloat(CYCLONE_CYCLE)};
 const float CYCLONE_SPIN = ${glslFloat(CYCLONE_SPIN)};
+const float CYCLONE_CORE = ${glslFloat(CYCLONE_CORE)};
 const float CYCLONE_INFLOW = ${glslFloat(CYCLONE_INFLOW)};
+const float CYCLONE_BREATH = ${glslFloat(CYCLONE_BREATH)};
+const float CYCLONE_BREATH_PERIOD = ${glslFloat(CYCLONE_BREATH_PERIOD)};
+const float TAU = 6.2831853;
 
 // The cloud symbol's centre and half-size, in plate heights (plate.ts).
 const vec2 SYMBOL = vec2(${glslFloat(LANDMARKS.symbol.u * PLATE_ASPECT)}, ${glslFloat(LANDMARKS.symbol.v)});
@@ -175,19 +216,48 @@ vec2 weather(vec2 q) {
   return bands * patches * (1.0 - symbolCalm(q)) * pxToPlate();
 }
 
+// How much of the plate at q (plate heights) is the cloud emblem, 0..1, from its soft mask. Until the mask
+// has loaded the scene holds a 1 x 1 white texture, so everything counts as emblem and nothing turns.
+float emblemAt(vec2 q) {
+  return texture2D(uEmblem, vec2(q.x / PLATE_ASPECT, 1.0 - q.y)).r;
+}
+
 // One swirl layer of the cyclone at the given phase (0..1 through its cycle). The content at q has turned
 // counter-clockwise (as seen) and drifted in toward the eye, by an amount that grows through the cycle from
-// zero at its middle, most at the eye and not at all past its reach; so it came from a point turned back and
-// pushed out. Returns that point relative to q. (In plate coordinates y points down, so a positive angle here
-// turns clockwise as seen.)
+// zero at its middle, fully over the inner 55% of the reach and not at all past it; so it came from a point
+// turned back and pushed out. Returns that point relative to q. (In plate coordinates y points down, so a
+// positive angle here turns clockwise as seen.)
+//
+// The turn is a real vortex's: rigid inside CYCLONE_CORE, then the same speed along every ring further out
+// (the angle falls off as 1/r). The inflow is a constant speed, growing from nothing over the core so the eye
+// never pinches. Both keep the two layers within a few pixels of each other (swirlLayerGap()), so their
+// crossfade shows no ghost.
 vec2 swirl(vec2 q, float phase) {
   vec2 r = q - CYCLONE;
-  float heart = 1.0 - smoothstep(0.4, 1.15, length(r) / CYCLONE_REACH);
+  float d = length(r);
+  if (d < 1e-5) return vec2(0.0);
+  float body = 1.0 - smoothstep(0.55, 1.0, d / CYCLONE_REACH);
   float s = (phase - 0.5) * CYCLONE_CYCLE;
-  float a = CYCLONE_SPIN * s * heart;
-  float grow = 1.0 + CYCLONE_INFLOW * s * heart;
+  float a = CYCLONE_SPIN * s * min(1.0, CYCLONE_CORE / d) * body;
   float c = cos(a), sn = sin(a);
-  return vec2(c * r.x - sn * r.y, sn * r.x + c * r.y) * grow - r;
+  vec2 turned = vec2(c * r.x - sn * r.y, sn * r.x + c * r.y);
+  float inward = CYCLONE_INFLOW * s * body * smoothstep(0.0, CYCLONE_CORE, d);
+  // The emblem's upper stroke passes within about 100 px of the eye, inside the storm's painted reach: the
+  // swirl leaves it alone, so it keeps its shape while the arms beside it turn.
+  return (turned + r / d * inward - r) * (1.0 - emblemAt(q));
+}
+
+// The cyclone's breath at q: where the content comes from, relative to q. While the breath is positive the
+// content at q came from further out, so the clouds move in toward the eye; then they ease back out. The
+// whole spiral breathes together, fully over the inner part of the reach and not at all past it; the eye is
+// left still (the breath grows from nothing over the inner fifth of the reach), and so is the emblem.
+vec2 breathe(vec2 q) {
+  vec2 r = q - CYCLONE;
+  float d = length(r);
+  if (d < 1e-5) return vec2(0.0);
+  float body = (1.0 - smoothstep(0.55, 1.0, d / CYCLONE_REACH)) * smoothstep(0.0, 0.2, d / CYCLONE_REACH);
+  float b = CYCLONE_BREATH * sin(TAU * uTime / CYCLONE_BREATH_PERIOD);
+  return r / d * (b * body * (1.0 - emblemAt(q)));
 }
 
 // The fluid's displacement at a point of the canvas (0..1, y up), in cells.
@@ -226,11 +296,17 @@ vec2 wake(vec2 q) {
   return mix(local, whole, calm);
 }
 
-// Where the content at q comes from, relative to q, eased in from the calm band and capped so it never
-// reaches across it. Sampling against the wake moves the content along it. 'extra' is the cyclone's swirl.
-vec2 motion(vec2 q, float dist, vec2 extra) {
+// Motion that every pixel shares, whatever the cyclone does: the drift, the weather and the pointer wake.
+// Sampling against the wake moves the content along it.
+vec2 sharedMotion(vec2 q) {
+  return orbital() + weather(q) - wake(q);
+}
+
+// A motion delta (where the content at this pixel comes from, relative to it) made safe for the limb: off in
+// the calm band, eased in past it, and capped so it never reaches across it.
+vec2 limbSafe(vec2 delta, float dist) {
   if (dist <= CALM_LIMB) return vec2(0.0);
-  vec2 delta = (orbital() + weather(q) + extra - wake(q)) * smoothstep(CALM_LIMB, FULL_MOTION, dist);
+  delta *= smoothstep(CALM_LIMB, FULL_MOTION, dist);
   float limit = (dist - CALM_LIMB) * 0.5;
   float travel = length(delta);
   return travel > limit ? delta * (limit / travel) : delta;
@@ -242,18 +318,21 @@ vec3 plateColor(vec2 uv) {
 }
 
 // The plate's colour at q (plate heights) moved by everything, the cyclone's swirl as two crossfaded layers.
-// Only pixels within the cyclone's reach pay for the second sample.
+// The shared motion (with its many wake samples) is worked out once; only pixels within the cyclone's reach
+// pay for the second plate sample.
 vec3 movedColor(vec2 q, float dist) {
-  if (length(q - CYCLONE) > CYCLONE_REACH * 1.15) {
-    vec2 moved = q + motion(q, dist, vec2(0.0));
+  vec2 shared = sharedMotion(q);
+  if (length(q - CYCLONE) >= CYCLONE_REACH) {
+    vec2 moved = q + limbSafe(shared, dist);
     return plateColor(vec2(moved.x / PLATE_ASPECT, moved.y));
   }
   float t = uTime / CYCLONE_CYCLE;
   float p1 = fract(t);
   float p2 = fract(t + 0.5);
   float w1 = 1.0 - abs(2.0 * p1 - 1.0);
-  vec2 m1 = q + motion(q, dist, swirl(q, p1));
-  vec2 m2 = q + motion(q, dist, swirl(q, p2));
+  vec2 storm = shared + breathe(q);
+  vec2 m1 = q + limbSafe(storm + swirl(q, p1), dist);
+  vec2 m2 = q + limbSafe(storm + swirl(q, p2), dist);
   return mix(plateColor(vec2(m2.x / PLATE_ASPECT, m2.y)), plateColor(vec2(m1.x / PLATE_ASPECT, m1.y)), w1);
 }
 

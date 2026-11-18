@@ -19,7 +19,7 @@ import { SCENE_PRIORITY } from "@/components/webgl/scene-budget";
 import { useThreeRenderer } from "@/components/webgl/useThreeRenderer";
 import { EARTH_IGNORE_SELECTOR, EARTH_POINTER_QUERY, isOnEarth, splatCount } from "./earth-pointer";
 import { createFluid } from "./fluid";
-import { pickPlateVariant } from "./plate";
+import { EMBLEM_MASK_SRC, pickPlateVariant } from "./plate";
 import { type PlateRect, plateBreakpointFor, plateRect, plateUniform } from "./plate-layout";
 import { plateFragmentShader, plateVertexShader } from "./plate-shader";
 
@@ -63,6 +63,12 @@ export default function EarthScene() {
       let flowing = false;
       let rect: PlateRect = { left: 0, bottom: 0, width: 1, height: 1 };
 
+      // The cloud emblem's mask: until it has loaded, a white pixel, so the whole plate counts as emblem and the
+      // cyclone holds still rather than bending the emblem for a moment.
+      const placeholderEmblem = new DataTexture(new Uint8Array([255, 255, 255, 255]), 1, 1);
+      placeholderEmblem.needsUpdate = true;
+      let emblem: Texture | null = null;
+
       const material = new ShaderMaterial({
         vertexShader: plateVertexShader,
         fragmentShader: plateFragmentShader,
@@ -74,6 +80,7 @@ export default function EarthScene() {
           uSky: { value: CLEAR_SKY },
           uTime: { value: 0 },
           uFlow: { value: flow },
+          uEmblem: { value: placeholderEmblem },
         },
         // The quad covers the canvas and writes premultiplied colour straight to it.
         blending: NoBlending,
@@ -108,6 +115,15 @@ export default function EarthScene() {
           material.uniforms.uReady!.value = 1;
         });
       };
+
+      loader.load(EMBLEM_MASK_SRC, (loaded) => {
+        if (disposed) return loaded.dispose();
+        loaded.minFilter = LinearFilter;
+        loaded.magFilter = LinearFilter;
+        loaded.generateMipmaps = false;
+        emblem = loaded;
+        material.uniforms.uEmblem!.value = loaded;
+      });
 
       // Pointer moves over the planet splat into the fluid, broken into short steps along the path. The
       // sky, the limb, the page's controls, touch and coarse pointers never stir it.
@@ -185,6 +201,8 @@ export default function EarthScene() {
           document.documentElement.removeEventListener("pointerleave", onPointerLeave);
           flow.dispose();
           texture?.dispose();
+          emblem?.dispose();
+          placeholderEmblem.dispose();
           quad.dispose();
           material.dispose();
         },
