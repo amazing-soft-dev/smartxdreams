@@ -11,6 +11,7 @@ import {
   plateToHero,
   plateUniform,
 } from "./plate-layout";
+import { EMBLEM_DRIFT, MASTER_PX } from "./plate-shader";
 
 /**
  * Hero shapes (width / height) each breakpoint must handle. Phones are tall; tablets run from portrait to
@@ -67,13 +68,16 @@ const UNDER_BAND = 0.03;
 
 const byName = (name: string): PlateBreakpoint => PLATE_BREAKPOINTS.find((bp) => bp.name === name)!;
 
-/** The emblem's box in the hero (H) for a placed plate. */
+/**
+ * The emblem's box in the hero (H) for a placed plate, grown by as far as it drifts each way (EMBLEM_DRIFT, at
+ * most master pixels of the plate: motionPx()), so every check holds wherever the drift has taken it.
+ */
 function emblemBox(bp: PlateBreakpoint, aspect: number) {
   const rect = plateRect(bp.symbol, aspect);
   const { u, v, width, height } = LANDMARKS.symbol;
   const centre = plateToHero(rect, u, v);
-  const w = width * rect.width;
-  const h = height * rect.height;
+  const w = width * rect.width + 2 * EMBLEM_DRIFT[0] * MASTER_PX * rect.height;
+  const h = height * rect.height + 2 * EMBLEM_DRIFT[1] * MASTER_PX * rect.height;
   return { rect, left: centre.x - w / 2, right: centre.x + w / 2, top: centre.y + h / 2, bottom: centre.y - h / 2, h };
 }
 
