@@ -37,5 +37,5 @@ export function FooterAurora() {
     return () => observer.disconnect();
   }, [near]);
 
-  return near ? <AuroraBackground ridge={FOOTER_RIDGE} followPointer /> : <div ref={sentinel} aria-hidden="true" className="pointer-events-none absolute inset-0" />;
+  return near ? <AuroraBackground ridge={FOOTER_RIDGE} followPointer parallax="[data-footer-stars]" /> : <div ref={sentinel} aria-hidden="true" className="pointer-events-none absolute inset-0" />;
 }

@@ -28,6 +28,12 @@ type AuroraBackgroundProps = {
    * a mouse or trackpad, never for touch or reduced motion).
    */
   followPointer?: boolean;
+  /**
+   * A selector for an element in the aurora's parent that should follow the cursor too: it gets
+   * --pointer-x and --pointer-y, the eased cursor from -1 to 1 around the centre (y up), scaled by how
+   * present it is, so 0 when the cursor is away.
+   */
+  parallax?: string;
 };
 
 const MAX_DPR = 2;
@@ -103,6 +109,7 @@ export function AuroraBackground({
   fade = 0.3,
   quality = 0.5,
   followPointer = false,
+  parallax,
 }: AuroraBackgroundProps) {
   const rootRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -185,6 +192,18 @@ export function AuroraBackground({
     host?.addEventListener("pointermove", onPointerMove, { passive: true });
     host?.addEventListener("pointerleave", onPointerLeave, { passive: true });
 
+    // The parallax target, written only when the value changes, so a resting cursor costs no style work.
+    const follower = host && parallax ? host.querySelector<HTMLElement>(parallax) : null;
+    let followerX = 0;
+    let followerY = 0;
+    const follow = (x: number, y: number) => {
+      if (!follower || (Math.abs(x - followerX) < 0.0005 && Math.abs(y - followerY) < 0.0005)) return;
+      followerX = x;
+      followerY = y;
+      follower.style.setProperty("--pointer-x", x.toFixed(4));
+      follower.style.setProperty("--pointer-y", y.toFixed(4));
+    };
+
     // Animation time only advances while running, so the aurora resumes where it paused, colours included.
     let frame = 0;
     let elapsed = 0;
@@ -195,6 +214,7 @@ export function AuroraBackground({
       elapsed += dt;
       last = now;
       const cursor = pointer.step(dt);
+      follow((cursor.x * 2 - 1) * cursor.strength, (cursor.y * 2 - 1) * cursor.strength);
       // Yield to a higher-priority visible scene (the hero): keep the last frame.
       if (scene && isTopScene("aurora")) {
         const seconds = elapsed / 1000;
@@ -259,6 +279,8 @@ export function AuroraBackground({
       pause();
       host?.removeEventListener("pointermove", onPointerMove);
       host?.removeEventListener("pointerleave", onPointerLeave);
+      follower?.style.removeProperty("--pointer-x");
+      follower?.style.removeProperty("--pointer-y");
       canvas.removeEventListener("webglcontextlost", onContextLost);
       canvas.removeEventListener("webglcontextrestored", onContextRestored);
       setSceneVisible("aurora", SCENE_PRIORITY.aurora, false);
@@ -268,7 +290,7 @@ export function AuroraBackground({
       scene?.dispose();
       delete root.dataset.live;
     };
-  }, [intensity, fade, quality, followPointer]);
+  }, [intensity, fade, quality, followPointer, parallax]);
 
   // The still aurora's pillars stand on the horizon line: the measured ridge once known, else `horizon`.
   const base = `var(--aurora-base, ${(1 - horizon) * 100}%)`;
