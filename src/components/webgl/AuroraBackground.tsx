@@ -10,8 +10,14 @@ type AuroraBackgroundProps = {
   className?: string;
   /** Overall strength of the aurora, 0 to 2. */
   intensity?: number;
-  /** Height of the horizon the curtains rise from, 0 (bottom) to 1 (top). */
+  /** Height of the horizon the curtains rise from, 0 (bottom) to 1 (top), when there is no `ridge`. */
   horizon?: number;
+  /**
+   * A drawn horizon to stand the aurora on: a selector for an element next to the aurora (a sibling's
+   * descendant in the same parent), and where its crest runs as a share of that element's height from its
+   * top. The horizon line follows it on every resize.
+   */
+  ridge?: { selector: string; crest: number };
   /** How far down from the top edge the aurora fades out, 0 to 1. */
   fade?: number;
   /** Render at this fraction of the device resolution. The aurora is soft, so half resolution looks the same. */
@@ -81,9 +87,44 @@ type AuroraProgram = NonNullable<ReturnType<typeof setup>>;
  * Until the first frame is drawn (and for reduced motion, no WebGL or a failed shader) a still CSS aurora
  * shows instead.
  */
-export function AuroraBackground({ className, intensity = 1, horizon = 0.28, fade = 0.3, quality = 0.5 }: AuroraBackgroundProps) {
+export function AuroraBackground({
+  className,
+  intensity = 1,
+  horizon = 0.28,
+  ridge,
+  fade = 0.3,
+  quality = 0.5,
+}: AuroraBackgroundProps) {
   const rootRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  /** The horizon line in use, read by the render loop every frame. */
+  const horizonRef = useRef(horizon);
+  const ridgeSelector = ridge?.selector;
+  const ridgeCrest = ridge?.crest ?? 0;
+
+  // Stand the aurora on the drawn ridge: measure where its crest falls in the aurora's box whenever either
+  // one resizes, for the shader and for the still aurora's pillars (--aurora-base, from the top). Runs for
+  // reduced motion too, which only shows the still aurora.
+  useEffect(() => {
+    const root = rootRef.current;
+    if (!root) return;
+    const crestElement = ridgeSelector ? root.parentElement?.querySelector(ridgeSelector) : null;
+    const measure = () => {
+      let line = horizon;
+      const box = root.getBoundingClientRect();
+      if (crestElement && box.height > 0) {
+        const crest = crestElement.getBoundingClientRect();
+        line = Math.min(1, Math.max(0, (box.bottom - (crest.top + crest.height * ridgeCrest)) / box.height));
+      }
+      horizonRef.current = line;
+      root.style.setProperty("--aurora-base", `${((1 - line) * 100).toFixed(2)}%`);
+    };
+    const observer = new ResizeObserver(measure);
+    observer.observe(root);
+    if (crestElement) observer.observe(crestElement);
+    measure();
+    return () => observer.disconnect();
+  }, [horizon, ridgeSelector, ridgeCrest]);
 
   useEffect(() => {
     const root = rootRef.current;
@@ -100,7 +141,6 @@ export function AuroraBackground({ className, intensity = 1, horizon = 0.28, fad
     /** Sets every uniform that does not change per frame on a freshly set-up program. */
     const applyUniforms = ({ uniforms }: AuroraProgram) => {
       gl.uniform1f(uniforms.intensity, intensity);
-      gl.uniform1f(uniforms.horizon, horizon);
       gl.uniform1f(uniforms.fade, fade);
       gl.uniform2f(uniforms.resolution, canvas.width, canvas.height);
     };
@@ -134,6 +174,7 @@ export function AuroraBackground({ className, intensity = 1, horizon = 0.28, fad
         const seconds = elapsed / 1000;
         const { low, high } = auroraPalette(seconds);
         gl.uniform1f(scene.uniforms.time, seconds);
+        gl.uniform1f(scene.uniforms.horizon, horizonRef.current);
         gl.uniform3fv(scene.uniforms.colorLow, low);
         gl.uniform3fv(scene.uniforms.colorHigh, high);
         gl.drawArrays(gl.TRIANGLES, 0, 3);
@@ -197,10 +238,10 @@ export function AuroraBackground({ className, intensity = 1, horizon = 0.28, fad
       scene?.dispose();
       delete root.dataset.live;
     };
-  }, [intensity, horizon, fade, quality]);
+  }, [intensity, fade, quality]);
 
-  // The still aurora's pillars stand on the horizon line.
-  const base = `${(1 - horizon) * 100}%`;
+  // The still aurora's pillars stand on the horizon line: the measured ridge once known, else `horizon`.
+  const base = `var(--aurora-base, ${(1 - horizon) * 100}%)`;
   return (
     <div ref={rootRef} aria-hidden="true" className={cx("group pointer-events-none absolute inset-0 -z-10", className)}>
       {/* Still aurora, after Black Jupiter's pillars: shown until the first frame, and for reduced motion,
