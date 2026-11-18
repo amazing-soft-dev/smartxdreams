@@ -1,8 +1,8 @@
 /**
  * Six small constellations, one per product, laid out across the star-field. Each is a handful of points
  * (x, y in scene units, z slightly in front of the background stars) and the pairs of points joined by
- * lines. Shapes loosely echo the product: a path for JobAtlas, a form for ApplyPilot, a roof for SiteLog,
- * a tooth for ToothLedger, a house for Kinly and a shield for TrustDraft.
+ * lines. Shapes loosely echo the product: a path for Joined, a form for Acorn, a roof for SiteLog,
+ * a tooth for ToothLedger, a house for SeniorAIPlans and a shield for TrustDraft.
  */
 export type Constellation = {
   slug: string;
