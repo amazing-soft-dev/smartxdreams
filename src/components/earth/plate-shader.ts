@@ -130,7 +130,7 @@ export function weatherAt(x: number, y: number, t: number, px = MASTER_PX): { x:
 /**
  * The cloud emblem drifts, as the cloud forms on generalcontextlabs.com flow with the weather: as one rigid piece,
  * on its own slow sines, so it moves visibly while every stroke keeps its shape. The plate near it drifts with it
- * and fades back to the weather with distance from the strokes (the mask's green channel, emblemDistance()), so
+ * and fades back to the weather with distance from the strokes (the emblem mask, emblemDistance()), so
  * the open ocean between and around the strokes moves with the emblem and nothing tears at a stroke's edge.
  * Read pixel by pixel instead, the weather bent the strokes apart, so until now the emblem was calmed and only
  * followed the slow orbital drift: it looked static.
@@ -218,7 +218,7 @@ export function cycloneBody(d: number): number {
 
 /**
  * The cyclone at plate point (x, y) (plate heights, y down) and time `t`: where the content there comes from,
- * relative to the point. Mirrors the shader's cyclone(), without the emblem mask.
+ * relative to the point. Mirrors the shader's cyclone().
  */
 export function cycloneAt(x: number, y: number, t: number): { x: number; y: number } {
   const rx = x - LANDMARKS.cyclone.u * PLATE_ASPECT;
@@ -240,7 +240,7 @@ uniform vec4 uSky;          // what shows outside the planet and its glow (premu
 uniform float uTime;        // seconds the scene has been running
 uniform vec2 uFlowCells;    // the fluid grid's columns and rows (fluidGridFor(): square cells over the canvas)
 uniform sampler2D uFlow;    // the fluid wake's displacement over the canvas (fluid.ts): red x, green y, 0.5 = still
-uniform sampler2D uEmblem;  // the cloud emblem's mask over the plate (earth-emblem-mask.png): 1 on the emblem
+uniform sampler2D uEmblem;  // distance from the cloud emblem's strokes over the plate (earth-emblem-mask.png)
 
 varying vec2 vUv;
 
@@ -273,11 +273,7 @@ const float WEATHER_WAVE = ${glslFloat(WEATHER_WAVE)};
 ${WEATHER_SYSTEMS.map((s, i) => `const vec4 WEATHER_SYSTEM_${i} = vec4(${[s.x, s.y, s.width, s.height].map(glslFloat).join(", ")}); // ${s.name}`).join("\n")}
 const float MASTER_PX = ${glslFloat(MASTER_PX)};
 
-// The cloud symbol's centre and half-size, in plate heights (plate.ts).
-const vec2 SYMBOL = vec2(${glslFloat(LANDMARKS.symbol.u * PLATE_ASPECT)}, ${glslFloat(LANDMARKS.symbol.v)});
-const vec2 SYMBOL_HALF = vec2(${glslFloat((LANDMARKS.symbol.width * PLATE_ASPECT) / 2)}, ${glslFloat(LANDMARKS.symbol.height / 2)});
-
-// The emblem's drift (see EMBLEM_* in plate-shader.ts), and the distance the mask's green channel spans.
+// The emblem's drift (see EMBLEM_* in plate-shader.ts), and the distance the emblem mask spans.
 const vec2 EMBLEM_DRIFT = vec2(${glslFloat(EMBLEM_DRIFT[0])}, ${glslFloat(EMBLEM_DRIFT[1])});
 const vec2 EMBLEM_DRIFT_RATES = vec2(${glslFloat(EMBLEM_DRIFT_RATES[0])}, ${glslFloat(EMBLEM_DRIFT_RATES[1])});
 const float EMBLEM_FADE = ${glslFloat(EMBLEM_FADE)};
@@ -295,18 +291,12 @@ vec2 orbital() {
   return vec2(12.0 * sin(uTime * 0.055), 4.5 * sin(uTime * 0.043)) * pxToPlate();
 }
 
-// How much of the plate at q (plate heights) is the cloud emblem, 0..1, from its soft mask (red). Until the
-// mask has loaded the scene holds a 1 x 1 white texture, so everything counts as emblem and nothing turns.
-float emblemAt(vec2 q) {
-  return texture2D(uEmblem, vec2(q.x / PLATE_ASPECT, 1.0 - q.y)).r;
-}
-
 // How much of the plate at q drifts with the cloud emblem as one piece, 0..1: all of it on the strokes, fading
-// out over EMBLEM_FADE plate heights from them (the mask's green channel is that distance, white at
-// EMBLEM_REGION_RANGE). The placeholder's white green reads as far away, so nothing drifts with the emblem until
-// the mask has loaded. Mirrors emblemWholeAt().
+// out over EMBLEM_FADE plate heights from them (the emblem mask is that distance, white at EMBLEM_REGION_RANGE).
+// The placeholder's white reads as far away, so nothing drifts with the emblem until the mask has loaded.
+// Mirrors emblemWholeAt().
 float emblemWhole(vec2 q) {
-  float distance = texture2D(uEmblem, vec2(q.x / PLATE_ASPECT, 1.0 - q.y)).g * EMBLEM_REGION_RANGE;
+  float distance = texture2D(uEmblem, vec2(q.x / PLATE_ASPECT, 1.0 - q.y)).r * EMBLEM_REGION_RANGE;
   return 1.0 - smoothstep(0.0, EMBLEM_FADE, distance);
 }
 
@@ -355,9 +345,9 @@ vec2 cyclone(vec2 q) {
   float d = length(r);
   if (d >= CYCLONE_REACH) return vec2(0.0);
   float body = 1.0 - smoothstep(CYCLONE_CORE * CYCLONE_REACH, CYCLONE_REACH, d);
-  // The emblem's upper stroke passes within about 100 px of the eye, inside the storm's painted reach: the
-  // turn leaves it alone, so it keeps its shape while the arms beside it turn.
-  float a = (CYCLONE_TURN * sin(uTime * CYCLONE_TURN_RATE) + CYCLONE_SWAY * sin(uTime * CYCLONE_SWAY_RATE)) * body * (1.0 - emblemAt(q));
+  // Everything in the storm's reach turns with it, as on the reference, the emblem's upper stroke (about 100 px
+  // from the eye) included.
+  float a = (CYCLONE_TURN * sin(uTime * CYCLONE_TURN_RATE) + CYCLONE_SWAY * sin(uTime * CYCLONE_SWAY_RATE)) * body;
   float c = cos(a), s = sin(a);
   return vec2(c * r.x - s * r.y, s * r.x + c * r.y) - r;
 }
@@ -379,30 +369,12 @@ vec2 wakeAt(vec2 at) {
   return hero / uPlateRect.w;
 }
 
-// Where plate point q (plate heights) is on the canvas (0..1, y up).
-vec2 canvasAt(vec2 q) {
-  vec2 hero = vec2(uPlateRect.x + q.x / PLATE_ASPECT * uPlateRect.z, uPlateRect.y + (1.0 - q.y) * uPlateRect.w);
-  return vec2(hero.x / (uResolution.x / uResolution.y), hero.y);
-}
-
-// The wake at this pixel. Near the cloud emblem it is the wake averaged across the emblem, so the emblem is
-// carried as one piece and keeps its shape, while the clouds around it flow; the two blend by the same weight
-// that carries the plate near the emblem with its drift (emblemWhole()), so the whole emblem, tail and outer
-// strokes included, moves together.
-vec2 wake(vec2 q, float whole) {
-  vec2 local = wakeAt(vUv);
-  if (whole < 0.001) return local;
-  vec2 emblem = (wakeAt(canvasAt(SYMBOL)) * 2.0
-    + wakeAt(canvasAt(SYMBOL + vec2(SYMBOL_HALF.x * 0.6, 0.0))) + wakeAt(canvasAt(SYMBOL - vec2(SYMBOL_HALF.x * 0.6, 0.0)))
-    + wakeAt(canvasAt(SYMBOL + vec2(0.0, SYMBOL_HALF.y * 0.6))) + wakeAt(canvasAt(SYMBOL - vec2(0.0, SYMBOL_HALF.y * 0.6)))) / 6.0;
-  return mix(local, emblem, whole);
-}
-
 // Motion that every pixel shares, whatever the cyclone does: the orbital drift, the weather giving way to the
-// emblem's drift near the emblem, and the pointer wake. Sampling against the wake moves the content along it.
+// emblem's drift near the emblem, and the pointer wake. The wake is read at this pixel, on the emblem as
+// anywhere else, as on the reference: the cursor bends and swirls the emblem's clouds where it passes, like
+// any other clouds. Sampling against the wake moves the content along it.
 vec2 sharedMotion(vec2 q) {
-  float whole = emblemWhole(q);
-  return orbital() + mix(weather(q), emblemDrift(), whole) - wake(q, whole);
+  return orbital() + mix(weather(q), emblemDrift(), emblemWhole(q)) - wakeAt(vUv);
 }
 
 // A motion delta (where the content at this pixel comes from, relative to it) made safe for the limb: off in
