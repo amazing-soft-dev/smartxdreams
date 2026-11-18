@@ -76,7 +76,7 @@ export const senioraiplans: Product = {
   disclaimer:
     "SeniorAIPlans is not medical, legal or financial advice, and it does not replace a doctor, lawyer or financial adviser. Check important decisions with a professional or the company involved.",
   readability: "large",
-  photo: { slot: "product-kinly" },
+  photo: { slot: "product-senioraiplans" },
   related: ["toothledger"],
   seo: {
     title: "SeniorAIPlans: plain-words help with bills, letters and scams",
