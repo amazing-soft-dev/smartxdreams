@@ -4,6 +4,7 @@
 //   public/brand/logo/smartxdreams-mark-on-<light|dark>-512.png        the same as a PNG, for the social card
 //   public/brand/logo/smartxdreams-mark-on-light-square-512.png        square, padded: the organisation logo
 //   public/brand/icons/…                                                favicons and home-screen icons (below)
+//   src/lib/brand-marks.json                                            each mark's size, for the Logo component
 //
 //   npm run brand            write the files
 //   npm run check:brand      fail if a file is missing or its size or format differs from what the masters give
@@ -148,6 +149,22 @@ for (const { name, master } of MARKS) {
   console.log(`${master}  artwork ${art[name].width} x ${art[name].height}`);
 }
 
+// What the Logo component needs to size the mark without loading it: each tone's trimmed artwork size
+// (its aspect ratio) and the widths written below.
+emit(
+  "src/lib/brand-marks.json",
+  Buffer.from(
+    JSON.stringify(
+      {
+        widths: LOGO_WIDTHS,
+        marks: Object.fromEntries(MARKS.map(({ name }) => [name, { width: art[name].width, height: art[name].height }])),
+      },
+      null,
+      2,
+    ) + "\n",
+  ),
+);
+
 /** The artwork centred on a size x size square, filling `fill` of it, over `background` (transparent by default). */
 async function square(artwork, size, fill, background = { r: 0, g: 0, b: 0, alpha: 0 }) {
   const inner = Math.round(size * fill);
@@ -233,6 +250,13 @@ for (const { file, buffer } of outputs) {
     // Compare sizes, not bytes: sharp's encoders may differ by a few bytes between platforms. An ICO is
     // compared by its directory (image count and sizes), which sharp cannot read.
     const current = await fs.readFile(file).catch(() => null);
+    if (rel.endsWith(".json")) {
+      if (current?.toString().replace(/\r\n/g, "\n") !== buffer.toString()) {
+        console.error(`${rel}  missing or out of date: run npm run brand`);
+        failed = true;
+      }
+      continue;
+    }
     const meta = (b) => (rel.endsWith(".ico") ? { width: b.readUInt16LE(4), height: b[6], format: "ico" } : sharp(b).metadata());
     const [want, have] = await Promise.all([meta(buffer), current && meta(current)]);
     if (!have || have.width !== want.width || have.height !== want.height || have.format !== want.format) {

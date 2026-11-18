@@ -1,16 +1,15 @@
-import { useId } from "react";
-import { SYMBOL, SYMBOL_MASK_BOX } from "@/lib/brand-symbol";
+import brandMarks from "@/lib/brand-marks.json";
 import { cx } from "@/lib/cx";
 
 type LogoProps = {
-  /** "full" is the mark with the wordmark; "mark" is the symbol alone. */
+  /** "full" is the mark with the wordmark; "mark" is the ribbon alone. */
   variant?: "full" | "mark";
   /**
-   * "dark" is artwork for light surfaces (navy and violet);
-   * "light" is artwork for dark surfaces (lavender).
+   * "dark" is artwork for light surfaces (the charcoal ribbon, ink wordmark);
+   * "light" is artwork for dark surfaces (the white ribbon, white wordmark).
    */
   tone?: "dark" | "light";
-  /** Rendered height in pixels. Width follows the artwork's aspect ratio. */
+  /** Rendered height of the mark in pixels. Width follows the artwork's aspect ratio. */
   height?: number;
   /** Accessible name. Pass decorative when visible text next to the logo already names the company. */
   label?: string;
@@ -20,15 +19,40 @@ type LogoProps = {
 
 type Tone = NonNullable<LogoProps["tone"]>;
 
-/** Stroke colours of the two master files. */
-const SYMBOL_COLORS: Record<Tone, { s: string; d: string }> = {
-  dark: { s: "#2B2170", d: "#6E56F0" },
-  light: { s: "#A99BFF", d: "#E6E1FF" },
+/** The built mark files (scripts/build-brand.mjs) behind each tone: named by the surface they sit on. */
+const MARK_FILE: Record<Tone, keyof typeof brandMarks.marks> = {
+  dark: "smartxdreams-mark-on-light",
+  light: "smartxdreams-mark-on-dark",
 };
 
-const MASK_BOX = SYMBOL_MASK_BOX;
+/** Path of a tone's mark at one of the built widths. */
+export function markSrc(tone: Tone, width: number): string {
+  return `/brand/logo/${MARK_FILE[tone]}-${width}.webp`;
+}
 
-type SymbolMarkProps = {
+/** The mark's trimmed size in master pixels, which fixes its aspect ratio. */
+export function markSize(tone: Tone): { width: number; height: number } {
+  return brandMarks.marks[MARK_FILE[tone]];
+}
+
+/** Width in px of a tone's mark drawn `height` px tall. */
+export function markWidth(tone: Tone, height: number): number {
+  const { width, height: h } = markSize(tone);
+  return Math.round((height * width) / h);
+}
+
+/** Every built width as a srcset, so the browser picks the sharpest file for the screen's pixel density. */
+export function markSrcSet(tone: Tone): string {
+  return brandMarks.widths.map((w) => `${markSrc(tone, w)} ${w}w`).join(", ");
+}
+
+/** The fallback src: the smallest built width at least twice the drawn width (sharp on 2x screens). */
+function fallbackWidth(width: number): number {
+  const widths = brandMarks.widths;
+  return widths.find((w) => w >= width * 2) ?? widths[widths.length - 1]!;
+}
+
+type MarkProps = {
   tone: Tone;
   height: number;
   label: string;
@@ -36,62 +60,42 @@ type SymbolMarkProps = {
   className?: string;
 };
 
-function SymbolMark({ tone, height, label, decorative, className }: SymbolMarkProps) {
-  // The logo appears several times on a page (header, menu, footer, transition): every instance needs
-  // its own mask and clip-path ids, or they would all point at the first one in the document.
-  const id = useId().replace(/[^\w-]/g, "");
-  const ids = { maskD: `${id}-md`, maskS: `${id}-ms`, clipR: `${id}-cr`, clipL: `${id}-cl` };
-  const colors = SYMBOL_COLORS[tone];
-  const { overD, overS } = SYMBOL.crossings;
+function Mark({ tone, height, label, decorative, className }: MarkProps) {
+  const width = markWidth(tone, height);
   return (
-    <svg
-      viewBox={SYMBOL.viewBox}
+    // A plain <img>: the files are already built at fixed widths, so next/image would only add a loader the
+    // static export cannot run. width and height reserve the box before the file arrives.
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={markSrc(tone, fallbackWidth(width))}
+      srcSet={markSrcSet(tone)}
+      sizes={`${width}px`}
+      width={width}
       height={height}
-      width={Math.round(height * SYMBOL.ratio)}
-      className={className}
-      role={decorative ? undefined : "img"}
-      aria-label={decorative ? undefined : label}
+      alt={decorative ? "" : label}
       aria-hidden={decorative ? true : undefined}
-      focusable="false"
-    >
-      <defs>
-        <clipPath id={ids.clipR}>
-          <circle cx={overD.cx} cy={overD.cy} r={SYMBOL.crossingRadius} />
-        </clipPath>
-        <clipPath id={ids.clipL}>
-          <circle cx={overS.cx} cy={overS.cy} r={SYMBOL.crossingRadius} />
-        </clipPath>
-        {/* The D is cut where the S passes over it, and the S where the D passes over it. */}
-        <mask id={ids.maskD} maskUnits="userSpaceOnUse" {...MASK_BOX}>
-          <rect {...MASK_BOX} fill="#fff" />
-          <path d={SYMBOL.s} fill="none" stroke="#000" strokeWidth={SYMBOL.cut} clipPath={`url(#${ids.clipR})`} />
-        </mask>
-        <mask id={ids.maskS} maskUnits="userSpaceOnUse" {...MASK_BOX}>
-          <rect {...MASK_BOX} fill="#fff" />
-          <path d={SYMBOL.d} fill="none" stroke="#000" strokeWidth={SYMBOL.cut} clipPath={`url(#${ids.clipL})`} />
-        </mask>
-      </defs>
-      <path d={SYMBOL.d} fill="none" stroke={colors.d} strokeWidth={SYMBOL.stroke} mask={`url(#${ids.maskD})`} />
-      <path d={SYMBOL.s} fill="none" stroke={colors.s} strokeWidth={SYMBOL.stroke} mask={`url(#${ids.maskS})`} />
-    </svg>
+      decoding="async"
+      draggable={false}
+      className={cx("block shrink-0 select-none", className)}
+    />
   );
 }
 
-/** Wordmark colours: the text takes the S stroke's role, the "x" the D stroke's accent. */
+/** Wordmark colours: ink or white text, with the "x" in the brand violet. */
 const WORDMARK_COLORS: Record<Tone, { text: string; accent: string }> = {
-  dark: { text: "#2B2170", accent: "#6E56F0" },
-  light: { text: "#E6E1FF", accent: "#A99BFF" },
+  dark: { text: "#0F1226", accent: "#6D4AFF" },
+  light: { text: "#FFFFFF", accent: "#AA97FF" },
 };
 
 /** Wordmark size and spacing as fractions of the logo height. */
 const WORDMARK = { fontSize: 0.6, gap: 0.3 } as const;
 
 /**
- * SmartxDreams logo, all inline: no request, sharp at every size.
- * - "mark": the symbol alone.
- * - "full": the symbol next to the wordmark "SmartxDreams", set as live text in Inter Tight (the site
- *   font) with the "x" in the accent colour. The text is hidden from assistive technology; the whole
- *   logo is one image named by `label`.
+ * SmartxDreams logo.
+ * - "mark": the SD ribbon alone, from the files scripts/build-brand.mjs builds out of assets/brand/.
+ * - "full": the ribbon next to the wordmark "SmartxDreams", set as live text in Inter Tight (the site font)
+ *   with the "x" in the accent colour. The text is hidden from assistive technology; the whole logo is one
+ *   image named by `label`.
  */
 export function Logo({
   variant = "full",
@@ -102,7 +106,7 @@ export function Logo({
   className,
 }: LogoProps) {
   if (variant === "mark") {
-    return <SymbolMark tone={tone} height={height} label={label} decorative={decorative} className={className} />;
+    return <Mark tone={tone} height={height} label={label} decorative={decorative} className={className} />;
   }
 
   const colors = WORDMARK_COLORS[tone];
@@ -114,7 +118,7 @@ export function Logo({
       aria-label={decorative ? undefined : label}
       aria-hidden={decorative ? true : undefined}
     >
-      <SymbolMark tone={tone} height={height} label={label} decorative />
+      <Mark tone={tone} height={height} label={label} decorative />
       <span
         aria-hidden="true"
         className="font-sans leading-none font-semibold tracking-[-0.03em] whitespace-nowrap"
