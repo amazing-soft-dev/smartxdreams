@@ -1,8 +1,7 @@
 import { Reveal } from "@/components/motion/Reveal";
-import { SplitText } from "@/components/motion/SplitText";
 import { Photo } from "@/components/ui/Photo";
 import { Section } from "@/components/ui/Section";
-import { Tag } from "@/components/ui/Tag";
+import { SectionHeader } from "@/components/ui/SectionHeader";
 import { about } from "@/content/about";
 import { PhotoReveal } from "@/components/motion/PhotoReveal";
 
@@ -12,10 +11,7 @@ export function AboutStory() {
     <Section labelledBy="story-title" surface="canvas">
       <div className="grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
         <div>
-          <Tag>Our story</Tag>
-          <h2 id="story-title" className="mt-5 text-h2">
-            <SplitText text={about.story.title} />
-          </h2>
+          <SectionHeader id="story-title" tag="Our story" title={about.story.title} align="left" />
           <div className="mt-6 flex max-w-[62ch] flex-col gap-5 text-body-l text-ink/75">
             {about.story.paragraphs.map((p) => (
               <p key={p}>{p}</p>
