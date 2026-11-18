@@ -56,6 +56,20 @@ export function TransitionProvider({ children }: { children: ReactNode }) {
   // Resolves when the pathname changes, so the reveal waits for the new page.
   const routeWaiter = useRef<(() => void) | null>(null);
 
+  // The overlay is invisible until the first navigation, and an image is only decoded when it is first
+  // painted, so the mark could pop in a frame late. Decode it while the browser is idle instead.
+  useEffect(() => {
+    const img = mark.current?.querySelector("img");
+    if (!img) return;
+    const decode = () => img.decode().catch(() => undefined);
+    if (typeof window.requestIdleCallback === "function") {
+      const id = window.requestIdleCallback(decode, { timeout: 2000 });
+      return () => window.cancelIdleCallback(id);
+    }
+    const id = window.setTimeout(decode, 1000);
+    return () => window.clearTimeout(id);
+  }, []);
+
   useEffect(() => {
     routeWaiter.current?.();
     routeWaiter.current = null;
