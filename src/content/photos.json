@@ -389,6 +389,168 @@
         "source": "unsplash",
         "license": "Unsplash License"
       }
+    },
+    {
+      "slot": "team-isabela-moreno",
+      "src": "/images/team/isabela-moreno.jpg",
+      "width": 1200,
+      "height": 1500,
+      "alt": "Isabela Moreno smiling, in a white blazer, seated in a leather chair",
+      "decorative": false,
+      "tint": "#181808",
+      "blurDataURL": "data:image/webp;base64,UklGRnwAAABXRUJQVlA4IHAAAAAQAgCdASoNABAAA4BaJQBOgMXIzsBY84XiAP73glJpj51G1l8mpNiOud/4mu0DYWoip3bn77oSAieaZlA96caD8rk17dKnfxNTIzA8TgLv0H/SJnLGb6KeGervRaEV9j4AOroXftkO6RiFRxpWGAAA",
+      "focal": "50% 30%",
+      "credit": {
+        "photographer": "Jonathan Borba",
+        "profileUrl": "https://unsplash.com/@jonathanborba",
+        "photoUrl": "https://unsplash.com/photos/4mUk_DFImbI",
+        "source": "unsplash",
+        "license": "Unsplash License"
+      }
+    },
+    {
+      "slot": "team-martin-kessler",
+      "src": "/images/team/martin-kessler.jpg",
+      "width": 1200,
+      "height": 1500,
+      "alt": "Martin Kessler in glasses and a dark suit, standing by a window",
+      "decorative": false,
+      "tint": "#080818",
+      "blurDataURL": "data:image/webp;base64,UklGRmYAAABXRUJQVlA4IFoAAAAwAgCdASoNABAAA4BaJYwCdAEXV5pXHRxVAAD+yPGKc3pXFao2RIq3kZvhFBnmCVC6xoamnTqAuf+MU3roIulwfprsSa+h9sS+dyLStnNsBm4CwzWA6Q4gAAA=",
+      "focal": "50% 30%",
+      "credit": {
+        "photographer": "LinkedIn Sales Solutions",
+        "profileUrl": "https://unsplash.com/@linkedinsalesnavigator",
+        "photoUrl": "https://unsplash.com/photos/pAtA8xe_iVM",
+        "source": "unsplash",
+        "license": "Unsplash License"
+      }
+    },
+    {
+      "slot": "team-luca-bianchi",
+      "src": "/images/team/luca-bianchi.jpg",
+      "width": 1200,
+      "height": 1500,
+      "alt": "Luca Bianchi in a grey sweater, smiling at the camera",
+      "decorative": false,
+      "tint": "#7898a8",
+      "blurDataURL": "data:image/webp;base64,UklGRnAAAABXRUJQVlA4IGQAAADwAQCdASoNABAAA4BaJQBOgCPVlZGm3OAAzFRwymv0/gpb1b89zW57MuYT+Y2CGvlJAFIMYjpi4v7Eh+wdzW9zmGC5qaH9u5Qk9bzfUs/nNipIAPpQeCOR0Xl2/r+5zSByMAAA",
+      "focal": "50% 30%",
+      "credit": {
+        "photographer": "Jurica Koletić",
+        "profileUrl": "https://unsplash.com/@juricakoletic",
+        "photoUrl": "https://unsplash.com/photos/7YVZYZeITc8",
+        "source": "unsplash",
+        "license": "Unsplash License"
+      }
+    },
+    {
+      "slot": "team-marcus-bell",
+      "src": "/images/team/marcus-bell.jpg",
+      "width": 1200,
+      "height": 1500,
+      "alt": "Marcus Bell in glasses and a black sweater, smiling",
+      "decorative": false,
+      "tint": "#f8f8f8",
+      "blurDataURL": "data:image/webp;base64,UklGRl4AAABXRUJQVlA4IFIAAAAQAgCdASoNABAAA4BaJZQC7AEXZ2pHQzsAAP73CetPe6ZlpUJxwtBddfDKhaATGSB9hnJ0Lspsqf7q06pXhj7No02MWJ9CmLpxdltFtN4qAAAA",
+      "focal": "50% 30%",
+      "credit": {
+        "photographer": "Ryan Hoffman",
+        "profileUrl": "https://unsplash.com/@ryanhoffman007",
+        "photoUrl": "https://unsplash.com/photos/Ft4p5E9HjTQ",
+        "source": "unsplash",
+        "license": "Unsplash License"
+      }
+    },
+    {
+      "slot": "team-kevin-tran",
+      "src": "/images/team/kevin-tran.jpg",
+      "width": 1200,
+      "height": 1500,
+      "alt": "Kevin Tran in glasses and a light blue sweatshirt, in front of shelves",
+      "decorative": false,
+      "tint": "#98a8c8",
+      "blurDataURL": "data:image/webp;base64,UklGRn4AAABXRUJQVlA4IHIAAAAwAgCdASoNABAAA4BaJYwC7AYul2g3wd/VAAD+rHQYwz/JRnl/NeZcjd9rgtDAaX5gNwPQKdrCgVNvN+l9YgIwAqN10f0Cm01Uke1267XY8JLznazUWPQzpG6y9pmvKPaB3VnZYpFQfMReo0bIxgVYAAA=",
+      "focal": "50% 30%",
+      "credit": {
+        "photographer": "Darshan Patel",
+        "profileUrl": "https://unsplash.com/@darshanp9",
+        "photoUrl": "https://unsplash.com/photos/QJEVpydulGs",
+        "source": "unsplash",
+        "license": "Unsplash License"
+      }
+    },
+    {
+      "slot": "team-claire-donovan",
+      "src": "/images/team/claire-donovan.jpg",
+      "width": 1200,
+      "height": 1500,
+      "alt": "Claire Donovan in a grey blazer, sitting by a tall window with a laptop",
+      "decorative": false,
+      "tint": "#d8d8c8",
+      "blurDataURL": "data:image/webp;base64,UklGRnIAAABXRUJQVlA4IGYAAABQAgCdASoNABAAA4BaJbACdAYvXmoUZkL8EAAA+NJqOM874tc5Ma9CkDrbnTcBAz6qGTVUZKatWQN15K8iuVc07lBhq2m37GczUi6AV+Kd0qxUScL4z/9RBUsa+fw+ofTCG8AAAAA=",
+      "focal": "50% 30%",
+      "credit": {
+        "photographer": "Christina @ wocintechchat.com M",
+        "profileUrl": "https://unsplash.com/@wocintechchat",
+        "photoUrl": "https://unsplash.com/photos/0Zx1bDv5BNY",
+        "source": "unsplash",
+        "license": "Unsplash License"
+      }
+    },
+    {
+      "slot": "team-arjun-mehta",
+      "src": "/images/team/arjun-mehta.jpg",
+      "width": 1200,
+      "height": 1500,
+      "alt": "Arjun Mehta with a beard, arms crossed, in a navy zip sweater",
+      "decorative": false,
+      "tint": "#282838",
+      "blurDataURL": "data:image/webp;base64,UklGRmIAAABXRUJQVlA4IFYAAADwAQCdASoNABAAA4BaJZwAAl3WUqIX5oAA/u2BmEBHg9zSpFGR81EnPo3JiVa4i/DAFDnitIbGpjkpWULok+W5PNH3xBWaoqjSYCKI/KulvH4p1VsAAA==",
+      "focal": "50% 30%",
+      "credit": {
+        "photographer": "Willian Souza",
+        "profileUrl": "https://unsplash.com/@willsouzabr",
+        "photoUrl": "https://unsplash.com/photos/p5BoBF0XJUA",
+        "source": "unsplash",
+        "license": "Unsplash License"
+      }
+    },
+    {
+      "slot": "team-nina-petrova",
+      "src": "/images/team/nina-petrova.jpg",
+      "width": 1200,
+      "height": 1500,
+      "alt": "Nina Petrova laughing, in a red top",
+      "decorative": false,
+      "tint": "#780818",
+      "blurDataURL": "data:image/webp;base64,UklGRngAAABXRUJQVlA4IGwAAABQAgCdASoNABAAA4BaJbACdAEQXMvCdoKJaAAA/p/qllY1rWE6HiYrCUmLBqski9azpgj3BI/YkQzZwjv6gYdbeyYCu5goQ45MSmYysC07d1N23aC/ziQ+o/SigxXijgWipb13P1AmUJy1YAA=",
+      "focal": "50% 30%",
+      "credit": {
+        "photographer": "Michael Dam",
+        "profileUrl": "https://unsplash.com/@michaeldam",
+        "photoUrl": "https://unsplash.com/photos/mEZ3PoFGs_k",
+        "source": "unsplash",
+        "license": "Unsplash License"
+      }
+    },
+    {
+      "slot": "team-amara-osei",
+      "src": "/images/team/amara-osei.jpg",
+      "width": 1200,
+      "height": 1500,
+      "alt": "Amara Osei smiling, in a white shirt against a pale background",
+      "decorative": false,
+      "tint": "#f8f8f8",
+      "blurDataURL": "data:image/webp;base64,UklGRlgAAABXRUJQVlA4IEwAAABQAgCdASoNABAAA4BaJZQCdAYrxvtqJ8Cw2AAA/vcDl+vYMnnNcfYeLxANLc4O83faPug4ohLHS0XsPvrC4uyFpgMUoIqNmEkD1sAA",
+      "focal": "50% 30%",
+      "credit": {
+        "photographer": "Joecalih",
+        "profileUrl": "https://unsplash.com/@joecalih",
+        "photoUrl": "https://unsplash.com/photos/1l6UeCc9P9o",
+        "source": "unsplash",
+        "license": "Unsplash License"
+      }
     }
   ]
 }
