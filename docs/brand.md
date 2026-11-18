@@ -105,6 +105,24 @@ The wordmark is "Smart**x**Dreams" in Inter Tight, weight 600, at 0.6 x `height`
 - Do not set the wordmark in another typeface or as an image; use `<Logo>`.
 - Do not use third-party logos anywhere on the site (see [compliance.md](compliance.md)).
 
+## Product logos
+
+`<ProductLogo product={...} />` draws a product's logo from `public/products/logos/<slug>-<size>.webp` (built by `npm run brand` from `assets/products/<slug>.png`). Wherever the surface may be dark (the nav menus, the dark product cards), the logo sits on a rounded square tile, like an app icon, because several logos are black or navy. Each product picks its tile in its content file, as `logo.tile`:
+
+| Product | `logo.tile` | Why |
+|---|---|---|
+| Acorn | `{ background: "#F7EFE4" }` | warm cream, from the brown leaf |
+| Joined | `{ background: "#FFECEC" }` | pale red, from the pin |
+| SeniorAIPlans | `{ background: "#FFF1E6" }` | peach, from the orange figure |
+| SiteLog | `{ background: "#FFF6D1" }` | pale yellow, from the hard hat |
+| TrustDraft | `{ background: "#E3F5FA" }` | pale cyan, from the teal figure |
+| ToothLedger | `"none"` | the artwork already is a blue rounded-square icon |
+
+- A tile colour stays light (a pale tint of the logo's own colour), so dark artwork keeps its contrast on ink.
+- The artwork fills 72% of the tile. With `"none"` it is drawn edge to edge at the tile's size, with a drop shadow that follows its own corners. Never put an app-icon logo on a second square.
+- `tileBackground` overrides the colour for one use. It is ignored for a `"none"` logo.
+- `tile={false}` gives the bare artwork, for light surfaces only (the inline logos in the home statement).
+
 ## Changing the mark
 
 1. Replace the masters in `assets/brand/`, keeping the file names (`smartxdreams-mark-on-light.png`, `smartxdreams-mark-on-dark.png`).
