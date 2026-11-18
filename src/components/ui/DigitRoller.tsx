@@ -28,7 +28,7 @@ export function DigitRoller({ value, className, countUp = true }: DigitRollerPro
   const settled = !countUp || inView;
   const chars = Array.from(value);
   return (
-    <span ref={ref} className={cx(styles.roller, className)}>
+    <span ref={ref} data-motion="digits" className={cx(styles.roller, className)}>
       {/* Screen readers get the real value once; the animated columns are hidden from them. */}
       <span className="sr-only">{value}</span>
       <span aria-hidden="true" className={styles.roller}>

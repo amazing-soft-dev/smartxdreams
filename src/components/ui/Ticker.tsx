@@ -22,7 +22,7 @@ type TickerProps = {
 export function Ticker({ items, duration = 40, gap = 56, label, className }: TickerProps) {
   const style = { "--ticker-duration": `${duration}s`, "--ticker-gap": `${gap}px` } as CSSProperties;
   return (
-    <div className={cx(styles.viewport, className)} style={style}>
+    <div data-motion="ticker" className={cx(styles.viewport, className)} style={style}>
       <div className={styles.track}>
         <ul aria-label={label} className={styles.group}>
           {items.map((item, i) => (

@@ -20,11 +20,12 @@ export function WhichIsRight() {
             <li key={slug}>
               <TransitionLink
                 href={`/products/${slug}`}
-                className="group flex items-center justify-between gap-4 rounded-[20px] bg-canvas px-6 py-5 transition-colors duration-250 hover:bg-canvas-200"
+                className="group flex items-center justify-between gap-4 rounded-[20px] bg-canvas px-6 py-5 transition-[background-color,translate,box-shadow] duration-500 ease-[var(--ease-out-quint)] hover:-translate-y-1 hover:bg-canvas-200 hover:shadow-tag focus-visible:-translate-y-1 motion-reduce:hover:translate-y-0 motion-reduce:focus-visible:translate-y-0"
               >
                 <span className="text-body-l">“{need}”</span>
                 <span className="shrink-0 text-label font-medium text-violet-600">
-                  {product.name} <span aria-hidden="true">→</span>
+                  {/* The arrow turns up and out on hover and focus, to the pose Beemas' arrows rest in. */}
+                  {product.name} <span aria-hidden="true" className="inline-block transition-transform duration-500 ease-[var(--ease-out-quint)] group-hover:-rotate-30 group-focus-visible:-rotate-30 motion-reduce:transition-none">→</span>
                 </span>
               </TransitionLink>
             </li>

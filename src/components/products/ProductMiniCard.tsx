@@ -10,7 +10,7 @@ export function ProductMiniCard({ product, headingLevel: Heading = "h3" }: { pro
   return (
     <article
       data-product={product.slug}
-      className="relative flex h-full flex-col rounded-[30px] bg-white p-6 outline-offset-4 has-[a:focus-visible]:outline-2 has-[a:focus-visible]:outline-violet-500"
+      className="relative flex h-full flex-col rounded-[30px] bg-white p-6 outline-offset-4 transition-[translate,box-shadow] duration-500 ease-[var(--ease-out-quint)] hover:-translate-y-1.5 hover:shadow-card-hover has-[a:focus-visible]:-translate-y-1.5 has-[a:focus-visible]:shadow-card-hover motion-reduce:hover:translate-y-0 motion-reduce:has-[a:focus-visible]:translate-y-0 has-[a:focus-visible]:outline-2 has-[a:focus-visible]:outline-violet-500"
     >
       <ProductLogo product={product} size={44} decorative className="mb-4" />
       <Heading className="text-h5">

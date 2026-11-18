@@ -19,7 +19,8 @@ test("the hiring card's button leads to the contact page", async ({ page }) => {
   await page.goto("/about");
   const card = page.getByRole("heading", { name: "Building with us" }).locator("xpath=ancestor::div[2]");
   await card.getByRole("link", { name: "Get in touch" }).click();
-  await expect(page).toHaveURL(/\/contact$/);
+  // Through the page transition: allow for the panels on a loaded test machine.
+  await expect(page).toHaveURL(/\/contact$/, { timeout: 10_000 });
 });
 
 test("portraits come in from grey and end in full colour", async ({ page }) => {

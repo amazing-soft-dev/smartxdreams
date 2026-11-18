@@ -1,18 +1,22 @@
-import { RevealGroup, RevealItem } from "@/components/motion/RevealGroup";
+import { Reveal } from "@/components/motion/Reveal";
 import { Photo } from "@/components/ui/Photo";
 import { team } from "@/content/team";
+import { stagger } from "@/styles/motion";
 import { PortraitReveal } from "./PortraitReveal";
 
 /**
  * One card per person, as Ignivo's team profiles: an index number, the portrait, name and role, a divider,
  * what they do here and the areas they look after. Three columns on desktop, two on tablets, one on phones.
- * The cards rise in one after another, and each portrait comes up from greyscale (PortraitReveal).
+ * The cards rise in one after another, and each portrait comes up from greyscale (PortraitReveal). Each card
+ * has its own in-view trigger, staggered along its row: on a phone the nine cards stack into a list far
+ * taller than the screen, so a single trigger on the whole list could never see enough of it to fire.
  */
 export function TeamProfiles() {
   return (
-    <RevealGroup as="ul" aria-label="The team" stagger={0.08} className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+    <ul aria-label="The team" className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
       {team.map((person, i) => (
-        <RevealItem as="li" key={person.slug} data-person={person.slug}>
+        <li key={person.slug} data-person={person.slug}>
+          <Reveal preset="up75" delay={(i % 3) * stagger.group} className="h-full">
           <article className="flex h-full flex-col rounded-[30px] bg-canvas p-4 pb-6 md:p-5 md:pb-7">
             <div className="relative aspect-[4/5] overflow-hidden rounded-[22px]">
               <PortraitReveal index={i}>
@@ -39,8 +43,9 @@ export function TeamProfiles() {
               </ul>
             </div>
           </article>
-        </RevealItem>
+          </Reveal>
+        </li>
       ))}
-    </RevealGroup>
+    </ul>
   );
 }

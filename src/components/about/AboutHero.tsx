@@ -1,8 +1,8 @@
-import { Accent } from "@/components/ui/Accent";
 import { Container } from "@/components/ui/Container";
 import { Glow } from "@/components/ui/Glow";
 import { Tag } from "@/components/ui/Tag";
 import { about } from "@/content/about";
+import { SplitText } from "@/components/motion/SplitText";
 
 /** The About hero: a dark band with the page title and the one-line description of the studio. */
 export function AboutHero() {
@@ -17,7 +17,7 @@ export function AboutHero() {
       <Container className="text-center">
         <Tag tone="dark">About</Tag>
         <h1 id="about-title" className="mx-auto mt-6 max-w-4xl text-display">
-          <Accent text={about.hero.title} tone="dark" />
+          <SplitText text={about.hero.title} tone="dark" aboveFold />
         </h1>
         <p className="mx-auto mt-6 max-w-2xl text-body-l text-white/70">{about.hero.body}</p>
       </Container>
