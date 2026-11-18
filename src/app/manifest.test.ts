@@ -20,8 +20,8 @@ function pngSize(file: string): string {
 describe("web app manifest", () => {
   const icons = manifest().icons ?? [];
 
-  it("lists a 192, a 512 and a scalable icon", () => {
-    expect(icons.map((i) => i.sizes)).toEqual(["192x192", "512x512", "any"]);
+  it("lists a 192, a 512, a maskable 512 and a scalable icon", () => {
+    expect(icons.map((i) => i.sizes)).toEqual(["192x192", "512x512", "512x512", "any"]);
   });
 
   it.each(icons.map((icon) => [icon.src, icon] as const))("%s exists", (src) => {
