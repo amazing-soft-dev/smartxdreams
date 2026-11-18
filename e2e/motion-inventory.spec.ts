@@ -35,3 +35,39 @@ test("every route keeps at least its baseline of animations", async ({ page }, i
     expect(counts[route]!, `${route} lost animations (baseline ${minimum})`).toBeGreaterThanOrEqual(minimum);
   }
 });
+
+test.describe("with reduced motion", () => {
+  test.use({ reducedMotion: "reduce" });
+
+  for (const route of ["/", "/about", "/products/joined", "/contact"]) {
+    test(`${route}: every animated element ends visible and untransformed`, async ({ page }) => {
+      await page.goto(route, { waitUntil: "networkidle" });
+      // Let hydration attach the in-view triggers, then walk down the page so every one of them fires.
+      await page.waitForTimeout(1500);
+      await page.evaluate(async () => {
+        for (let y = 0; y < document.body.scrollHeight; y += Math.round(window.innerHeight * 0.6)) {
+          window.scrollTo(0, y);
+          await new Promise((r) => setTimeout(r, 120));
+        }
+      });
+      // Opacity still fades under reduced motion (only movement is removed); give it time to finish.
+      await page.waitForTimeout(2000);
+      const moving = await page.locator(ANIMATED).evaluateAll((els) =>
+        els
+          .filter((el) => (el as HTMLElement).offsetParent !== null || getComputedStyle(el).position === "fixed")
+          .map((el) => {
+            const cs = getComputedStyle(el);
+            return { el: el.outerHTML.slice(0, 80), opacity: +cs.opacity, transform: cs.transform, filter: cs.filter };
+          })
+          // Still moving: not yet opaque, moved or scaled, or still blurred or grey (blur(0px) and saturate(1) are at rest).
+          .filter(
+            (s) =>
+              s.opacity < 0.99 ||
+              (s.transform !== "none" && !/^matrix\(1, 0, 0, 1, 0, 0\)$/.test(s.transform)) ||
+              /blur\((?!0px\))|saturate\(0(\.\d+)?\)/.test(s.filter),
+          ),
+      );
+      expect(moving, JSON.stringify(moving.slice(0, 3))).toEqual([]);
+    });
+  }
+});
