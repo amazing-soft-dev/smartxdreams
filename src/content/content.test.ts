@@ -4,6 +4,7 @@ import { photos } from "./photos";
 import { products } from "./products";
 import { productSlugs, relatedProducts } from "./selectors";
 import { audiences, companyFaq, mainNav } from "./site";
+import { team, teamGroups } from "./team";
 import { readyRoutes } from "@/lib/routes";
 
 const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
@@ -109,5 +110,35 @@ describe("blog categories and photos", () => {
   it("register each photo slot once, with a credit", () => {
     expect(new Set(photos.map((p) => p.slot)).size).toBe(photos.length);
     for (const p of photos) expect(p.credit.photographer, p.slot).toBeTruthy();
+  });
+});
+
+describe("team", () => {
+  it("is nine people: two co-founders, three engineers, a designer, two data engineers and an AI engineer", () => {
+    expect(team).toHaveLength(9);
+    const count = (group: string) => team.filter((p) => p.group === group).length;
+    expect([count("founders"), count("engineering"), count("design"), count("data"), count("ai")]).toEqual([2, 3, 1, 2, 1]);
+  });
+
+  it("has unique, URL-safe slugs and unique names", () => {
+    for (const p of team) expect(p.slug).toMatch(SLUG);
+    expect(new Set(team.map((p) => p.slug)).size).toBe(team.length);
+    expect(new Set(team.map((p) => p.name)).size).toBe(team.length);
+  });
+
+  it("gives everyone a role, a short bio and two or three focus areas", () => {
+    for (const p of team) {
+      expect(p.role.length, p.slug).toBeGreaterThan(2);
+      expect(p.bio.length, p.slug).toBeGreaterThan(30);
+      expect(p.bio.length, p.slug).toBeLessThanOrEqual(160);
+      expect(p.focus.length, p.slug).toBeGreaterThanOrEqual(2);
+      expect(p.focus.length, p.slug).toBeLessThanOrEqual(3);
+    }
+  });
+
+  it("lists people in group order, founders first", () => {
+    const order = Object.keys(teamGroups);
+    const positions = team.map((p) => order.indexOf(p.group));
+    expect(positions).toEqual([...positions].sort((a, b) => a - b));
   });
 });
