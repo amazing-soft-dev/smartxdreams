@@ -43,31 +43,16 @@ for (const [wanted, quality] of VARIANTS) {
 }
 
 // The emblem mask, from the emblem's two strokes (src/components/earth/emblem-strokes.json: centre lines in
-// master pixels, the inner hook and the outer C, with about 8 px of margin on each side). A quarter of the
-// master's size is plenty for a mask this soft.
-// - red: white where the cloud emblem is, black elsewhere, softened at its edge by a blur of about as much again
-//   as the margin. The scene keeps the cyclone's turn off what it covers.
-// - green: each pixel's distance from the strokes' edge, as emblemDistance() in plate.ts works it out: black on
-//   the strokes, white at regionRange plate heights or further. The scene carries the plate near the emblem with
-//   it as one piece, fading out with this distance, so the fade follows the emblem's shape.
+// master pixels, the inner hook and the outer C, with about 8 px of margin on each side): greyscale, each
+// pixel's distance from the strokes' edge, as emblemDistance() in plate.ts works it out, black on the strokes
+// and white at regionRange plate heights or further. The scene carries the plate near the emblem along with its
+// slow drift, fading out with this distance, so the fade follows the emblem's shape. A quarter of the master's
+// size is plenty for a field this smooth.
 const { master: traced, regionRange, strokes: EMBLEM_STROKES } = JSON.parse(
   await fs.readFile(path.join(root, "src/components/earth/emblem-strokes.json"), "utf8"),
 );
 const MASK_SCALE = 0.25;
-const MASK_BLUR = 6;
-const scaleTo = (n) => (n * masterWidth) / traced.width;
-const strokes = EMBLEM_STROKES.map(
-  ({ width, points }) =>
-    `<polyline points="${points.map(([x, y]) => `${scaleTo(x)},${scaleTo(y)}`).join(" ")}" stroke-width="${scaleTo(width)}"/>`,
-).join("");
-const maskSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="${masterWidth}" height="${masterHeight}"><rect width="100%" height="100%" fill="black"/><g fill="none" stroke="white" stroke-linecap="round" stroke-linejoin="round">${strokes}</g></svg>`;
 const maskFile = path.join(outDir, "earth-emblem-mask.png");
-const blurred = await sharp(Buffer.from(maskSvg)).blur(MASK_BLUR).png().toBuffer();
-const { data: red, info: maskInfo } = await sharp(blurred)
-  .resize({ width: Math.round(masterWidth * MASK_SCALE) })
-  .greyscale()
-  .raw()
-  .toBuffer({ resolveWithObject: true });
 
 // Distances in plate heights (traced pixels over the traced height), at each mask pixel's centre.
 const segments = EMBLEM_STROKES.flatMap(({ width, points }) =>
@@ -83,17 +68,17 @@ const distance = (x, y) => {
   }
   return Math.max(0, nearest);
 };
-const { width: mw, height: mh, channels } = maskInfo;
-const rgb = Buffer.alloc(mw * mh * 3);
+const mw = Math.round(masterWidth * MASK_SCALE);
+const mh = Math.round((masterHeight * mw) / masterWidth);
+const field = Buffer.alloc(mw * mh);
 for (let j = 0; j < mh; j++) {
   for (let i = 0; i < mw; i++) {
-    const k = j * mw + i;
     const d = distance(((i + 0.5) / mw) * (traced.width / traced.height), (j + 0.5) / mh);
-    rgb[k * 3] = red[k * channels];
-    rgb[k * 3 + 1] = Math.round(255 * Math.min(1, d / regionRange));
+    field[j * mw + i] = Math.round(255 * Math.min(1, d / regionRange));
   }
 }
-const mask = await sharp(rgb, { raw: { width: mw, height: mh, channels: 3 } })
+const mask = await sharp(field, { raw: { width: mw, height: mh, channels: 1 } })
+  .toColourspace("b-w")
   .png({ compressionLevel: 9 })
   .toFile(maskFile);
 console.log(`${path.relative(root, maskFile)}  ${mask.width} x ${mask.height}  ${Math.round(mask.size / 1024)} KB`);

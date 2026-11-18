@@ -93,15 +93,12 @@ describe("plate shader", () => {
     expect(horizonChunk).toContain(`const float PLATE_ASPECT = ${glslFloat(PLATE_ASPECT)};`);
   });
 
-  it("turns the cyclone around the painted eye and calms the bands over the symbol", () => {
-    const { cyclone, symbol } = LANDMARKS;
+  it("turns the cyclone around the painted eye", () => {
+    const { cyclone } = LANDMARKS;
     expect(plateFragmentShader).toContain(
       `const vec2 CYCLONE = vec2(${glslFloat(cyclone.u * PLATE_ASPECT)}, ${glslFloat(cyclone.v)});`,
     );
     expect(plateFragmentShader).toContain(`const float CYCLONE_REACH = ${glslFloat(cyclone.radius)};`);
-    expect(plateFragmentShader).toContain(
-      `const vec2 SYMBOL = vec2(${glslFloat(symbol.u * PLATE_ASPECT)}, ${glslFloat(symbol.v)});`,
-    );
   });
 
   it("is plain ASCII, which GLSL ES requires even in comments (one ² failed to compile)", () => {
@@ -334,15 +331,15 @@ describe("emblem drift", () => {
     expect(total / count).toBeLessThan(0.05);
   });
 
-  it("is written into the shader, reading the distance from the mask's green channel", () => {
+  it("is written into the shader, reading the distance from the emblem mask", () => {
     expect(plateFragmentShader).toContain(`const vec2 EMBLEM_DRIFT = vec2(${glslFloat(EMBLEM_DRIFT[0])}, ${glslFloat(EMBLEM_DRIFT[1])});`);
     expect(plateFragmentShader).toContain(
       `const vec2 EMBLEM_DRIFT_RATES = vec2(${glslFloat(EMBLEM_DRIFT_RATES[0])}, ${glslFloat(EMBLEM_DRIFT_RATES[1])});`,
     );
     expect(plateFragmentShader).toContain(`const float EMBLEM_FADE = ${glslFloat(EMBLEM_FADE)};`);
     expect(plateFragmentShader).toContain(`const float EMBLEM_REGION_RANGE = ${glslFloat(EMBLEM_REGION_RANGE)};`);
-    expect(plateFragmentShader).toContain(".g * EMBLEM_REGION_RANGE;");
-    expect(plateFragmentShader).toContain("mix(weather(q), emblemDrift(), whole)");
+    expect(plateFragmentShader).toContain(".r * EMBLEM_REGION_RANGE;");
+    expect(plateFragmentShader).toContain("mix(weather(q), emblemDrift(), emblemWhole(q))");
     expect(plateFragmentShader).toContain("* motionPx();\n}");
   });
 });
@@ -424,10 +421,17 @@ describe("cyclone", () => {
   });
 });
 
-describe("emblem mask", () => {
-  it("is sampled from its own texture and keeps the cyclone's turn off the emblem", () => {
-    expect(plateFragmentShader).toMatch(/uniform sampler2D uEmblem;/);
-    expect(plateFragmentShader).toMatch(/vec2 cyclone\(vec2 q\)[\s\S]*\* body \* \(1\.0 - emblemAt\(q\)\);/);
+describe("cyclone and emblem", () => {
+  it("turns everything in the storm's reach, the emblem's upper stroke included, as on the reference", () => {
+    expect(plateFragmentShader).toMatch(/vec2 cyclone\(vec2 q\)[\s\S]*CYCLONE_SWAY_RATE\)\) \* body;/);
+    expect(plateFragmentShader).not.toContain("emblemAt");
+    // The upper stroke lies inside the reach, so it turns: its centre line's nearest point to the eye moves.
+    const eye = { x: LANDMARKS.cyclone.u * PLATE_ASPECT, y: LANDMARKS.cyclone.v };
+    const stroke = EMBLEM_STROKES.flatMap(({ points }) => points.map(([x, y]) => ({ x: x! * PX, y: y! * PX })));
+    const nearest = stroke.reduce((a, b) => (Math.hypot(b.x - eye.x, b.y - eye.y) < Math.hypot(a.x - eye.x, a.y - eye.y) ? b : a));
+    expect(Math.hypot(nearest.x - eye.x, nearest.y - eye.y)).toBeLessThan(LANDMARKS.cyclone.radius);
+    const m = cycloneAt(nearest.x, nearest.y, Math.PI / 2 / CYCLONE_TURN_RATE);
+    expect(Math.hypot(m.x, m.y) / PX).toBeGreaterThan(3);
   });
 });
 
@@ -440,10 +444,10 @@ describe("pointer wake", () => {
     expect(plateFragmentShader).toContain(`const float WAKE_BLUR = ${glslFloat(WAKE_BLUR)};`);
   });
 
-  it("moves the whole emblem as one piece: near it the wake is the wake averaged across it, by the drift's weight", () => {
-    expect(plateFragmentShader).toContain("vec2 wake(vec2 q, float whole)");
-    expect(plateFragmentShader).toContain("return mix(local, emblem, whole);");
-    expect(plateFragmentShader).toContain("- wake(q, whole)");
-    expect(plateFragmentShader).not.toContain("symbolCalm");
+  it("is read at each pixel, on the emblem as anywhere else: the cursor never carries the emblem as one block", () => {
+    // As on the reference: one local read of the wake, with no average across the emblem and no exceptions.
+    expect(plateFragmentShader).toContain("- wakeAt(vUv);");
+    expect(plateFragmentShader.match(/wakeAt\(/g)).toHaveLength(2); // its definition and that one read
+    for (const gone of ["SYMBOL", "canvasAt", "vec2 wake(", "symbolCalm"]) expect(plateFragmentShader).not.toContain(gone);
   });
 });
