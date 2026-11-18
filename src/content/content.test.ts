@@ -13,7 +13,7 @@ describe("products", () => {
     const slugs = products.map((p) => p.slug);
     expect(slugs).toHaveLength(6);
     expect(new Set(slugs).size).toBe(6);
-    expect([...slugs].sort()).toEqual(["applypilot", "jobatlas", "kinly", "sitelog", "toothledger", "trustdraft"]);
+    expect([...slugs].sort()).toEqual(["applypilot", "joined", "kinly", "sitelog", "toothledger", "trustdraft"]);
   });
 
   it("have URL-safe slugs and unique names", () => {
