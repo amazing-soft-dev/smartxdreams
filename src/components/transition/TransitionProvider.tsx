@@ -14,9 +14,14 @@ import { routeLabel } from "./route-label";
 const PANEL_MS = { in: 500, out: 450 } as const;
 const STAGGER_MS = { in: 55, out: 45 } as const;
 const PANELS = 5;
-/** The mark's entrance: it starts as the first panels land and finishes as the cover closes. */
-const MARK_DELAY_MS = 180;
-const MARK_IN_MS = 420;
+/** The lockup and the destination fade in together, readable while the last panels are still closing. */
+const CONTENT_DELAY_MS = 340;
+const CONTENT_IN_MS = 240;
+/**
+ * Least time the closed cover stays up with the destination on it, however fast the route renders: on the
+ * reference the name is readable for about 700 ms before it leaves.
+ */
+const MIN_HOLD_MS = 700;
 /** Longest we wait for the new route to render before revealing anyway. */
 const ROUTE_TIMEOUT_MS = 1500;
 /** Extra time before a stalled panel animation is forced to finish. */
@@ -42,6 +47,8 @@ export function useTransitionNav(): TransitionApi {
   const api = useContext(TransitionContext);
   return api ?? { navigate: (href: string) => router.push(href) };
 }
+
+const wait = (ms: number) => new Promise<void>((resolve) => window.setTimeout(resolve, ms));
 
 /** Even panels enter from the top, odd ones from the bottom. */
 const offscreen = (i: number, phase: "in" | "out") => {
@@ -188,24 +195,15 @@ export function TransitionProvider({ children }: { children: ReactNode }) {
       if (word) word.textContent = routeLabel(url.pathname);
       const logo = mark.current;
 
-      // The mark settles in as the panels close: from 92% and transparent, on the panels' own ease, starting
-      // as the first panels land, so it is still at rest when the label rises beneath it.
-      logo?.animate(
-        [
-          { opacity: 0, transform: "scale(0.92)" },
-          { opacity: 1, transform: "scale(1)" },
-        ],
-        { duration: MARK_IN_MS, delay: MARK_DELAY_MS, easing: cssEase("panel"), fill: "forwards" },
-      );
-      // The label rises out of its mask while the panels are still closing.
-      layer?.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 260, delay: 220, fill: "forwards" });
-      word?.animate([{ transform: "translateY(110%)" }, { transform: "translateY(0)" }], {
-        duration: 380,
-        delay: 240,
+      // The lockup and the destination fade in together, in place, while the last panels are still closing.
+      layer?.animate([{ opacity: 0 }, { opacity: 1 }], {
+        duration: CONTENT_IN_MS,
+        delay: CONTENT_DELAY_MS,
         easing: cssEase("outQuint"),
         fill: "forwards",
       });
       await animatePanels("in");
+      const closedAt = performance.now();
 
       const routeChanged = new Promise<void>((resolve) => {
         routeWaiter.current = resolve;
@@ -213,9 +211,10 @@ export function TransitionProvider({ children }: { children: ReactNode }) {
       });
       router.push(href);
       await routeChanged;
-      // A moment for the new page to paint under the cover. A timer, not requestAnimationFrame, which
-      // never fires in a hidden tab.
-      await new Promise((resolve) => window.setTimeout(resolve, 32));
+      // Hold the cover until the destination has been readable for MIN_HOLD_MS, and in any case a moment
+      // for the new page to paint underneath. Timers, not requestAnimationFrame, which never fires in a
+      // hidden tab.
+      await wait(Math.max(32, MIN_HOLD_MS - (performance.now() - closedAt)));
 
       // Label leaves upward and the layer fades, then the panels reveal the page.
       word?.animate([{ transform: "translateY(0)" }, { transform: "translateY(-110%)" }], {
@@ -231,7 +230,7 @@ export function TransitionProvider({ children }: { children: ReactNode }) {
       });
       // The panels start moving 100 ms into the fade, so the two overlap.
       layer?.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 200, fill: "forwards" });
-      await new Promise((resolve) => window.setTimeout(resolve, 100));
+      await wait(100);
       // The panels are about to leave: let the new page begin its entrance as it comes into sight.
       delete document.documentElement.dataset.pageCovered;
       window.dispatchEvent(new Event(PAGE_REVEALED));
@@ -269,13 +268,13 @@ export function TransitionProvider({ children }: { children: ReactNode }) {
             className="absolute top-1/2 left-1/2 size-[60vmin] -translate-1/2 rounded-full opacity-60"
             style={{ background: "radial-gradient(closest-side, rgb(109 74 255 / 0.85), rgb(255 107 61 / 0.35) 60%, rgb(255 107 61 / 0))" }}
           />
-          <span ref={mark} className="relative block opacity-0">
+          <span ref={mark} className="relative block">
             <Logo variant="mark" tone="light" height={36} decorative fetchPriority="low" />
           </span>
           <div className="relative overflow-hidden px-1">
             <span
               ref={label}
-              className="block translate-y-[110%] text-[clamp(2.5rem,6vw,5.5rem)] leading-[1.1] tracking-[-0.02em] text-white"
+              className="block text-[clamp(2.5rem,6vw,5.5rem)] leading-[1.1] tracking-[-0.02em] text-white"
             />
           </div>
         </div>
