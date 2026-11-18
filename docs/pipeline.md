@@ -78,6 +78,23 @@ gh api repos/amazing-soft-dev/smartxdreams/rulesets --method POST --input .githu
 
 (Or Settings → Rules → New ruleset → Import a ruleset.) Both rulesets: no deletion, no force-push, pull request required with **merge commit only**, required status check **CI passed**, no approving review, **no bypass list**.
 
+## Issue labels
+
+Every issue gets `enhancement`, `bug` or `documentation`, one `epic:*` label for the area it belongs to,
+and a `product:*` label when it concerns one product:
+
+| Label | Product |
+|---|---|
+| `product:joined` | Joined (formerly JobAtlas) |
+| `product:acorn` | Acorn (formerly ApplyPilot) |
+| `product:sitelog` | SiteLog |
+| `product:toothledger` | ToothLedger |
+| `product:senioraiplans` | SeniorAIPlans (formerly Kinly) |
+| `product:trustdraft` | TrustDraft |
+
+When a product is renamed, rename its label with `gh label edit product:<old> --name product:<new>`
+rather than creating a new one: every issue that had the old label keeps it under the new name.
+
 ## Pipeline checks
 
 The gate before any site code is the 15-point checklist in `SMARTXDREAMS-PLAN.md` §7.4, run by issues #68 (happy path), #69 (red CI, recovery, cancel) and #70 (rules and abuse paths). Results are recorded as run and PR links on those issues.
