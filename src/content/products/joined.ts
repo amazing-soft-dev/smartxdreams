@@ -65,7 +65,7 @@ export const joined: Product = {
   ],
   footnote: trademarkNote,
   photo: { slot: "product-joined" },
-  related: ["applypilot"],
+  related: ["acorn"],
   seo: {
     title: "Joined: search the major job boards at once",
     description:
