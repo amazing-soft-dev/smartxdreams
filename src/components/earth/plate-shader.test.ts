@@ -421,10 +421,17 @@ describe("cyclone", () => {
   });
 });
 
-describe("emblem mask", () => {
-  it("is sampled from its own texture and keeps the cyclone's turn off the emblem", () => {
-    expect(plateFragmentShader).toMatch(/uniform sampler2D uEmblem;/);
-    expect(plateFragmentShader).toMatch(/vec2 cyclone\(vec2 q\)[\s\S]*\* body \* \(1\.0 - emblemAt\(q\)\);/);
+describe("cyclone and emblem", () => {
+  it("turns everything in the storm's reach, the emblem's upper stroke included, as on the reference", () => {
+    expect(plateFragmentShader).toMatch(/vec2 cyclone\(vec2 q\)[\s\S]*CYCLONE_SWAY_RATE\)\) \* body;/);
+    expect(plateFragmentShader).not.toContain("emblemAt");
+    // The upper stroke lies inside the reach, so it turns: its centre line's nearest point to the eye moves.
+    const eye = { x: LANDMARKS.cyclone.u * PLATE_ASPECT, y: LANDMARKS.cyclone.v };
+    const stroke = EMBLEM_STROKES.flatMap(({ points }) => points.map(([x, y]) => ({ x: x! * PX, y: y! * PX })));
+    const nearest = stroke.reduce((a, b) => (Math.hypot(b.x - eye.x, b.y - eye.y) < Math.hypot(a.x - eye.x, a.y - eye.y) ? b : a));
+    expect(Math.hypot(nearest.x - eye.x, nearest.y - eye.y)).toBeLessThan(LANDMARKS.cyclone.radius);
+    const m = cycloneAt(nearest.x, nearest.y, Math.PI / 2 / CYCLONE_TURN_RATE);
+    expect(Math.hypot(m.x, m.y) / PX).toBeGreaterThan(3);
   });
 });
 

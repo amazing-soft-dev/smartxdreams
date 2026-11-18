@@ -218,7 +218,7 @@ export function cycloneBody(d: number): number {
 
 /**
  * The cyclone at plate point (x, y) (plate heights, y down) and time `t`: where the content there comes from,
- * relative to the point. Mirrors the shader's cyclone(), without the emblem mask.
+ * relative to the point. Mirrors the shader's cyclone().
  */
 export function cycloneAt(x: number, y: number, t: number): { x: number; y: number } {
   const rx = x - LANDMARKS.cyclone.u * PLATE_ASPECT;
@@ -291,12 +291,6 @@ vec2 orbital() {
   return vec2(12.0 * sin(uTime * 0.055), 4.5 * sin(uTime * 0.043)) * pxToPlate();
 }
 
-// How much of the plate at q (plate heights) is the cloud emblem, 0..1, from its soft mask (red). Until the
-// mask has loaded the scene holds a 1 x 1 white texture, so everything counts as emblem and nothing turns.
-float emblemAt(vec2 q) {
-  return texture2D(uEmblem, vec2(q.x / PLATE_ASPECT, 1.0 - q.y)).r;
-}
-
 // How much of the plate at q drifts with the cloud emblem as one piece, 0..1: all of it on the strokes, fading
 // out over EMBLEM_FADE plate heights from them (the mask's green channel is that distance, white at
 // EMBLEM_REGION_RANGE). The placeholder's white green reads as far away, so nothing drifts with the emblem until
@@ -351,9 +345,9 @@ vec2 cyclone(vec2 q) {
   float d = length(r);
   if (d >= CYCLONE_REACH) return vec2(0.0);
   float body = 1.0 - smoothstep(CYCLONE_CORE * CYCLONE_REACH, CYCLONE_REACH, d);
-  // The emblem's upper stroke passes within about 100 px of the eye, inside the storm's painted reach: the
-  // turn leaves it alone, so it keeps its shape while the arms beside it turn.
-  float a = (CYCLONE_TURN * sin(uTime * CYCLONE_TURN_RATE) + CYCLONE_SWAY * sin(uTime * CYCLONE_SWAY_RATE)) * body * (1.0 - emblemAt(q));
+  // Everything in the storm's reach turns with it, as on the reference, the emblem's upper stroke (about 100 px
+  // from the eye) included.
+  float a = (CYCLONE_TURN * sin(uTime * CYCLONE_TURN_RATE) + CYCLONE_SWAY * sin(uTime * CYCLONE_SWAY_RATE)) * body;
   float c = cos(a), s = sin(a);
   return vec2(c * r.x - s * r.y, s * r.x + c * r.y) - r;
 }
