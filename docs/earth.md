@@ -3,7 +3,7 @@
 The Home hero's backdrop, split along the planet's oval limb:
 
 - **Outside the limb (the sky):** the starfield of the Framer reference, recreated in `src/components/sky` (see [sky.md](sky.md)), with only the painted atmosphere (rim, sunrise, high streaks) crossing the limb into it. It never reacts to the pointer.
-- **Inside the limb (the Earth):** the painted Earth plate (`public/brand/earth`, the Cloud-Formed Emblem art, with the SmartxDreams emblem in its clouds), animated as on generalcontextlabs.com: a slow drift, weather bands, curling ambient currents and a cyclone that turns forward and back around its eye, and a fluid wake that curls around the cursor where it moves over the planet, and only there.
+- **Inside the limb (the Earth):** the painted Earth plate (`public/brand/earth`, the Cloud-Formed Emblem art, with the SmartxDreams emblem in its clouds), animated as on generalcontextlabs.com: a slow drift, whole weather systems sliding over the oceans and a cyclone that turns forward and back around its eye, and a fluid wake that curls around the cursor where it moves over the planet, and only there.
 
 Code lives in `src/components/earth`; the shared WebGL helpers are in `src/components/webgl`.
 
@@ -117,15 +117,18 @@ Motion moves where the plate is sampled, in plate heights (the limb distance's u
 | Motion | Values | Where |
 |---|---|---|
 | Orbital drift | 12 px and 4.5 px on sines of 0.055 and 0.043 rad/s | everywhere on the planet |
-| Weather bands | up to 28 px and 12 px, 0.22 and 0.18 rad/s | static noise patches, calmed over the cloud emblem |
-| Ambient currents | curl noise, up to about 13 px (4 px on average), drifting across the planet and slowly changing | everywhere on the planet; the emblem rides them whole |
+| Weather systems | bands sliding up to 24 px sideways and 10 px up and down (twice that at most), 0.22 and 0.18 rad/s, varying 2 rad per plate height | three broad systems over the open ocean (Pacific, Atlantic coast, Atlantic); calmed over the cloud emblem |
 | Cyclone turn | forward and back: 0.19 rad on a 0.16 rad/s sine (39 s) plus 0.035 rad on a 0.23 rad/s one (27 s), rigid inside a 38 px core | the painted spiral, 190 px around the eye; not the emblem |
 
-(px are master pixels; on screen they scale with the plate.)
+(px are master pixels; on screen the drift is in screen pixels, and the weather in screen pixels but never more, for the plate's size, than on the master: `motionPx()`.)
 
-**Ambient flow:** with no pointer the Earth still flows, as on the reference: the clouds stream along broad, curling currents. The plate is displaced by the curl of a smooth noise field, a stream function (`currents()`, mirrored by `currentsAt()`), so the flow is divergence-free: clouds stream and curl past each other without bunching up or thinning out. The field is broad (`CURRENT_SCALE`, 2.2 noise cells per plate height), drifts across the planet (`CURRENT_DRIFT`) and slowly changes in place (`CURRENT_EVOLVE`), so the currents travel and turn instead of repeating. The displacement is bounded (`CURRENT_STRENGTH`; the curl peaks near 2.7), so after minutes nothing has smeared, and it is one sample, with no crossfade to ghost. `currents.test.ts` checks it is divergence-free, bounded at any time, a few pixels in size and changing within seconds, and that the shader carries the same field.
+**Weather systems:** with no pointer the clouds still move, as on the reference: as whole weather systems over the open ocean, while the land stays put (`weather()`, mirrored by `weatherAt()`). Three broad systems sit where the painted clouds are thickest: over the Pacific at the lower left, over the Atlantic coast above the Caribbean, and over the open Atlantic below the emblem (`WEATHER_SYSTEMS`, centres and half-extents in plate heights). Each one's strength falls off as exp(-2 d^2) in its own size (`weatherField()`), so it fades out over most of its size and the slide never stops at an edge; the systems are wider than tall because the sideways slide is the larger one, and a slide squeezes or stretches clouds where its system fades along it. Inside a system the plate slides as bands (`bands()`): the sideways slide varies with height and the up-and-down slide with x, so neighbouring bands shear past one another and the clouds stream rather than stretch. Each slide is a difference of sines from t = 0, so it starts at zero and stays bounded.
 
-**The emblem keeps its shape:** read pixel by pixel, the weather and the currents would bend its strokes apart. `emblemWhole()` is the larger of a soft ellipse around the emblem (`symbolCalm()`, a wide, gentle blend over the open ocean around it) and the emblem mask (so the tail and the outer C's ends, which reach past the ellipse, are covered too). Over the emblem the weather is calmed by that weight and the currents are blended toward the currents at its centre (`emblemSafeCurrents()`), so it drifts with the flow around it as one piece while the clouds around it stream. In headless Chromium, over 8 s the emblem moved about 3 px and, with that shift taken out, its pixels changed by about 3 of 255.
+They replace two things. Curl-noise currents warped the whole planet, coasts and land included; and the bands were switched on in small noise patches, whose sharp edges stretched and squeezed the clouds as they slid, changing patches of cloud by up to 44% in area. Now no patch changes by more than about 19% (3% on average) over three minutes on the master, the continents' interiors move a few percent of the clouds' slide, and each system moves its clouds by tens of pixels within half a minute (`plate-shader.test.ts`).
+
+**Small plates:** the weather is sized in screen pixels, as on the reference, so it is the same on any large screen; but where the plate is drawn smaller than the master (a phone), it moves it no further, for its size, than the master (`motionPx()`: screen pixels, capped at master pixels). Sized in screen pixels alone, the same slide stretched a phone's small plate about twice as much.
+
+**The emblem keeps its shape:** read pixel by pixel, the weather would bend its strokes apart. `emblemWhole()` is the larger of a soft ellipse around the emblem (`symbolCalm()`, a wide, gentle blend over the open ocean around it) and the emblem mask (so the tail and the outer C's ends, which reach past the ellipse, are covered too). Over the emblem the weather is calmed by that weight, so the emblem keeps its shape and moves only with the orbital drift.
 
 `plate-shader.test.ts` checks that the generated GLSL uses `plate.ts`'s horizon and landmarks and that the bands suit the landmarks.
 
@@ -147,7 +150,7 @@ When a mouse moves over the Earth, and only the Earth, the clouds move around it
 - **Feel:** a drag peaks at about 2.5 cells and has settled 2.5 s later. On screen one cell moves the plate by `WAKE_GAIN` (0.3) of a cell's width, about 3.4 px on a 1460 px canvas, so a drag pushes the clouds up to about 9 px; the wake keeps that size relative to the hero on any screen.
 - **Smoothness:** clouds should be pushed, not stretched. After a quick sweep no cell's displacement differs from its neighbour's by 0.8 cells or more (`fluid.test.ts`; narrow, strong splats reached 1.4 and drew streaks, and so did tighter, stronger eddies, which is why they are broad and gentle), and the shader reads the wake through a 5-tap blur `WAKE_BLUR` (1.5 cells) wide.
 - **Cost:** the scene uploads the displacement texture only while the wake moves; once the peak falls below 0.02 cells the solver resets and stops stepping.
-- **Limb:** the wake joins the drift, weather, currents and cyclone inside the same limb-safe motion, so the limb never moves.
+- **Limb:** the wake joins the drift, the weather and the cyclone inside the same limb-safe motion, so the limb never moves.
 - **Emblem:** the cloud emblem moves as one piece. Read pixel by pixel, the wake bent its strokes apart and the picture seemed to stretch, so over the emblem `wake()` blends the local wake towards the wake averaged across it (five samples, centre weighted), by the soft ellipse that calms the weather there (`symbolCalm`). It slides with the clouds around it and settles back keeping its shape, while the clouds beside it still flow.
 
 `fluid.test.ts` checks the eddies push forward on the path and back beside it, mirror each other across the path and settle; `earth-pointer.test.ts` checks the jump limit.
@@ -165,7 +168,7 @@ What shows without WebGL, and under the scene everywhere:
 
 **Why canvases, not images:** a canvas is never a Largest Contentful Paint candidate. Drawn as an `<img>`, the large decorative plate became Home's LCP on a throttled phone (3.47 s in CI, over the 2.5 s budget), taking it from the description paragraph. With canvases the paragraph is the LCP again (`e2e/vitals.spec.ts`: 1.49 s locally with the emblem plate).
 
-**Handoff to the scene:** with the scene's canvas hidden, the fallback is indistinguishable from the scene's first frame. Every motion starts from zero (the drift, the weather and the cyclone's turn are sines from t = 0, the wake is still) and the ambient currents, whose field is never zero, grow in over the scene's first 4 s (`CURRENT_EASE_IN`), so the scene fades in over the still plate without a jump.
+**Handoff to the scene:** with the scene's canvas hidden, the fallback is indistinguishable from the scene's first frame. Every motion starts from zero (the drift, the weather and the cyclone's turn are sines from t = 0, the wake is still), so the scene fades in over the still plate without a jump.
 
 `e2e/earth.spec.ts` checks the sky and that both plate canvases are drawn; that reduced motion creates no scene canvas, stops the stars, keeps the planet still and still draws the plate; that a low-power device's planet drifts, both canvases together, with no scene; and that the scene fades in where WebGL 2 is available.
 
