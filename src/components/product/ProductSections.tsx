@@ -15,6 +15,7 @@ import { ProductCard } from "@/components/products/ProductCard";
 import { audienceLabel, relatedProducts } from "@/content/selectors";
 import type { Product } from "@/content/types";
 import { ProductLogo } from "./ProductLogo";
+import { SplitText } from "@/components/motion/SplitText";
 
 type ProductProps = { product: Product };
 
@@ -39,10 +40,11 @@ export function ProductHero({ product, Mockup }: ProductProps & { Mockup?: Compo
             <ProductLogo product={product} size={64} decorative loading="eager" />
             <Tag tone="dark">{audienceLabel(product.audience)}</Tag>
           </Reveal>
+          {/* The name rises in line by line; the tagline follows it in. */}
+          <h1 id="product-title" className="mt-6 text-display">
+            <SplitText text={product.name} tone="dark" aboveFold delay={0.05} />
+          </h1>
           <Reveal aboveFold delay={0.3}>
-            <h1 id="product-title" className="mt-6 text-display">
-              {product.name}
-            </h1>
             <p className="mt-4 max-w-xl text-h4 text-violet-300">{product.tagline}</p>
           </Reveal>
           <Reveal aboveFold delay={0.42}>

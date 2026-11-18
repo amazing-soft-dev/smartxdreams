@@ -9,6 +9,7 @@ import { Section } from "@/components/ui/Section";
 import { Tag } from "@/components/ui/Tag";
 import { products } from "@/content/products";
 import { absoluteUrl, pageMetadata } from "@/lib/seo";
+import { SplitText } from "@/components/motion/SplitText";
 
 export const metadata: Metadata = pageMetadata({
   title: "Products",
@@ -45,7 +46,7 @@ export default function ProductsPage() {
         <Container className="text-center">
           <Tag tone="dark">Products</Tag>
           <h1 id="products-title" className="mt-6 text-display">
-            Six products, <span className="text-violet-300">one job each.</span>
+            <SplitText text="Six products, *one job each.*" tone="dark" aboveFold />
           </h1>
           <p className="mx-auto mt-6 max-w-2xl text-body-l text-white/70">
             Find the one made for you. Every product is in development with an open waitlist.
