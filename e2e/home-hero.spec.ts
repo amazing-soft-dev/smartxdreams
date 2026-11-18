@@ -12,40 +12,65 @@ type Box = { x: number; y: number; width: number; height: number };
 const overlaps = (a: Box, b: Box) =>
   a.x < b.x + b.width && b.x < a.x + a.width && a.y < b.y + b.height && b.y < a.y + a.height;
 
+/**
+ * Windows the hero must fill, from a phone on its side and an upright large tablet to 21:9 and 32:9
+ * monitors (the desktop project; the phone project keeps its own screen).
+ */
+const WINDOWS = [
+  { width: 915, height: 412 },
+  { width: 1024, height: 1366 },
+  { width: 1024, height: 768 },
+  { width: 1280, height: 600 },
+  { width: 1306, height: 768 },
+  { width: 1366, height: 768 },
+  { width: 1440, height: 900 },
+  { width: 1920, height: 1080 },
+  { width: 2560, height: 1440 },
+  { width: 3440, height: 1440 },
+  { width: 5120, height: 1440 },
+];
+
+/** The emblem's box on screen, from the planet canvas the fallback places exactly where the scene draws. */
+async function emblemBox(page: import("@playwright/test").Page): Promise<Box> {
+  const plate = (await page.locator(`${hero} canvas[data-earth-plate="planet"]`).boundingBox())!;
+  return {
+    x: plate.x + SYMBOL.left * plate.width,
+    y: plate.y + SYMBOL.top * plate.height,
+    width: (SYMBOL.right - SYMBOL.left) * plate.width,
+    height: (SYMBOL.bottom - SYMBOL.top) * plate.height,
+  };
+}
+
 test.describe("Home hero layout", () => {
-  test("fills the viewport, with the cards band below the fold, at common window sizes", async ({ page }, testInfo) => {
-    // Desktop windows from 4:3 to 16:9; the phone project keeps its own screen.
-    const sizes =
-      testInfo.project.name === "mobile"
-        ? [null]
-        : [
-            { width: 1306, height: 768 },
-            { width: 1440, height: 900 },
-            { width: 1920, height: 1080 },
-            { width: 1024, height: 768 },
-          ];
-    for (const size of sizes) {
+  test("fills the screen at common resolutions, with the emblem on screen and clear of the copy", async ({ page }, testInfo) => {
+    const windows = testInfo.project.name === "mobile" ? [null] : WINDOWS;
+    for (const size of windows) {
       if (size) await page.setViewportSize(size);
       await page.goto("/");
+      // Measure the copy in its own font, not the fallback it first paints in.
+      await page.evaluate(() => document.fonts.ready);
       const viewport = page.viewportSize()!;
+      const at = `${viewport.width} x ${viewport.height}`;
       const heroBox = (await page.locator(hero).boundingBox())!;
       const bandBox = (await page.locator(`${hero} + [data-nav-theme]`).boundingBox())!;
-      const at = `${viewport.width} x ${viewport.height}`;
       expect(heroBox.height, at).toBeGreaterThanOrEqual(viewport.height);
       expect(bandBox.y, at).toBeGreaterThanOrEqual(viewport.height - 1);
+      // No sideways scroll.
+      expect(await page.evaluate(() => document.documentElement.scrollWidth), at).toBeLessThanOrEqual(viewport.width);
+
+      const emblem = await emblemBox(page);
+      expect(emblem.x, at).toBeGreaterThanOrEqual(0);
+      expect(emblem.x + emblem.width, at).toBeLessThanOrEqual(viewport.width);
+      expect(emblem.y + emblem.height, at).toBeLessThanOrEqual(bandBox.y);
+      for (const part of [page.locator("#home-hero-title"), page.locator(`${hero} p`).first()]) {
+        expect(overlaps((await part.boundingBox())!, emblem), at).toBe(false);
+      }
     }
   });
 
-  test("keeps the copy clear of the cloud symbol, and the symbol in the hero above the cards", async ({ page }) => {
+  test("keeps the copy clear of the cloud emblem, and the emblem in the hero above the cards", async ({ page }) => {
     await page.goto("/");
-    const plate = await page.locator(`${hero} canvas[data-earth-plate="planet"]`).boundingBox();
-    expect(plate).not.toBeNull();
-    const symbol: Box = {
-      x: plate!.x + SYMBOL.left * plate!.width,
-      y: plate!.y + SYMBOL.top * plate!.height,
-      width: (SYMBOL.right - SYMBOL.left) * plate!.width,
-      height: (SYMBOL.bottom - SYMBOL.top) * plate!.height,
-    };
+    const symbol = await emblemBox(page);
 
     const copy = [
       page.locator("#home-hero-title"),
