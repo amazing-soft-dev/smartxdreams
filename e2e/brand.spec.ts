@@ -57,7 +57,7 @@ test.describe("mobile menu", () => {
   });
 });
 
-test("the footer carries the white ribbon, shadowed against the smoke", async ({ page }) => {
+test("the footer carries the white ribbon, shadowed against the aurora", async ({ page }) => {
   await page.goto("/");
   const logo = page.locator('footer a[aria-label="SmartxDreams home"] > span');
   await expect(logo.locator("img")).toHaveAttribute("src", /smartxdreams-mark-on-dark-\d+\.webp$/);

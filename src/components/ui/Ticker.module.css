@@ -42,9 +42,29 @@
   animation-play-state: paused;
 }
 
-/* Reduced motion: no movement; the first copy shows as a static row. */
+/* Reduced motion: no movement. The first copy wraps onto as many centred rows as it needs, so on a phone
+   nothing is cut off at the edge, and the duplicate copy (only there for the loop) is not drawn. */
 @media (prefers-reduced-motion: reduce) {
+  .viewport {
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+
   .track {
+    width: auto;
     animation: none;
+  }
+
+  .group {
+    flex-shrink: 1;
+    flex-wrap: wrap;
+    justify-content: center;
+    row-gap: calc(var(--ticker-gap) / 2);
+    padding-right: 0;
+    width: 100%;
+  }
+
+  .group + .group {
+    display: none;
   }
 }

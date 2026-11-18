@@ -29,7 +29,7 @@ Place `<AstraField />` inside a positioned, dark container. It is decorative (`a
 
 ## Sharing the GPU
 
-`scene-budget.ts` lets only the highest-priority visible scene draw: the stars (priority 2) outrank the footer smoke (priority 1). Hidden or off-screen scenes pause, and every scene disposes its GPU resources on unmount.
+`scene-budget.ts` lets only the highest-priority visible scene draw: the stars (priority 2) outrank the footer aurora (priority 1). Hidden or off-screen scenes pause, and every scene disposes its GPU resources on unmount.
 
 ## Renderer lifecycle
 
