@@ -120,6 +120,20 @@ export const CURRENT_EVOLVE = 0.04;
 export const CURRENT_STRENGTH = 0.005;
 export const CURRENT_STEP = 0.02;
 
+/**
+ * Seconds over which the currents grow from nothing when the scene starts. Every other motion is zero at its
+ * first frame (the drift and weather are sines from zero, the cyclone's layers start untouched, the wake is
+ * still), so the scene's first frame is the still plate the CSS fallback shows underneath, and it fades in
+ * without a jump. The currents' field is not zero at any time, so they ease in instead.
+ */
+export const CURRENT_EASE_IN = 4;
+
+/** How much of the currents is in force `t` seconds after the scene started (0..1). Mirrors the shader. */
+export function currentEase(t: number): number {
+  const x = Math.min(1, Math.max(0, t / CURRENT_EASE_IN));
+  return x * x * (3 - 2 * x);
+}
+
 /** The stream function at plate point (x, y) and time t. Mirrors the shader's stream(). */
 export function currentStream(x: number, y: number, t: number): number {
   return noise3(x * CURRENT_SCALE - CURRENT_DRIFT[0] * t, y * CURRENT_SCALE - CURRENT_DRIFT[1] * t, t * CURRENT_EVOLVE);
@@ -127,11 +141,12 @@ export function currentStream(x: number, y: number, t: number): number {
 
 /**
  * The currents at plate point (x, y) and time t: where the content comes from, relative to the point, in plate
- * heights. The curl of the stream function, by central differences. Mirrors the shader's currents().
+ * heights. The curl of the stream function, by central differences, eased in over the scene's first seconds.
+ * Mirrors the shader's currents().
  */
 export function currentsAt(x: number, y: number, t: number): { x: number; y: number } {
   const e = CURRENT_STEP;
-  const k = CURRENT_STRENGTH / (2 * e);
+  const k = (CURRENT_STRENGTH / (2 * e)) * currentEase(t);
   return {
     x: (currentStream(x, y + e, t) - currentStream(x, y - e, t)) * k,
     y: (currentStream(x - e, y, t) - currentStream(x + e, y, t)) * k,
@@ -259,6 +274,7 @@ const vec2 CURRENT_DRIFT = vec2(${glslFloat(CURRENT_DRIFT[0])}, ${glslFloat(CURR
 const float CURRENT_EVOLVE = ${glslFloat(CURRENT_EVOLVE)};
 const float CURRENT_STRENGTH = ${glslFloat(CURRENT_STRENGTH)};
 const float CURRENT_STEP = ${glslFloat(CURRENT_STEP)};
+const float CURRENT_EASE_IN = ${glslFloat(CURRENT_EASE_IN)};
 
 // The cloud symbol's centre and half-size, in plate heights (plate.ts).
 const vec2 SYMBOL = vec2(${glslFloat(LANDMARKS.symbol.u * PLATE_ASPECT)}, ${glslFloat(LANDMARKS.symbol.v)});
@@ -312,10 +328,12 @@ float stream(vec2 q) {
 }
 
 // The ambient currents at q, in plate heights: the curl of the stream function, so the flow is divergence-free
-// and the clouds stream and curl without bunching up. Mirrors currentsAt().
+// and the clouds stream and curl without bunching up. They grow from nothing over the scene's first seconds,
+// so its first frame is the still plate the fallback shows and it fades in without a jump. Mirrors currentsAt().
 vec2 currents(vec2 q) {
   vec2 e = vec2(CURRENT_STEP, 0.0);
-  return vec2(stream(q + e.yx) - stream(q - e.yx), stream(q - e) - stream(q + e)) * (CURRENT_STRENGTH / (2.0 * CURRENT_STEP));
+  float ease = smoothstep(0.0, CURRENT_EASE_IN, uTime);
+  return vec2(stream(q + e.yx) - stream(q - e.yx), stream(q - e) - stream(q + e)) * (CURRENT_STRENGTH / (2.0 * CURRENT_STEP) * ease);
 }
 
 // One swirl layer of the cyclone at the given phase (0..1 through its cycle). The content at q has turned

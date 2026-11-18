@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { StarfieldSky } from "@/components/sky/StarfieldSky";
+import { type SceneSupport, useSceneSupport } from "@/components/webgl/useSceneSupport";
 import { cx } from "@/lib/cx";
 import styles from "./EarthFallback.module.css";
 import { maskGlow } from "./glow-mask";
@@ -15,6 +16,14 @@ const LAYOUT_CSS = plateLayoutCss("[data-earth-fallback]");
 const PLANET_PATH = horizonPath();
 /** The glow is soft, so its canvas holds half the planet's pixels in each direction: a quarter of the work. */
 const GLOW_RESOLUTION = 0.5;
+
+/**
+ * Whether the still planet drifts: only once it is known that the scene will not run, and not because the
+ * visitor asked for reduced motion. Undecided ("pending", the server render) is still.
+ */
+export function fallbackDrifts(support: SceneSupport): boolean {
+  return support.status === "fallback" && support.reason !== "reduced-motion";
+}
 
 type IdleWindow = Window & {
   requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number;
@@ -34,10 +43,16 @@ type IdleWindow = Window & {
  * decorative plate cannot take that over from the headline on a slow phone. The variant is picked as the scene
  * picks it, with the same request mode, so the scene reuses the download. Drawing waits for an idle moment, so
  * it never competes with the first paint of the copy on a slow phone.
+ *
+ * Where the scene will never run but motion is welcome (no WebGL 2, data saver, a low-power device), the still
+ * planet drifts slowly, as the scene's orbital drift does (fallbackDrifts()), so it still feels alive. Where
+ * the scene will run, it stays still until the scene fades in over it: a drift under the scene would not line
+ * up with it during the fade. With reduced motion nothing moves.
  */
 export function EarthFallback({ className }: { className?: string }) {
   const planetRef = useRef<HTMLCanvasElement>(null);
   const glowRef = useRef<HTMLCanvasElement>(null);
+  const drift = fallbackDrifts(useSceneSupport());
 
   useEffect(() => {
     const planet = planetRef.current;
@@ -102,7 +117,9 @@ export function EarthFallback({ className }: { className?: string }) {
       next
         .decode()
         .then(() => {
-          if (cancelled) return;
+          // Decodes can finish out of order (a small variant still decoding when a resize asks for a sharper
+          // one): a late small one must not replace the sharp one.
+          if (cancelled || (image && image.naturalWidth >= next.naturalWidth)) return;
           image = next;
           scheduleDraw();
         })
@@ -140,7 +157,7 @@ export function EarthFallback({ className }: { className?: string }) {
   }, []);
 
   return (
-    <div data-earth-fallback="" aria-hidden="true" className={cx(styles.root, className)}>
+    <div data-earth-fallback="" data-drift={drift ? "" : undefined} aria-hidden="true" className={cx(styles.root, className)}>
       <style>{LAYOUT_CSS}</style>
       <StarfieldSky />
       <canvas ref={glowRef} data-earth-plate="glow" className={styles.plate} />

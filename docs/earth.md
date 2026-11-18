@@ -43,7 +43,7 @@ If you change the copy's length or the hero's padding, run both, and look at 390
 
 1. `EarthFallback` renders with the page: the starfield sky at once, and the plate, still, drawn into two canvases placed exactly where the scene will draw it, as soon as it has loaded.
 2. `LazyScene` imports `EarthScene`, and three.js with it, only when `useSceneSupport` allows it, the hero is near the viewport, and the browser is idle. The scene loads the same plate variant, fades in over 700 ms once it is on screen, and is transparent outside the planet, so the fallback's sky stays the sky.
-3. It never runs for reduced motion, data saver, low-power devices or missing WebGL 2: the still fallback stays.
+3. It never runs for reduced motion, data saver, low-power devices or missing WebGL 2: the fallback stays, still for reduced motion and slowly drifting otherwise (see [Fallback](#fallback-earthfallbacktsx)).
 
 `npm run check:bundle` (run in CI) keeps three.js out of the initial scripts of every route.
 
@@ -164,11 +164,14 @@ What shows without WebGL, and under the scene everywhere:
 - **Plate:** two canvases, placed by `plateLayoutCss()` (`plateRect()` in CSS, container query units), into which the plate is drawn once it has loaded:
   - the planet: the plate clipped to the limb (`Path2D` of `horizonPath()`);
   - the glow: on a half-size canvas, the plate with each pixel's alpha set as the shader sets it outside the limb (`maskGlow()`: `glowCoverage()` times `glowFade()`), composited normally. The planet stays opaque on it, so the planet canvas's anti-aliased edge has the plate under it and the limb shows no dark seam.
-- **Variant:** `pickPlateVariant()` for the plate's device pixels (DPR capped at 2), loaded with the same CORS mode as three.js's loader, so the scene reuses the cached file. A resize that needs more loads a sharper one. The canvases never hold more pixels than the plate itself.
+- **Variant:** `pickPlateVariant()` for the plate's device pixels (DPR capped at 2), loaded with the same CORS mode as three.js's loader, so the scene reuses the cached file. A resize that needs more loads a sharper one; loads can finish out of order, and a late, smaller one never replaces a sharper one (in the scene too). The canvases never hold more pixels than the plate itself. A breakpoint change that resizes the plate redraws it (a `ResizeObserver` on the planet canvas); a move alone needs no redraw.
+- **Drift:** where the scene will never run but motion is welcome (no WebGL 2, data saver, a low-power device: `fallbackDrifts()`), the root is marked `data-drift` and both canvases drift as the scene's orbital drift does: 12 px across on a 114 s sine and 4.5 px up and down on a 146 s one. Each axis animates its own registered property (`@property --drift-x`, `--drift-y`) in two alternating ease-in-out runs of half a period, so the planet feels alive without WebGL. Where the scene will run, the fallback stays still: it cannot follow the scene's own clock, and a drifted plate under the scene would show double while the scene fades in. With reduced motion nothing moves (in CSS too).
 
-**Why canvases, not images:** a canvas is never a Largest Contentful Paint candidate. Drawn as an `<img>`, the large decorative plate became Home's LCP on a throttled phone (3.47 s in CI, over the 2.5 s budget), taking it from the description paragraph. With canvases the paragraph is the LCP again (`e2e/vitals.spec.ts`).
+**Why canvases, not images:** a canvas is never a Largest Contentful Paint candidate. Drawn as an `<img>`, the large decorative plate became Home's LCP on a throttled phone (3.47 s in CI, over the 2.5 s budget), taking it from the description paragraph. With canvases the paragraph is the LCP again (`e2e/vitals.spec.ts`: 1.49 s locally with the emblem plate).
 
-With the scene's canvas hidden, the fallback is indistinguishable from the scene. `e2e/earth.spec.ts` checks the sky and that both plate canvases are drawn, that reduced motion creates no scene canvas, stops the stars and still draws the plate, and that the scene fades in where WebGL 2 is available.
+**Handoff to the scene:** with the scene's canvas hidden, the fallback is indistinguishable from the scene's first frame. Every motion starts from zero (the drift, weather and breath are sines from t = 0, the cyclone's layers start untouched, the wake is still) and the ambient currents, whose field is never zero, grow in over the scene's first 4 s (`CURRENT_EASE_IN`), so the scene fades in over the still plate without a jump.
+
+`e2e/earth.spec.ts` checks the sky and that both plate canvases are drawn; that reduced motion creates no scene canvas, stops the stars, keeps the planet still and still draws the plate; that a low-power device's planet drifts, both canvases together, with no scene; and that the scene fades in where WebGL 2 is available.
 
 ## Sharing the GPU
 
