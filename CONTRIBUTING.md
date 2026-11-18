@@ -71,3 +71,7 @@ If CI fails, push a fix to the same branch. A newer push cancels the older run.
 - Every animation respects `prefers-reduced-motion`; hover-only effects are gated by `(hover: hover) and (pointer: fine)`.
 - Coral buttons use ink text. See [docs/design-tokens.md](docs/design-tokens.md) for the contrast rules.
 - Photos go in `public/images` and are referenced exactly once; see the image scripts in the README.
+
+## Local-only files
+
+`.claude/` (agent settings, preview `launch.json`, agent worktrees) is ignored and stays on your machine: its paths and test values differ per developer. Do not force-add anything under it. A file that was committed before its ignore rule keeps being tracked, so if `git ls-files .claude` ever lists something, untrack it with `git rm --cached <file>`. That keeps your local copy, but on every other checkout, pulling the commit deletes the file, as git does for any tracked file a commit removes. Copy it aside before you pull and put it back after.
