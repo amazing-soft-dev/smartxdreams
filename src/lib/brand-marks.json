@@ -1,0 +1,19 @@
+{
+  "widths": [
+    32,
+    64,
+    128,
+    256,
+    512
+  ],
+  "marks": {
+    "smartxdreams-mark-on-light": {
+      "width": 943,
+      "height": 804
+    },
+    "smartxdreams-mark-on-dark": {
+      "width": 863,
+      "height": 750
+    }
+  }
+}
