@@ -29,14 +29,16 @@ export type StarLayer = {
   count: number;
   /** Seconds to drift up one tile height. Far (small) stars move fastest, as in StarfieldFX. */
   duration: number;
+  /** How far the layer shifts, in px, with the cursor at the footer's edge: near layers move most. */
+  parallax: number;
   seed: number;
 };
 
 /** Far to near. StarfieldFX's 1/2/3 px layers at 50/100/150 s, thinned for a footer-sized sky. */
 export const STAR_LAYERS: readonly StarLayer[] = [
-  { size: 1, count: 450, duration: 50, seed: 4371 },
-  { size: 2, count: 150, duration: 100, seed: 4372 },
-  { size: 3, count: 60, duration: 150, seed: 4373 },
+  { size: 1, count: 450, duration: 50, parallax: 4, seed: 4371 },
+  { size: 2, count: 150, duration: 100, parallax: 8, seed: 4372 },
+  { size: 3, count: 60, duration: 150, parallax: 14, seed: 4373 },
 ];
 
 /** Rounds to a few decimals, so the markup stays short and identical on the server and the client. */

@@ -10,6 +10,7 @@ const LAYERS = STAR_LAYERS.map((layer) => ({
     height: `${layer.size}px`,
     boxShadow: buildStarShadows(layer),
     "--star-duration": `${layer.duration}s`,
+    "--star-parallax": `${layer.parallax}px`,
   } as CSSProperties,
 }));
 
@@ -18,7 +19,9 @@ const SKY_STYLE = { "--star-tile-height": `${STAR_TILE.height}px` } as CSSProper
 /**
  * The footer's night sky: three depth layers of round, seeded stars drifting slowly upward, the far small
  * stars fastest (after StarfieldFX). Pure CSS, so it costs no JavaScript and still drifts where WebGL can't
- * run. Reduced motion gets a still sky. Decorative: hidden from assistive technology, never takes the pointer.
+ * run. With a mouse, the layers also shift a few pixels against the cursor, near ones most, from the
+ * --pointer-x / --pointer-y the aurora writes on this element. Reduced motion gets a still sky.
+ * Decorative: hidden from assistive technology, never takes the pointer.
  */
 export function FooterStars() {
   return (

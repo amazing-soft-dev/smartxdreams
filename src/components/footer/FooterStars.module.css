@@ -18,6 +18,10 @@
   background: transparent;
   will-change: transform;
   animation: drift var(--star-duration) linear infinite;
+  /* Cursor parallax: the eased pointer (-1 to 1 from the centre, y up, scaled by how present it is) moves
+     each layer against it by its depth, so the sky seems to turn as you look around. Composes with the
+     animated transform. Without a pointer the variables are unset and this is 0. */
+  translate: calc(var(--pointer-x, 0) * var(--star-parallax) * -1) calc(var(--pointer-y, 0) * var(--star-parallax));
 }
 
 .layer::after {

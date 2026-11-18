@@ -40,4 +40,10 @@ describe("buildStarShadows", () => {
     expect(durations).toEqual([...durations].sort((a, b) => a - b));
     expect(STAR_LAYERS.map((l) => l.size)).toEqual([1, 2, 3]);
   });
+
+  it("shifts near stars most with the cursor, for depth", () => {
+    const shifts = STAR_LAYERS.map((l) => l.parallax);
+    expect(shifts).toEqual([...shifts].sort((a, b) => a - b));
+    expect(new Set(shifts).size).toBe(shifts.length);
+  });
 });
