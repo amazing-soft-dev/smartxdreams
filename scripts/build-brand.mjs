@@ -182,7 +182,13 @@ emit(
 // - favicon-16x16, favicon-32x32 and favicon.ico: the charcoal mark on transparency, nearly edge to edge so
 //   it still reads at 16 px. Tabs that can follow the colour scheme get src/app/icon.svg instead.
 // - android-chrome-192x192 and -512x512: the charcoal mark on transparency, for the manifest's light splash.
+// - apple-touch-icon (180): iOS fills transparency with black, which would swallow the charcoal mark, so it
+//   is the white mark on an opaque ink square with 18% air on each side.
+// - maskable-512x512: Android crops maskable icons to any shape inside a central circle 80% of the icon
+//   wide, so the background is opaque ink and the white mark stays inside that circle.
+const INK = { r: 0x0f, g: 0x12, b: 0x26, alpha: 1 };
 const onLight = art["smartxdreams-mark-on-light"];
+const onDark = art["smartxdreams-mark-on-dark"];
 const icon = (file, image) => emit(`public/brand/icons/${file}`, image);
 
 const faviconPngs = {};
@@ -191,6 +197,10 @@ icon("favicon-16x16.png", faviconPngs[16]);
 icon("favicon-32x32.png", faviconPngs[32]);
 icon("favicon.ico", ico([16, 32, 48].map((size) => ({ size, png: faviconPngs[size] }))));
 for (const size of [192, 512]) icon(`android-chrome-${size}x${size}.png`, await (await square(onLight, size, 0.86)).png(PNG).toBuffer());
+icon("apple-touch-icon.png", await (await square(onDark, 180, 0.64, INK)).removeAlpha().png().toBuffer());
+// A square inside the 80% circle is at most 0.8 / sqrt(2) = 0.566 of the icon; the mark is not a square, so
+// 0.56 of the icon on its longer side keeps every corner of it inside.
+icon("maskable-512x512.png", await (await square(onDark, 512, 0.56, INK)).removeAlpha().png(PNG).toBuffer());
 
 /** An ICO file holding PNG images (every browser since IE Vista-era reads PNG entries). */
 function ico(images) {
