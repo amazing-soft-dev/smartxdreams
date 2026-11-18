@@ -6,6 +6,8 @@
  * 1.75 times as wide as it is tall, so one unit of `u` is PLATE_ASPECT plate heights wide.
  */
 
+import emblemStrokes from "./emblem-strokes.json";
+
 /** Size of the master, in px. */
 export const PLATE = { width: 1659, height: 948 } as const;
 
@@ -22,11 +24,44 @@ export const PLATE_VARIANTS = [
 export type PlateVariant = (typeof PLATE_VARIANTS)[number];
 
 /**
- * The cloud emblem's mask, a quarter of the master's size: white on the emblem's two strokes, black elsewhere,
- * softened at the edge. Built with the variants by scripts/build-earth-plate.mjs from the strokes traced there.
- * The scene keeps the cyclone's turn off what it covers.
+ * The cloud emblem's mask, a quarter of the master's size, built with the variants by scripts/build-earth-plate.mjs
+ * from the strokes traced in emblem-strokes.json:
+ * - red: white on the emblem's two strokes, black elsewhere, softened at the edge. The scene keeps the cyclone's
+ *   turn off what it covers.
+ * - green: how far each pixel is from the strokes' edge (emblemDistance()), 0 on the strokes and white at
+ *   EMBLEM_REGION_RANGE or further. The scene carries the plate near the emblem with it, fading out with distance.
  */
 export const EMBLEM_MASK_SRC = "/brand/earth/earth-emblem-mask.png";
+
+/** The emblem's strokes: centre lines and widths in master pixels (see emblem-strokes.json). */
+export const EMBLEM_STROKES = emblemStrokes.strokes;
+
+/** Plate heights of distance from the strokes that the mask's green channel spans, 0 to white. */
+export const EMBLEM_REGION_RANGE = emblemStrokes.regionRange;
+
+/** Each stroke's segments in plate heights: two ends and the stroke's half width. */
+const EMBLEM_SEGMENTS = EMBLEM_STROKES.flatMap(({ width, points }) =>
+  points.slice(1).map((end, i) => ({
+    a: [points[i]![0]! / PLATE.height, points[i]![1]! / PLATE.height],
+    b: [end[0]! / PLATE.height, end[1]! / PLATE.height],
+    r: width / 2 / PLATE.height,
+  })),
+);
+
+/**
+ * How far plate point (x, y) (plate heights, y down) is from the edge of the emblem's nearest stroke, in plate
+ * heights; 0 on a stroke. The mask's green channel holds this, so the scene and the build agree.
+ */
+export function emblemDistance(x: number, y: number): number {
+  let nearest = Infinity;
+  for (const { a, b, r } of EMBLEM_SEGMENTS) {
+    const dx = b[0]! - a[0]!;
+    const dy = b[1]! - a[1]!;
+    const t = Math.min(1, Math.max(0, ((x - a[0]!) * dx + (y - a[1]!) * dy) / (dx * dx + dy * dy)));
+    nearest = Math.min(nearest, Math.hypot(x - a[0]! - t * dx, y - a[1]! - t * dy) - r);
+  }
+  return Math.max(0, nearest);
+}
 
 /** The narrowest variant at least `pixels` wide (device pixels the plate covers), or the master above that. */
 export function pickPlateVariant(pixels: number): PlateVariant {

@@ -35,7 +35,7 @@ The header, footer and page transition still draw the stroke symbol in code (`sr
 | `earth-emblem-1659.webp` | 1659 x 948, quality 82, 227 KB | Master width; large and high-density screens |
 | `earth-emblem-1200.webp` | 1200 x 686, quality 80, 126 KB | Laptops and tablets |
 | `earth-emblem-768.webp` | 768 x 439, quality 78, 53 KB | Phones |
-| `earth-emblem-mask.png` | 415 x 237, greyscale, 10 KB | The cloud emblem's mask: keeps the cyclone's motion off the emblem (see [earth.md](earth.md#the-plate-platets)) |
+| `earth-emblem-mask.png` | 415 x 237, RGB, 26 KB | The cloud emblem's mask: red keeps the cyclone's turn off the emblem, green (distance from its strokes) carries the plate near it with its drift (see [earth.md](earth.md#the-plate-platets)) |
 
 It is brand artwork, not a stock photo, so it lives here and not in `public/images` (which holds only credited Unsplash and Pexels photos used through `<Photo>`; see [images.md](images.md)). To regenerate the variants from a new master PNG:
 
@@ -43,7 +43,7 @@ It is brand artwork, not a stock photo, so it lives here and not in `public/imag
 node scripts/build-earth-plate.mjs [path/to/master.png]
 ```
 
-The script never upscales (the widest variant is the master's width) and fails if a file goes over 800 KB (the photo budget). If the new art moves the limb, the sun, the cyclone or the emblem, measure them again (`node scripts/measure-earth-plate.mjs`, see [earth.md](earth.md#plate-geometry)) for the hero layout.
+The script never upscales (the widest variant is the master's width) and fails if a file goes over 800 KB (the photo budget). If the new art moves the limb, the sun, the cyclone or the emblem, measure them again (`node scripts/measure-earth-plate.mjs`, see [earth.md](earth.md#plate-geometry)) for the hero layout.  The emblem mask is built from the emblem's strokes, traced as centre lines in `src/components/earth/emblem-strokes.json`: if the emblem moves, re-trace them there and run the script again.
 
 ### Icon sets (`public/brand/smartxdreams-{dark,white}/`)
 
