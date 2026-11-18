@@ -92,6 +92,16 @@ describe("headings", () => {
   });
 });
 
+describe("posts and renamed products", () => {
+  it("never name a product by its retired name or link to its old address", () => {
+    for (const post of allPosts()) {
+      for (const retired of ["JobAtlas", "ApplyPilot", "Kinly", "/products/jobatlas", "/products/applypilot", "/products/kinly"]) {
+        expect(post.body, post.slug).not.toContain(retired);
+      }
+    }
+  });
+});
+
 describe("frontmatter schema", () => {
   const valid = {
     title: "A good title for a post",
