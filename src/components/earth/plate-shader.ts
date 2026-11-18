@@ -69,6 +69,75 @@ float noise3(vec3 p) {
 }
 `;
 
+const fract = (x: number) => x - Math.floor(x);
+
+/** The shader's hash13(), in JavaScript. GLSL works in 32-bit floats, so the two agree in kind, not digit for digit. */
+export function hash13(x: number, y: number, z: number): number {
+  let px = fract(x * 0.1031);
+  let py = fract(y * 0.1031);
+  let pz = fract(z * 0.1031);
+  const d = px * (pz + 31.32) + py * (py + 31.32) + pz * (px + 31.32);
+  px += d;
+  py += d;
+  pz += d;
+  return fract((px + py) * pz);
+}
+
+/** The shader's noise3(), in JavaScript: smooth value noise, 0..1. */
+export function noise3(x: number, y: number, z: number): number {
+  const ix = Math.floor(x);
+  const iy = Math.floor(y);
+  const iz = Math.floor(z);
+  const s = (t: number) => t * t * (3 - 2 * t);
+  const fx = s(x - ix);
+  const fy = s(y - iy);
+  const fz = s(z - iz);
+  const mix = (a: number, b: number, t: number) => a + (b - a) * t;
+  const h = (dx: number, dy: number, dz: number) => hash13(ix + dx, iy + dy, iz + dz);
+  return mix(
+    mix(mix(h(0, 0, 0), h(1, 0, 0), fx), mix(h(0, 1, 0), h(1, 1, 0), fx), fy),
+    mix(mix(h(0, 0, 1), h(1, 0, 1), fx), mix(h(0, 1, 1), h(1, 1, 1), fx), fy),
+    fz,
+  );
+}
+
+/**
+ * Ambient currents: with no pointer, the clouds still flow, along broad curling currents that drift slowly
+ * across the planet, as on the reference. The plate is displaced by the curl of a smooth noise field (a stream
+ * function), so the flow is divergence-free: clouds swirl and stream past one another without piling up or
+ * thinning out. The field drifts across the planet and slowly changes, so the currents travel and turn; the
+ * displacement is bounded, so after minutes nothing has smeared, and a single sample needs no crossfade.
+ * - CURRENT_SCALE: noise cells per plate height (broad currents, a few across the planet)
+ * - CURRENT_DRIFT: how fast the field travels across the planet, noise cells per second (x, y down)
+ * - CURRENT_EVOLVE: how fast it changes in place, noise cells per second
+ * - CURRENT_STRENGTH: displacement per unit of curl; the curl of this noise peaks near 2.7, so the currents
+ *   move the plate up to about 0.013 plate heights (12-13 px on the master), about 4 px on average
+ * - CURRENT_STEP: the finite-difference step for the curl, plate heights
+ */
+export const CURRENT_SCALE = 2.2;
+export const CURRENT_DRIFT = [0.05, 0.015] as const;
+export const CURRENT_EVOLVE = 0.04;
+export const CURRENT_STRENGTH = 0.005;
+export const CURRENT_STEP = 0.02;
+
+/** The stream function at plate point (x, y) and time t. Mirrors the shader's stream(). */
+export function currentStream(x: number, y: number, t: number): number {
+  return noise3(x * CURRENT_SCALE - CURRENT_DRIFT[0] * t, y * CURRENT_SCALE - CURRENT_DRIFT[1] * t, t * CURRENT_EVOLVE);
+}
+
+/**
+ * The currents at plate point (x, y) and time t: where the content comes from, relative to the point, in plate
+ * heights. The curl of the stream function, by central differences. Mirrors the shader's currents().
+ */
+export function currentsAt(x: number, y: number, t: number): { x: number; y: number } {
+  const e = CURRENT_STEP;
+  const k = CURRENT_STRENGTH / (2 * e);
+  return {
+    x: (currentStream(x, y + e, t) - currentStream(x, y - e, t)) * k,
+    y: (currentStream(x - e, y, t) - currentStream(x + e, y, t)) * k,
+  };
+}
+
 /** Motion is off within this many plate heights inside the limb, and at full strength from FULL_MOTION in. */
 export const CALM_LIMB = 0.018;
 export const FULL_MOTION = 0.065;
@@ -184,6 +253,13 @@ const float CYCLONE_BREATH = ${glslFloat(CYCLONE_BREATH)};
 const float CYCLONE_BREATH_PERIOD = ${glslFloat(CYCLONE_BREATH_PERIOD)};
 const float TAU = 6.2831853;
 
+// The ambient currents (see CURRENT_* in plate-shader.ts).
+const float CURRENT_SCALE = ${glslFloat(CURRENT_SCALE)};
+const vec2 CURRENT_DRIFT = vec2(${glslFloat(CURRENT_DRIFT[0])}, ${glslFloat(CURRENT_DRIFT[1])});
+const float CURRENT_EVOLVE = ${glslFloat(CURRENT_EVOLVE)};
+const float CURRENT_STRENGTH = ${glslFloat(CURRENT_STRENGTH)};
+const float CURRENT_STEP = ${glslFloat(CURRENT_STEP)};
+
 // The cloud symbol's centre and half-size, in plate heights (plate.ts).
 const vec2 SYMBOL = vec2(${glslFloat(LANDMARKS.symbol.u * PLATE_ASPECT)}, ${glslFloat(LANDMARKS.symbol.v)});
 const vec2 SYMBOL_HALF = vec2(${glslFloat((LANDMARKS.symbol.width * PLATE_ASPECT) / 2)}, ${glslFloat(LANDMARKS.symbol.height / 2)});
@@ -203,23 +279,43 @@ vec2 orbital() {
   return vec2(12.0 * sin(uTime * 0.055), 4.5 * sin(uTime * 0.043)) * pxToPlate();
 }
 
-// The bands vary across the picture, so over the cloud symbol they would slowly bend the S and the D out of
-// shape. They fade out over a soft ellipse around it, and the symbol rides the orbital drift as one piece.
+// The weather bands and the currents vary across the picture, so over the cloud emblem they would slowly bend it
+// out of shape. A soft ellipse around it (with the mask, emblemWhole()) carries it whole instead.
 float symbolCalm(vec2 q) {
   return 1.0 - smoothstep(0.85, 1.35, length((q - SYMBOL) / SYMBOL_HALF));
-}
-
-vec2 weather(vec2 q) {
-  vec2 bands = vec2(28.0 * (sin(uTime * 0.22 + q.y * 3.0) - sin(q.y * 3.0)),
-                    12.0 * (sin(uTime * 0.18 + q.x * 3.0) - sin(q.x * 3.0)));
-  float patches = smoothstep(0.35, 0.7, noise3(vec3(q * 2.4, 4.0)));
-  return bands * patches * (1.0 - symbolCalm(q)) * pxToPlate();
 }
 
 // How much of the plate at q (plate heights) is the cloud emblem, 0..1, from its soft mask. Until the mask
 // has loaded the scene holds a 1 x 1 white texture, so everything counts as emblem and nothing turns.
 float emblemAt(vec2 q) {
   return texture2D(uEmblem, vec2(q.x / PLATE_ASPECT, 1.0 - q.y)).r;
+}
+
+// How much of the plate at q rides with the cloud emblem as one piece, 0..1: the soft ellipse around it
+// (symbolCalm), and its own strokes (the mask) where they reach past that ellipse, as the tail and the outer
+// C's ends do. The ellipse gives a wide, gentle blend over the open ocean around the emblem; the mask makes
+// sure no stroke is left half outside it.
+float emblemWhole(vec2 q) {
+  return max(symbolCalm(q), emblemAt(q));
+}
+
+vec2 weather(vec2 q) {
+  vec2 bands = vec2(28.0 * (sin(uTime * 0.22 + q.y * 3.0) - sin(q.y * 3.0)),
+                    12.0 * (sin(uTime * 0.18 + q.x * 3.0) - sin(q.x * 3.0)));
+  float patches = smoothstep(0.35, 0.7, noise3(vec3(q * 2.4, 4.0)));
+  return bands * patches * (1.0 - emblemWhole(q)) * pxToPlate();
+}
+
+// The currents' stream function at q: smooth noise whose field drifts across the planet and slowly changes.
+float stream(vec2 q) {
+  return noise3(vec3(q * CURRENT_SCALE - CURRENT_DRIFT * uTime, uTime * CURRENT_EVOLVE));
+}
+
+// The ambient currents at q, in plate heights: the curl of the stream function, so the flow is divergence-free
+// and the clouds stream and curl without bunching up. Mirrors currentsAt().
+vec2 currents(vec2 q) {
+  vec2 e = vec2(CURRENT_STEP, 0.0);
+  return vec2(stream(q + e.yx) - stream(q - e.yx), stream(q - e) - stream(q + e)) * (CURRENT_STRENGTH / (2.0 * CURRENT_STEP));
 }
 
 // One swirl layer of the cyclone at the given phase (0..1 through its cycle). The content at q has turned
@@ -296,10 +392,19 @@ vec2 wake(vec2 q) {
   return mix(local, whole, calm);
 }
 
-// Motion that every pixel shares, whatever the cyclone does: the drift, the weather and the pointer wake.
-// Sampling against the wake moves the content along it.
+// The currents at q, with the emblem carried whole: over it the currents are those at its centre, so it
+// drifts with the flow around it and keeps its shape, while the clouds around it stream and curl.
+vec2 emblemSafeCurrents(vec2 q) {
+  float whole = emblemWhole(q);
+  if (whole < 0.001) return currents(q);
+  vec2 centre = currents(SYMBOL);
+  return whole > 0.999 ? centre : mix(currents(q), centre, whole);
+}
+
+// Motion that every pixel shares, whatever the cyclone does: the drift, the weather, the ambient currents and
+// the pointer wake. Sampling against the wake moves the content along it.
 vec2 sharedMotion(vec2 q) {
-  return orbital() + weather(q) - wake(q);
+  return orbital() + weather(q) + emblemSafeCurrents(q) - wake(q);
 }
 
 // A motion delta (where the content at this pixel comes from, relative to it) made safe for the limb: off in
@@ -321,6 +426,10 @@ vec3 plateColor(vec2 uv) {
 // The shared motion (with its many wake samples) is worked out once; only pixels within the cyclone's reach
 // pay for the second plate sample.
 vec3 movedColor(vec2 q, float dist) {
+  // Nothing moves in the calm band or outside the limb (limbSafe() would zero it), so those pixels skip the
+  // motion entirely: the currents' noise, the wake's texture reads and the cyclone's second sample. That is
+  // the whole glow band and the band just inside the limb.
+  if (dist <= CALM_LIMB) return plateColor(vec2(q.x / PLATE_ASPECT, q.y));
   vec2 shared = sharedMotion(q);
   if (length(q - CYCLONE) >= CYCLONE_REACH) {
     vec2 moved = q + limbSafe(shared, dist);

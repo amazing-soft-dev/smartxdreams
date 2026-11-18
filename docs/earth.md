@@ -3,7 +3,7 @@
 The Home hero's backdrop, split along the planet's oval limb:
 
 - **Outside the limb (the sky):** the starfield of the Framer reference, recreated in `src/components/sky` (see [sky.md](sky.md)), with only the painted atmosphere (rim, sunrise, high streaks) crossing the limb into it. It never reacts to the pointer.
-- **Inside the limb (the Earth):** the painted Earth plate (`public/brand/earth`, the Cloud-Formed Emblem art, with the SmartxDreams emblem in its clouds), animated as on generalcontextlabs.com: a slow drift, weather bands and a cyclone that turns and breathes around its eye, and a fluid wake where a mouse moves over the planet, and only there.
+- **Inside the limb (the Earth):** the painted Earth plate (`public/brand/earth`, the Cloud-Formed Emblem art, with the SmartxDreams emblem in its clouds), animated as on generalcontextlabs.com: a slow drift, weather bands, curling ambient currents and a cyclone that turns and breathes around its eye, and a fluid wake where a mouse moves over the planet, and only there.
 
 Code lives in `src/components/earth`; the shared WebGL helpers are in `src/components/webgl`.
 
@@ -112,16 +112,23 @@ The texture is the narrowest WebP variant that covers the plate's device pixels 
 
 ### Motion
 
-Motion moves where the plate is sampled, in plate heights (the limb distance's units), so the limb and its glow never move: it is off within `CALM_LIMB` (0.018) inside the limb, eases in by `FULL_MOTION` (0.065), and its travel is capped at half the distance to the calm band.
+Motion moves where the plate is sampled, in plate heights (the limb distance's units), so the limb and its glow never move: it is off within `CALM_LIMB` (0.018) inside the limb, eases in by `FULL_MOTION` (0.065), and its travel is capped at half the distance to the calm band (`limbSafe()`). Pixels in the calm band or outside the limb skip the motion altogether.
 
 | Motion | Values | Where |
 |---|---|---|
 | Orbital drift | 12 px and 4.5 px on sines of 0.055 and 0.043 rad/s | everywhere on the planet |
-| Weather bands | up to 28 px and 12 px, 0.22 and 0.18 rad/s | static noise patches, calmed over the cloud symbol |
+| Weather bands | up to 28 px and 12 px, 0.22 and 0.18 rad/s | static noise patches, calmed over the cloud emblem |
+| Ambient currents | curl noise, up to about 13 px (4 px on average), drifting across the planet and slowly changing | everywhere on the planet; the emblem rides them whole |
 | Cyclone turn | counter-clockwise (as seen): 0.16 rad/s inside a 28 px core, then the same speed along every ring; clouds drifting in at 3.3 px/s | the painted spiral, 190 px around the eye; not the emblem |
 | Cyclone breath | in toward the eye and back out, 11 px each way, every 9 s | the same, the eye itself still |
 
-The cloud symbol keeps its shape: the bands fade out over a soft ellipse around it, so it rides the orbital drift as one piece. `plate-shader.test.ts` checks that the generated GLSL uses `plate.ts`'s horizon and landmarks and that the bands suit the landmarks.
+(px are master pixels; on screen they scale with the plate.)
+
+**Ambient flow:** with no pointer the Earth still flows, as on the reference: the clouds stream along broad, curling currents. The plate is displaced by the curl of a smooth noise field, a stream function (`currents()`, mirrored by `currentsAt()`), so the flow is divergence-free: clouds stream and curl past each other without bunching up or thinning out. The field is broad (`CURRENT_SCALE`, 2.2 noise cells per plate height), drifts across the planet (`CURRENT_DRIFT`) and slowly changes in place (`CURRENT_EVOLVE`), so the currents travel and turn instead of repeating. The displacement is bounded (`CURRENT_STRENGTH`; the curl peaks near 2.7), so after minutes nothing has smeared, and it is one sample, with no crossfade to ghost. `currents.test.ts` checks it is divergence-free, bounded at any time, a few pixels in size and changing within seconds, and that the shader carries the same field.
+
+**The emblem keeps its shape:** read pixel by pixel, the weather and the currents would bend its strokes apart. `emblemWhole()` is the larger of a soft ellipse around the emblem (`symbolCalm()`, a wide, gentle blend over the open ocean around it) and the emblem mask (so the tail and the outer C's ends, which reach past the ellipse, are covered too). Over the emblem the weather is calmed by that weight and the currents are blended toward the currents at its centre (`emblemSafeCurrents()`), so it drifts with the flow around it as one piece while the clouds around it stream. In headless Chromium, over 8 s the emblem moved about 3 px and, with that shift taken out, its pixels changed by about 3 of 255.
+
+`plate-shader.test.ts` checks that the generated GLSL uses `plate.ts`'s horizon and landmarks and that the bands suit the landmarks.
 
 **How the cyclone moves:** clouds go round one point, the eye, and toward it, as in a storm seen from orbit.
 
