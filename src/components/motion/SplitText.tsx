@@ -2,6 +2,7 @@
 
 import { animate, inView } from "motion";
 import { Fragment, useEffect, useRef } from "react";
+import { PAGE_REVEALED } from "@/components/transition/TransitionProvider";
 import { spring, stagger } from "@/styles/motion";
 
 type SplitTextProps = {
@@ -62,6 +63,20 @@ export function SplitText({ text, tone = "light", aboveFold = false, delay = 0 }
         });
     };
     if (aboveFold) {
+      // Arriving through the page transition: wait for the panels to start leaving, so the title rises as
+      // it comes into sight (with a fallback, should the transition never finish).
+      if (document.documentElement.dataset.pageCovered !== undefined) {
+        const go = () => {
+          window.clearTimeout(fallback);
+          rise();
+        };
+        const fallback = window.setTimeout(go, 2000);
+        window.addEventListener(PAGE_REVEALED, go, { once: true });
+        return () => {
+          window.clearTimeout(fallback);
+          window.removeEventListener(PAGE_REVEALED, go);
+        };
+      }
       rise();
       return;
     }
