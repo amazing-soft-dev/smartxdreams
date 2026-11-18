@@ -64,12 +64,14 @@ function Mark({ tone, height, label, decorative, className }: MarkProps) {
   const width = markWidth(tone, height);
   return (
     // A plain <img>: the files are already built at fixed widths, so next/image would only add a loader the
-    // static export cannot run.
+    // static export cannot run. width and height reserve the box before the file arrives.
     // eslint-disable-next-line @next/next/no-img-element
     <img
       src={markSrc(tone, fallbackWidth(width))}
       srcSet={markSrcSet(tone)}
-      style={{ height }}
+      sizes={`${width}px`}
+      width={width}
+      height={height}
       alt={decorative ? "" : label}
       aria-hidden={decorative ? true : undefined}
       decoding="async"

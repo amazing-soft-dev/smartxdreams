@@ -18,6 +18,13 @@ describe("Logo", () => {
       expect(render({ variant: "mark", tone: "light" })).not.toContain("mark-on-light");
     });
 
+    it("reserves its box: width and height follow the artwork's aspect ratio", () => {
+      const html = render({ variant: "mark", tone: "dark", height: 26 });
+      expect(html).toMatch(/height="26"/);
+      expect(html).toMatch(/width="30"/);
+      expect(html).toMatch(/sizes="30px"/);
+    });
+
     it("is an image named by its label, or hidden when decorative", () => {
       expect(render({ variant: "mark", label: "Home" })).toMatch(/^<img[^>]*alt="Home"/);
       const decorative = render({ variant: "mark", decorative: true });
