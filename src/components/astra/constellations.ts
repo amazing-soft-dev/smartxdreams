@@ -21,7 +21,7 @@ export const constellations: Constellation[] = [
     lines: [[0, 1], [1, 2], [2, 3], [3, 4]],
   },
   {
-    slug: "applypilot",
+    slug: "acorn",
     points: [[3.4, 3.4], [5.2, 3.4], [5.2, 2.1], [3.4, 2.1], [3.8, 2.9], [4.8, 2.9]],
     lines: [[0, 1], [1, 2], [2, 3], [3, 0], [4, 5]],
   },

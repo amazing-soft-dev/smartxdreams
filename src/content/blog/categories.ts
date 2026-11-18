@@ -7,7 +7,7 @@ export const blogCategories = [
     id: "job-search",
     label: "Job search",
     description: "Finding the right roles, applying well and keeping track of it all.",
-    products: ["joined", "applypilot"],
+    products: ["joined", "acorn"],
   },
   {
     id: "construction",
