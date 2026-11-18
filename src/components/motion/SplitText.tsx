@@ -2,6 +2,7 @@
 
 import { animate, inView } from "motion";
 import { Fragment, useEffect, useRef } from "react";
+import { plainText } from "@/components/ui/Accent";
 import { spring, stagger } from "@/styles/motion";
 
 type SplitTextProps = {
@@ -36,6 +37,9 @@ function words(text: string): { word: string; accent: boolean }[] {
  * Beemas splits into letters, but the letters of a line move together, so splitting into words looks the
  * same and keeps kerning and ligatures intact. Lines are found after layout, from each word's position, so
  * they follow the heading's real wrapping at any width.
+ *
+ * Screen readers get the plain heading once; the animated words are hidden from them. Without JavaScript
+ * (data-reveal) or with reduced motion (data-motion) the words show in place.
  */
 export function SplitText({ text, tone = "light", aboveFold = false, delay = 0 }: SplitTextProps) {
   const root = useRef<HTMLSpanElement>(null);
@@ -43,7 +47,7 @@ export function SplitText({ text, tone = "light", aboveFold = false, delay = 0 }
 
   useEffect(() => {
     const el = root.current;
-    if (!el) return;
+    if (!el || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const rise = () => {
       // Group the words into lines by where they sit now.
       const lines = new Map<number, HTMLElement[]>();
@@ -67,11 +71,14 @@ export function SplitText({ text, tone = "light", aboveFold = false, delay = 0 }
   const list = words(text);
   return (
     <>
-      <span ref={root}>
+      <span className="sr-only">{plainText(text)}</span>
+      <span ref={root} aria-hidden="true">
         {list.map(({ word, accent: isAccent }, i) => (
           <Fragment key={i}>
             <span
               data-word=""
+              data-reveal=""
+              data-motion="rise"
               className={isAccent ? `inline-block ${accent}` : "inline-block"}
               style={{ opacity: 0.001, transform: `translateY(${RISE}px)` }}
             >
