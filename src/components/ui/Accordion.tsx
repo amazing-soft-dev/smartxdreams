@@ -3,6 +3,8 @@
 import { type KeyboardEvent, useId, useRef, useState } from "react";
 import { cx } from "@/lib/cx";
 import type { Faq } from "@/content/types";
+import { Reveal } from "@/components/motion/Reveal";
+import { stagger } from "@/styles/motion";
 
 type AccordionProps = {
   items: Faq[];
@@ -62,8 +64,10 @@ export function Accordion({ items, defaultOpen = 0, multiple = false, tone = "li
         const buttonId = `${baseId}-q${index}`;
         const panelId = `${baseId}-a${index}`;
         return (
-          <div
+          <Reveal
             key={item.question}
+            preset="up50"
+            delay={index * (stagger.group / 2)}
             className={cx(
               "rounded-[20px] transition-colors duration-300",
               tone === "light" ? (isOpen ? "bg-white shadow-tag" : "bg-ink/[0.05]") : isOpen ? "bg-white/12" : "bg-white/[0.06]",
@@ -84,15 +88,16 @@ export function Accordion({ items, defaultOpen = 0, multiple = false, tone = "li
                 <PlusIcon open={isOpen} tone={tone} />
               </button>
             </h3>
-            {/* grid-template-rows 0fr -> 1fr animates to the content's natural height without measuring it.
-                Closed answers are inert, so they are hidden from keyboard and screen readers. */}
+            {/* grid-template-rows 0fr -> 1fr animates to the content's natural height without measuring it, on
+                the rise curve (--ease-rise) the rest of the page moves on. Closed answers are inert, so they
+                are hidden from keyboard and screen readers. */}
             <div
               id={panelId}
               role="region"
               aria-labelledby={buttonId}
               inert={!isOpen}
               className={cx(
-                "grid transition-[grid-template-rows,opacity] duration-400 ease-[var(--ease-out-quint)]",
+                "grid transition-[grid-template-rows,opacity] duration-700 ease-[var(--ease-rise)]",
                 isOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0",
               )}
             >
@@ -100,7 +105,7 @@ export function Accordion({ items, defaultOpen = 0, multiple = false, tone = "li
                 <p className={cx("px-5 pb-5 md:px-6", tone === "light" ? "text-ink/65" : "text-white/65")}>{item.answer}</p>
               </div>
             </div>
-          </div>
+          </Reveal>
         );
       })}
     </div>
@@ -113,8 +118,10 @@ function PlusIcon({ open, tone }: { open: boolean; tone: "light" | "dark" }) {
     <span
       aria-hidden="true"
       className={cx(
-        "relative inline-flex size-8 shrink-0 items-center justify-center rounded-full transition-transform duration-300 ease-[var(--ease-back)] hover:scale-108 motion-reduce:hover:scale-100",
+        "relative inline-flex size-8 shrink-0 items-center justify-center rounded-full transition-[scale,rotate] duration-700 ease-[var(--ease-rise)] hover:scale-108 motion-reduce:hover:scale-100",
         tone === "light" ? "bg-ink text-white" : "bg-white text-ink",
+        // The whole icon turns a half circle as its answer opens, while its upright bar folds into the minus.
+        open && "rotate-180",
       )}
     >
       <span className="absolute h-0.5 w-3 rounded-full bg-current" />

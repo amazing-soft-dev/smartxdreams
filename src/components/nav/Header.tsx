@@ -9,7 +9,7 @@ import { Container } from "@/components/ui/Container";
 import { Logo } from "@/components/ui/Logo";
 import { headerCta } from "@/content/site";
 import { cx } from "@/lib/cx";
-import { ease } from "@/styles/motion";
+import { spring } from "@/styles/motion";
 import { DesktopNav } from "./DesktopNav";
 import { NAV_LOGO_HEIGHT } from "./logo-size";
 import { MenuButton } from "./MenuButton";
@@ -18,8 +18,9 @@ import { useHideOnScroll } from "./useHideOnScroll";
 import { useNavTheme } from "./useNavTheme";
 
 /**
- * The fixed site header: logo, navigation and the call to action, on a frosted bar. It slides in once on
- * first load (from 0.001 opacity so it never delays Largest Contentful Paint).
+ * The fixed site header: logo, navigation and the call to action, on a frosted bar. It settles in once on
+ * first load, from 10 px above on Beemas' appear spring (from 0.001 opacity so it never delays Largest
+ * Contentful Paint).
  */
 export function Header() {
   const [focusInside, setFocusInside] = useState(false);
@@ -37,9 +38,11 @@ export function Header() {
   const onDark = theme === "dark";
   return (
     <motion.header
-      initial={{ y: -120, opacity: 0.001 }}
+      data-motion="appear"
+      // Beemas' header appear (docs/motion-audit.md): from 10 px above on a long, soft spring.
+      initial={{ y: -10, opacity: 0.001 }}
       animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 1, delay: 0.15, ease: ease.outQuint }}
+      transition={{ ...spring.appear, delay: 0.15 }}
       className="fixed inset-x-0 top-3 z-50 md:top-5"
       onFocus={() => setFocusInside(true)}
       onBlur={(event) => {

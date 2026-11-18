@@ -6,6 +6,7 @@ import { SectionHeader } from "@/components/ui/SectionHeader";
 import { products } from "@/content/products";
 import { audienceLabel } from "@/content/selectors";
 import { cx } from "@/lib/cx";
+import { stagger } from "@/styles/motion";
 
 /** Bento layout: the first and last cards are wide on desktop, the rest are single cells. */
 const spans = ["lg:col-span-2", "", "", "", "", "lg:col-span-2"];
@@ -36,12 +37,12 @@ export function ProductGrid() {
           const pill = cx("rounded-full px-3 py-1 text-micro font-medium", tone.pill);
           return (
             <li key={product.slug} data-product={product.slug} className={cx(spans[i])}>
-              <Reveal delay={(i % 4) * 0.08} className="h-full">
+              <Reveal preset="up75" delay={(i % 4) * stagger.group} className="h-full">
                 <article
                   className={cx(
                     "group relative flex h-full min-h-64 flex-col rounded-[30px] p-7",
                     "outline-offset-4 has-[a:focus-visible]:outline-2 has-[a:focus-visible]:outline-violet-500",
-                    "transition-[translate,box-shadow] duration-500 ease-[var(--ease-out-quint)] hover:-translate-y-1.5 motion-reduce:hover:translate-y-0 hover:shadow-card-hover",
+                    "transition-[translate,box-shadow] duration-500 ease-[var(--ease-out-quint)] hover:-translate-y-1.5 motion-reduce:hover:translate-y-0 hover:shadow-card-hover has-[a:focus-visible]:-translate-y-1.5 has-[a:focus-visible]:shadow-card-hover motion-reduce:has-[a:focus-visible]:translate-y-0",
                     tone.surface,
                   )}
                 >

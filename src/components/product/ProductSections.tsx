@@ -16,6 +16,8 @@ import { audienceLabel, relatedProducts } from "@/content/selectors";
 import type { Product } from "@/content/types";
 import { ProductLogo } from "./ProductLogo";
 import { SplitText } from "@/components/motion/SplitText";
+import { stagger } from "@/styles/motion";
+import { PhotoReveal } from "@/components/motion/PhotoReveal";
 
 type ProductProps = { product: Product };
 
@@ -82,9 +84,12 @@ export function ProductProblem({ product }: ProductProps) {
   return (
     <Section labelledBy="problem-title" surface="canvas">
       <div className="mx-auto max-w-4xl text-center">
-        <Tag>The problem</Tag>
+        {/* Tag, then the problem in the user's words: the same order as every SectionHeader. */}
+        <Reveal preset="up35">
+          <Tag>The problem</Tag>
+        </Reveal>
         <h2 id="problem-title" className="mt-6 text-h3">
-          {product.problem}
+          <SplitText text={product.problem} delay={0.1} />
         </h2>
       </div>
     </Section>
@@ -99,7 +104,7 @@ export function ProductSteps({ product }: ProductProps) {
       <ol className="mt-14 grid gap-3 md:grid-cols-3">
         {product.steps.map((step, i) => (
           <li key={step.title}>
-            <Reveal delay={i * 0.08} className="h-full">
+            <Reveal preset="up75" delay={i * stagger.group} className="h-full">
               <Card tone="canvas" padding="lg" className="h-full">
                 <span className="font-mono text-micro tracking-[0.06em] text-ink/70">{String(i + 1).padStart(2, "0")}</span>
                 <h3 className="mt-4 text-h5">{step.title}</h3>
@@ -122,7 +127,7 @@ export function ProductFeatures({ product }: ProductProps) {
       <ul className="mt-14 grid gap-3 md:grid-cols-2 lg:grid-cols-3">
         {product.features.map((feature, i) => (
           <li key={feature.title} className={i === 0 ? "lg:col-span-2" : undefined}>
-            <Reveal delay={(i % 3) * 0.08} className="h-full">
+            <Reveal preset="up75" delay={(i % 3) * stagger.group} className="h-full">
               <Card tone={i === 0 ? "ink" : "white"} padding="lg" className="h-full">
                 <h3 className="text-h5">{feature.title}</h3>
                 <p className={i === 0 ? "mt-3 text-body text-white/75" : "mt-3 text-body text-ink/70"}>{feature.body}</p>
@@ -146,7 +151,9 @@ export function ProductLimits({ product }: ProductProps) {
         <div>
           {product.photo ? (
             <div className="relative mb-8 aspect-[16/10] overflow-hidden rounded-[30px]">
-              <Photo slot={product.photo.slot} fill sizes="(min-width: 1024px) 45vw, 100vw" />
+              <PhotoReveal>
+                <Photo slot={product.photo.slot} fill sizes="(min-width: 1024px) 45vw, 100vw" />
+              </PhotoReveal>
             </div>
           ) : null}
           <Tag>Who it is for</Tag>

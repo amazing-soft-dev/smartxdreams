@@ -1,19 +1,13 @@
 name: Open pull request
 
-# Pushing a feature-prefix branch opens a pull request into dev.
-# Pushing dev opens (or updates) the dev -> main promotion pull request.
-# Uses the GH_TOKEN repository secret, not the default GITHUB_TOKEN: pull requests and merges made
-# with the default token do not start the next workflow run.
+# Pushing <feat|fix|docs|ci|build>/<issue>-<slug> opens its pull request into dev. Pushing dev (which
+# every merge into dev does) opens or updates the dev -> main promotion pull request, whose body lists
+# "Closes #N" for each issue since main, so the issues close when it merges.
+# Uses the GH_TOKEN secret: a pull request opened with the default token would not start CI.
 
 on:
   push:
-    branches:
-      - "feat/**"
-      - "fix/**"
-      - "docs/**"
-      - "ci/**"
-      - "build/**"
-      - dev
+    branches: ["feat/**", "fix/**", "docs/**", "ci/**", "build/**", dev]
 
 concurrency:
   group: open-pr-${{ github.ref }}
@@ -31,13 +25,6 @@ jobs:
       BRANCH: ${{ github.ref_name }}
       REPO: ${{ github.repository }}
     steps:
-      - name: Require the GH_TOKEN secret
-        run: |
-          if [ -z "$GH_TOKEN" ]; then
-            echo "::error::The GH_TOKEN repository secret is not set. See docs/pipeline.md."
-            exit 1
-          fi
-
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0
@@ -47,70 +34,51 @@ jobs:
         run: |
           set -euo pipefail
           if ! [[ "$BRANCH" =~ ^(feat|fix|docs|ci|build)/([0-9]+)-[A-Za-z0-9._-]+$ ]]; then
-            echo "::notice::Branch '$BRANCH' does not match <prefix>/<issue-number>-<slug>. No pull request opened."
+            echo "::notice::'$BRANCH' is not <prefix>/<issue-number>-<slug>. No pull request."
             exit 0
           fi
           issue="${BASH_REMATCH[2]}"
-
-          ahead=$(git rev-list --count "origin/dev..origin/$BRANCH")
-          if [ "$ahead" -eq 0 ]; then
-            echo "::notice::'$BRANCH' has no commits beyond dev. Nothing to open."
+          if [ "$(git rev-list --count "origin/dev..origin/$BRANCH")" -eq 0 ]; then
+            echo "::notice::'$BRANCH' has no commits beyond dev."
             exit 0
           fi
-
-          existing=$(gh pr list --repo "$REPO" --head "$BRANCH" --base dev --state open --json number --jq 'length')
-          if [ "$existing" -gt 0 ]; then
-            echo "A pull request for $BRANCH into dev is already open. Leaving it."
+          if [ "$(gh pr list --repo "$REPO" --head "$BRANCH" --base dev --state open --json number --jq length)" -gt 0 ]; then
+            echo "A pull request for $BRANCH is already open."
             exit 0
           fi
-
           title=$(gh issue view "$issue" --repo "$REPO" --json title --jq .title 2>/dev/null || true)
-          if [ -z "$title" ]; then title=$(git log -1 --format=%s "origin/$BRANCH"); else title="$title (#$issue)"; fi
-
+          title=${title:+$title (#$issue)}
+          title=${title:-$(git log -1 --format=%s "origin/$BRANCH")}
           {
-            echo "Work for #$issue on branch \`$BRANCH\`."
+            echo "Work for #$issue. The dev -> main pull request closes the issue."
             echo
-            echo "This pull request does not close the issue. The dev -> main promotion pull request does."
-            echo
-            echo "### Commits"
             git log --reverse --format='- %s' "origin/dev..origin/$BRANCH"
           } > "$RUNNER_TEMP/body.md"
-
           gh pr create --repo "$REPO" --base dev --head "$BRANCH" --title "$title" --body-file "$RUNNER_TEMP/body.md"
 
       - name: dev into main
         if: github.ref_name == 'dev'
         run: |
           set -euo pipefail
-          ahead=$(git rev-list --count origin/main..origin/dev)
-          if [ "$ahead" -eq 0 ]; then
-            echo "::notice::dev is not ahead of main. Nothing to promote."
+          if [ "$(git rev-list --count origin/main..origin/dev)" -eq 0 ]; then
+            echo "::notice::dev is not ahead of main."
             exit 0
           fi
-
-          # Issue numbers: from merged branch names (feat/12-...) and from Closes/Fixes/Resolves lines.
+          # Issue numbers from merged branch names (feat/12-...) and Closes/Fixes/Resolves lines.
+          issues=$(git log origin/main..origin/dev --format='%B' \
+            | grep -oiE '(feat|fix|docs|ci|build)/[0-9]+-|(closes|fixes|resolves) +#[0-9]+' \
+            | grep -oE '[0-9]+' | sort -un || true)
           {
-            git log origin/main..origin/dev --format='%s%n%b' \
-              | grep -oE '(feat|fix|docs|ci|build)/[0-9]+-' | grep -oE '[0-9]+' || true
-            git log origin/main..origin/dev --format='%B' \
-              | grep -oiE '(closes|fixes|resolves) +#[0-9]+' | grep -oE '[0-9]+' || true
-          } | sort -un > "$RUNNER_TEMP/issues.txt"
-
-          {
-            echo "Automatic promotion of \`dev\` to \`main\`. A green CI run merges this."
+            echo "Promotes \`dev\` to \`main\`. A green CI run merges this."
             echo
-            if [ -s "$RUNNER_TEMP/issues.txt" ]; then
-              while read -r n; do echo "Closes #$n"; done < "$RUNNER_TEMP/issues.txt"
-              echo
-            fi
-            echo "### Changes since main"
+            for n in $issues; do echo "Closes #$n"; done
+            echo
             git log --reverse --no-merges --format='- %s' origin/main..origin/dev | head -100
           } > "$RUNNER_TEMP/body.md"
-
           number=$(gh pr list --repo "$REPO" --head dev --base main --state open --json number --jq '.[0].number // empty')
           if [ -n "$number" ]; then
-            gh pr edit "$number" --repo "$REPO" --body-file "$RUNNER_TEMP/body.md"
-            echo "Updated pull request #$number."
+            # REST, not `gh pr edit`: that one runs a GraphQL query needing read:org, which GH_TOKEN lacks.
+            gh api --method PATCH "repos/$REPO/pulls/$number" -F "body=@$RUNNER_TEMP/body.md" --jq '"Updated #\(.number)."'
           else
             gh pr create --repo "$REPO" --base main --head dev --title "Promote dev to main" --body-file "$RUNNER_TEMP/body.md"
           fi
