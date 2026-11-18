@@ -75,10 +75,12 @@ export const LANDMARKS = {
 } as const;
 
 /**
- * How far (plate heights) the painted atmosphere glow is kept outside the limb before it fades out. Shared by
- * the shader and the fallback.
+ * How far (plate heights) the painted atmosphere glow is kept outside the limb before it fades out: far enough
+ * for the streaks of high cloud over the emblem art's limb, which reach about 110 px (0.115) above the rim
+ * between the sunrise and the cyclone. glowCoverage() keeps the painted sky out of the band, so it can be this
+ * wide without veiling the starfield. Shared by the shader and the fallback.
  */
-export const GLOW_BAND = 0.06;
+export const GLOW_BAND = 0.12;
 
 /**
  * The painted sky's own brightness, as the brighter of its red and green (0..1). The emblem art's sky is a
