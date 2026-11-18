@@ -5,7 +5,6 @@ import { ContactForm } from "@/components/forms/ContactForm";
 import { ContactFormFromUrl } from "@/components/forms/ContactFormFromUrl";
 import { Reveal } from "@/components/motion/Reveal";
 import { FaqSection } from "@/components/sections/FaqSection";
-import { Accent } from "@/components/ui/Accent";
 import { Card } from "@/components/ui/Card";
 import { Container } from "@/components/ui/Container";
 import { Glow } from "@/components/ui/Glow";
@@ -16,6 +15,7 @@ import { Tag } from "@/components/ui/Tag";
 import { contact, contactFaq } from "@/content/contact";
 import { products } from "@/content/products";
 import { pageMetadata } from "@/lib/seo";
+import { SplitText } from "@/components/motion/SplitText";
 
 /** Only what the product select needs, so the rest of the product copy stays out of the client bundle. */
 const productOptions = products.map((p) => ({ slug: p.slug, name: p.name }));
@@ -47,7 +47,7 @@ export default function ContactPage() {
           <div className="text-center">
             <Tag tone="dark">Contact</Tag>
             <h1 id="contact-title" className="mx-auto mt-6 max-w-3xl text-display">
-              <Accent text={contact.hero.title} tone="dark" />
+              <SplitText text={contact.hero.title} tone="dark" aboveFold />
             </h1>
             <p className="mx-auto mt-6 max-w-2xl text-body-l text-white/70">{contact.hero.body}</p>
           </div>
