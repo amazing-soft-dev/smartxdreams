@@ -13,6 +13,8 @@
     "typecheck": "next typegen && tsc --noEmit",
     "images": "node scripts/build-images.mjs",
     "check:images": "node scripts/check-images.mjs",
+    "brand": "node scripts/build-brand.mjs",
+    "check:brand": "node scripts/build-brand.mjs --check",
     "verify:out": "node scripts/verify-out.mjs",
     "check:bundle": "node scripts/check-bundle.mjs",
     "test": "vitest run",

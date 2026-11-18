@@ -71,6 +71,8 @@ jobs:
       - run: npm test
       # Each photo in public/images must be used exactly once.
       - run: npm run check:images
+      # Every logo file built from assets/ is present and the size its master gives (scripts/build-brand.mjs).
+      - run: npm run check:brand
 
   build:
     name: Build (${{ matrix.target }})
