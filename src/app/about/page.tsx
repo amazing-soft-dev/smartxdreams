@@ -9,7 +9,7 @@ import { AboutValues } from "@/components/about/AboutValues";
 import { ProductStrip } from "@/components/home/ProductStrip";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { company } from "@/content/site";
-import { absoluteUrl, pageMetadata, siteUrl } from "@/lib/seo";
+import { absoluteUrl, pageMetadata, siteUrl, teamJsonLd } from "@/lib/seo";
 
 export const metadata: Metadata = pageMetadata({
   title: "About",
@@ -18,7 +18,10 @@ export const metadata: Metadata = pageMetadata({
   path: "/about",
 });
 
-/** schema.org AboutPage pointing at the Organization from the root layout. */
+/**
+ * schema.org AboutPage pointing at the Organization from the root layout. Its main entity is that
+ * Organization (by @id, so the two merge) with the team as its employees.
+ */
 const aboutJsonLd = {
   "@context": "https://schema.org",
   "@type": "AboutPage",
@@ -26,6 +29,7 @@ const aboutJsonLd = {
   url: absoluteUrl("/about"),
   about: { "@id": `${siteUrl}/#organization` },
   isPartOf: { "@id": `${siteUrl}/#website` },
+  mainEntity: { "@type": "Organization", "@id": `${siteUrl}/#organization`, employee: teamJsonLd() },
 };
 
 /** /about: the studio's story, how it works, where it is headed and who is behind it. */
