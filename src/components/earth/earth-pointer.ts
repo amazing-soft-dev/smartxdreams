@@ -28,3 +28,16 @@ export function isOnEarth(rect: PlateRect, x: number, y: number): boolean {
 export function splatCount(dx: number, dy: number, step = 10): number {
   return Math.min(16, Math.max(1, Math.ceil(Math.hypot(dx, dy) / step)));
 }
+
+/**
+ * The longest move between two pointer events (CSS px) that is a real stroke: as far as splatCount() can split
+ * evenly (16 splats of 10 px). A quick flick moves 25-50 px between events. Anything further is the pointer
+ * arriving from somewhere else (back from another window, or after the page scrolled under it), which must not
+ * splat as one huge stroke across the clouds.
+ */
+export const MAX_STROKE = 160;
+
+/** True when a move of (dx, dy) CSS px between two pointer events is a jump, not a stroke. */
+export function isJump(dx: number, dy: number): boolean {
+  return Math.hypot(dx, dy) > MAX_STROKE;
+}

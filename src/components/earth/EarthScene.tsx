@@ -17,7 +17,7 @@ import {
 } from "three";
 import { SCENE_PRIORITY } from "@/components/webgl/scene-budget";
 import { useThreeRenderer } from "@/components/webgl/useThreeRenderer";
-import { EARTH_IGNORE_SELECTOR, EARTH_POINTER_QUERY, isOnEarth, splatCount } from "./earth-pointer";
+import { EARTH_IGNORE_SELECTOR, EARTH_POINTER_QUERY, isJump, isOnEarth, splatCount } from "./earth-pointer";
 import { createFluid, FLUID_HEIGHT, FLUID_WIDTH, fluidGridFor } from "./fluid";
 import { EMBLEM_MASK_SRC, pickPlateVariant } from "./plate";
 import { type PlateRect, plateBreakpointFor, plateRect, plateUniform } from "./plate-layout";
@@ -146,7 +146,7 @@ export default function EarthScene() {
           last = null;
           return;
         }
-        if (last) {
+        if (last && !isJump(x - last.x, y - last.y)) {
           const count = splatCount(x - last.x, y - last.y);
           for (let i = 1; i <= count; i++) {
             const t = i / count;
@@ -161,11 +161,16 @@ export default function EarthScene() {
         }
         last = { x, y };
       };
-      const onPointerLeave = () => {
+      // Forget the last position whenever the pointer stops being where it was over the canvas: it left the
+      // page, the window lost focus, or the page scrolled (the canvas moved under a still pointer, so the next
+      // move would otherwise splat the scroll distance as a stroke).
+      const forget = () => {
         last = null;
       };
       window.addEventListener("pointermove", onPointerMove, { passive: true });
-      document.documentElement.addEventListener("pointerleave", onPointerLeave);
+      document.documentElement.addEventListener("pointerleave", forget);
+      window.addEventListener("blur", forget);
+      window.addEventListener("scroll", forget, { passive: true });
 
       // Fade in over the CSS fallback once the plate is on screen, instead of popping in.
       canvas.style.opacity = "0";
@@ -213,7 +218,9 @@ export default function EarthScene() {
           disposed = true;
           cancelAnimationFrame(fadeFrame);
           window.removeEventListener("pointermove", onPointerMove);
-          document.documentElement.removeEventListener("pointerleave", onPointerLeave);
+          document.documentElement.removeEventListener("pointerleave", forget);
+          window.removeEventListener("blur", forget);
+          window.removeEventListener("scroll", forget);
           flow.dispose();
           texture?.dispose();
           emblem?.dispose();
