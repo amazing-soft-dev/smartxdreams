@@ -255,7 +255,7 @@ export function TransitionProvider({ children }: { children: ReactNode }) {
             style={{ background: "radial-gradient(closest-side, rgb(109 74 255 / 0.85), rgb(255 107 61 / 0.35) 60%, rgb(255 107 61 / 0))" }}
           />
           <span ref={mark} className="relative block opacity-0">
-            <Logo variant="mark" tone="light" height={36} decorative />
+            <Logo variant="mark" tone="light" height={36} decorative fetchPriority="low" />
           </span>
           <div className="relative overflow-hidden px-1">
             <span

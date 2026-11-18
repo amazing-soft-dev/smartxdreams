@@ -20,11 +20,17 @@ type ProductLogoProps = {
   tile?: boolean;
   /** Hide from assistive technology when the product's name is right next to the logo. */
   decorative?: boolean;
+  /**
+   * "lazy" (the default): lists down the page, and menus that are closed when the page loads (the logos load
+   * as the menu opens; they are 2 to 3 KB). "eager" only for a logo visible in the first screen, such as the
+   * product hero's.
+   */
+  loading?: "lazy" | "eager";
   className?: string;
 };
 
 /** A product's logo, square, at any size: the browser picks the sharpest built file for the screen. */
-export function ProductLogo({ product, size = 40, tile = true, decorative = false, className }: ProductLogoProps) {
+export function ProductLogo({ product, size = 40, tile = true, decorative = false, loading = "lazy", className }: ProductLogoProps) {
   // The tile's padding is a share of its size, so the logo keeps the same air at every size.
   const inner = tile ? Math.round(size * 0.72) : size;
   const smallest = PRODUCT_LOGO_SIZES.find((s) => s >= inner * 2) ?? 384;
@@ -40,7 +46,9 @@ export function ProductLogo({ product, size = 40, tile = true, decorative = fals
       height={inner}
       alt={decorative ? "" : product.logo.alt}
       aria-hidden={decorative ? true : undefined}
-      loading="lazy"
+      loading={loading}
+      // An eager logo is fetched early but after the stylesheet and fonts the first paint waits on.
+      fetchPriority={loading === "eager" ? "low" : undefined}
       decoding="async"
       draggable={false}
       className={cx("block shrink-0 select-none", !tile && className)}
