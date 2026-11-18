@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { type ReactNode, type Ref, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/Button";
+import { currentProductSlug } from "@/content/products/retired";
 import { formsCanSend } from "@/lib/forms/availability";
 import type { FormResponse } from "@/lib/forms/response";
 
@@ -35,7 +36,8 @@ function peek(token: string | null): { email: string; product: string } | null {
 export function ConfirmWaitlist({ products }: { products: ProductName[] }) {
   const token = useSearchParams().get("token");
   const info = peek(token);
-  const product = products.find((p) => p.slug === info?.product);
+  // Links emailed before a product was renamed carry its old slug.
+  const product = info && products.find((p) => p.slug === currentProductSlug(info.product));
   const [state, setState] = useState<State>({ kind: "ready" });
   const resultRef = useRef<HTMLDivElement>(null);
 
