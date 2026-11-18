@@ -3,63 +3,129 @@ import { horizonDistance, horizonV, LANDMARKS, PLATE_ASPECT } from "./plate";
 import {
   heroToPlate,
   PLATE_BREAKPOINTS,
+  type PlateBreakpoint,
   plateBreakpointFor,
   plateLayoutCss,
+  plateMediaQuery,
   plateRect,
   plateToHero,
   plateUniform,
 } from "./plate-layout";
 
 /**
- * Hero shapes (width / height) each breakpoint must handle: phones are tall, tablets run from portrait to
- * landscape, and the desktop hero fills the viewport, from a 4:3 screen (1.33) to an ultrawide.
+ * Hero shapes (width / height) each breakpoint must handle. Phones are tall; tablets run from portrait to
+ * landscape; a phone on its side is short and wide; desktop heroes fill the window, from 5:4 (1.2) up to
+ * just under the wide breakpoint; wide and ultrawide heroes go from short laptops and 21:9 to 32:9. The hero
+ * is the viewport plus the 28 or 36 px the cards band covers, so its aspect is a little under the viewport's.
  */
-const ASPECTS: Record<number, number[]> = {
-  0: [0.3, 0.36, 0.4, 0.46, 0.55, 0.62],
-  640: [0.6, 0.69, 1, 1.4],
-  1024: [1.33, 1.5, 1.55, 1.6, 1.78, 1.94, 2, 2.4],
+const ASPECTS: Record<string, number[]> = {
+  phone: [0.3, 0.36, 0.4, 0.46, 0.55, 0.62],
+  tablet: [0.6, 0.69, 1, 1.4, 1.55],
+  "landscape phone": [1.45, 1.62, 1.8, 2.04, 2.3],
+  desktop: [1.2, 1.33, 1.5, 1.55, 1.6, 1.78, 1.94, 2, 2.1],
+  wide: [2, 2.2, 2.33, 2.6, 2.8],
+  ultrawide: [2.75, 3, 3.47, 4],
 };
+
+/** Breakpoints whose copy is a left column (the rest put it across the top). */
+const COLUMN_COPY = new Set(["landscape phone", "desktop", "wide", "ultrawide"]);
+
+/**
+ * Real windows (CSS px), from phones to a 32:9 monitor. Each must pick a breakpoint whose placement works
+ * for the hero it gives (the viewport plus the band's 28 px under 768 px wide, 36 px from there).
+ */
+const RESOLUTIONS: [number, number][] = [
+  [360, 780],
+  [390, 844],
+  [430, 932],
+  [667, 375],
+  [844, 390],
+  [915, 412],
+  [768, 1024],
+  [820, 1180],
+  [1024, 1366],
+  [1024, 768],
+  [1180, 820],
+  [1280, 600],
+  [1280, 800],
+  [1280, 1024],
+  [1366, 768],
+  [1440, 900],
+  [1536, 864],
+  [1920, 1080],
+  [1920, 1200],
+  [2560, 1080],
+  [2560, 1440],
+  [3440, 1440],
+  [3840, 2160],
+  [5120, 1440],
+];
 
 const EPS = 1e-9;
 
-/** The symbol's box in the hero (H) for a placed plate. */
-function symbolBox(aspect: number, minWidth: number) {
-  const { symbol: target } = plateBreakpointFor(minWidth);
-  const rect = plateRect(target, aspect);
+const byName = (name: string): PlateBreakpoint => PLATE_BREAKPOINTS.find((bp) => bp.name === name)!;
+
+/** The emblem's box in the hero (H) for a placed plate. */
+function emblemBox(bp: PlateBreakpoint, aspect: number) {
+  const rect = plateRect(bp.symbol, aspect);
   const { u, v, width, height } = LANDMARKS.symbol;
   const centre = plateToHero(rect, u, v);
   const w = width * rect.width;
   const h = height * rect.height;
-  return { rect, left: centre.x - w / 2, right: centre.x + w / 2, top: centre.y + h / 2, bottom: centre.y - h / 2 };
+  return { rect, left: centre.x - w / 2, right: centre.x + w / 2, top: centre.y + h / 2, bottom: centre.y - h / 2, h };
+}
+
+/** The checks every placement must pass, as failure messages (empty when it passes). */
+function placementProblems(bp: PlateBreakpoint, aspect: number): string[] {
+  const problems: string[] = [];
+  const box = emblemBox(bp, aspect);
+  const { rect } = box;
+  if (rect.left + rect.width < aspect - EPS) problems.push("right edge uncovered");
+  if (rect.bottom > EPS) problems.push("bottom edge uncovered");
+  if (!(rect.left <= EPS || plateToHero(rect, 0, horizonV(0)).y <= EPS)) problems.push("planet cut off on the left");
+  if (box.left <= 0 || box.right >= aspect || box.bottom <= 0 || box.top >= 1) problems.push("emblem off screen");
+  // On the planet: the emblem's top corners are below the limb.
+  for (const x of [box.left, box.right]) {
+    const { u, v } = heroToPlate(rect, x, box.top);
+    if (u >= 0 && u <= 1 && horizonDistance(u, v) <= 0) problems.push("emblem corner in the sky");
+  }
+  if (COLUMN_COPY.has(bp.name)) {
+    // Out of the copy column, the left 45% (on the widest heroes the column is capped well before that).
+    if (box.left <= Math.min(aspect * 0.45, 1.4)) problems.push("emblem in the copy column");
+    const eye = plateToHero(rect, LANDMARKS.cyclone.u, LANDMARKS.cyclone.v);
+    if (eye.x >= aspect || eye.y >= 1) problems.push("cyclone eye off screen");
+  } else if (box.top >= 0.55) {
+    // Below the copy, which runs across the top 45%.
+    problems.push("emblem under the copy");
+  }
+  return problems;
 }
 
 describe("plateRect", () => {
-  it("never cuts the planet off: right and bottom covered, and the left covered or only sky", () => {
-    for (const { minWidth, symbol } of PLATE_BREAKPOINTS) {
-      for (const aspect of ASPECTS[minWidth]!) {
-        const rect = plateRect(symbol, aspect);
-        const at = `${minWidth} @ ${aspect}`;
-        expect(rect.left + rect.width, at).toBeGreaterThanOrEqual(aspect - EPS);
-        expect(rect.bottom, at).toBeLessThanOrEqual(EPS);
-        // Either the plate reaches the hero's left edge, or the planet along the plate's own left edge (from the
-        // limb down) is below the hero, so only sky shows beside it.
-        const limbAtLeftEdge = plateToHero(rect, 0, horizonV(0)).y;
-        expect(rect.left <= EPS || limbAtLeftEdge <= EPS, at).toBe(true);
+  it("places every breakpoint well over the hero shapes it must handle", () => {
+    for (const bp of PLATE_BREAKPOINTS) {
+      for (const aspect of ASPECTS[bp.name]!) {
+        expect(placementProblems(bp, aspect), `${bp.name} @ ${aspect}`).toEqual([]);
       }
     }
   });
 
-  it("passes the limb under the desktop copy column, not through it", () => {
+  it("passes the limb under the copy column, not through it, on wide desktop heroes", () => {
     // The copy column is the left 40% (44vw, capped at 620 px); its last line sits about 0.25 H up.
-    for (const aspect of [1.9, 1.94, 2, 2.4]) {
-      const rect = plateRect(plateBreakpointFor(1475).symbol, aspect);
-      const { u } = { u: (aspect * 0.4 - rect.left) / rect.width };
-      const limb = u < 0 ? -Infinity : plateToHero(rect, u, horizonV(u)).y;
-      expect(limb, `@ ${aspect}`).toBeLessThan(0.26);
+    for (const [name, aspects] of [
+      ["desktop", [1.94, 2, 2.1]],
+      ["wide", [2.2, 2.33]],
+    ] as const) {
+      for (const aspect of aspects) {
+        const rect = plateRect(byName(name).symbol, aspect);
+        const u = (aspect * 0.4 - rect.left) / rect.width;
+        const limb = u < 0 ? -Infinity : plateToHero(rect, u, horizonV(u)).y;
+        expect(limb, `${name} @ ${aspect}`).toBeLessThan(0.26);
+      }
     }
   });
 
-  it("puts the symbol's centre on its target", () => {
+  it("puts the emblem's centre on its target", () => {
     const target = { right: 0.5, bottom: 0.45, height: 0.4 };
     const rect = plateRect(target, 2);
     const centre = plateToHero(rect, LANDMARKS.symbol.u, LANDMARKS.symbol.v);
@@ -67,11 +133,11 @@ describe("plateRect", () => {
     expect(centre.y).toBeCloseTo(0.45, 9);
   });
 
-  it("draws the symbol at its target height unless covering the hero needs more", () => {
+  it("draws the emblem at its target height unless covering the hero needs more", () => {
     const target = { right: 0.35, bottom: 0.48, height: 0.4 };
     const rect = plateRect(target, 1.6);
     expect(LANDMARKS.symbol.height * rect.height).toBeCloseTo(0.4, 9);
-    // A very wide hero grows the plate, and the symbol with it.
+    // A very wide hero grows the plate, and the emblem with it.
     expect(LANDMARKS.symbol.height * plateRect(target, 3).height).toBeGreaterThan(0.4);
   });
 
@@ -80,34 +146,40 @@ describe("plateRect", () => {
     expect(rect.width / rect.height).toBeCloseTo(PLATE_ASPECT, 9);
     expect(PLATE_ASPECT).toBeCloseTo(1659 / 948, 9);
   });
+
+  it("gives wider heroes a larger emblem", () => {
+    const heights = ["desktop", "wide", "ultrawide"].map((name) => byName(name).symbol.height);
+    expect(heights[1]).toBeGreaterThan(heights[0]!);
+    expect(heights[2]).toBeGreaterThan(heights[1]!);
+  });
 });
 
-describe("cloud symbol and cyclone", () => {
-  it("keep the symbol wholly on screen and on the planet", () => {
-    for (const { minWidth } of PLATE_BREAKPOINTS) {
-      for (const aspect of ASPECTS[minWidth]!) {
-        const box = symbolBox(aspect, minWidth);
-        expect(box.left, `${minWidth} @ ${aspect}`).toBeGreaterThan(0);
-        expect(box.right, `${minWidth} @ ${aspect}`).toBeLessThan(aspect);
-        expect(box.bottom, `${minWidth} @ ${aspect}`).toBeGreaterThan(0);
-        expect(box.top, `${minWidth} @ ${aspect}`).toBeLessThan(1);
-      }
+describe("resolution matrix", () => {
+  it("works for every common window, from phones to 32:9", () => {
+    for (const [width, height] of RESOLUTIONS) {
+      const bp = plateBreakpointFor(width, height);
+      const aspect = width / (height + (width < 768 ? 28 : 36));
+      expect(placementProblems(bp, aspect), `${width} x ${height} (${bp.name}, ${aspect.toFixed(2)})`).toEqual([]);
     }
   });
 
-  it("keep the symbol out of the desktop copy column (the left 45%)", () => {
-    for (const aspect of ASPECTS[1024]!) expect(symbolBox(aspect, 1024).left).toBeGreaterThan(aspect * 0.45);
+  it("picks the breakpoint each kind of window is meant to get", () => {
+    expect(plateBreakpointFor(390, 844).name).toBe("phone");
+    expect(plateBreakpointFor(820, 1180).name).toBe("tablet");
+    expect(plateBreakpointFor(915, 412).name).toBe("landscape phone");
+    expect(plateBreakpointFor(1024, 768).name).toBe("desktop");
+    expect(plateBreakpointFor(1920, 1080).name).toBe("desktop");
+    expect(plateBreakpointFor(1280, 600).name).toBe("desktop");
+    expect(plateBreakpointFor(2560, 1080).name).toBe("wide");
+    expect(plateBreakpointFor(3440, 1440).name).toBe("wide");
+    expect(plateBreakpointFor(5120, 1440).name).toBe("ultrawide");
   });
+});
 
-  it("keep the symbol below the copy on phones and tablets (the top 45%)", () => {
-    for (const minWidth of [0, 640]) {
-      for (const aspect of ASPECTS[minWidth]!) expect(symbolBox(aspect, minWidth).top).toBeLessThan(0.55);
-    }
-  });
-
+describe("cloud emblem and cyclone", () => {
   it("keep the cyclone's eye on screen on desktop", () => {
-    for (const aspect of ASPECTS[1024]!) {
-      const rect = plateRect(plateBreakpointFor(1475).symbol, aspect);
+    for (const aspect of ASPECTS.desktop!) {
+      const rect = plateRect(byName("desktop").symbol, aspect);
       const eye = plateToHero(rect, LANDMARKS.cyclone.u, LANDMARKS.cyclone.v);
       expect(eye.x).toBeLessThan(aspect);
       expect(eye.y).toBeLessThan(1);
@@ -117,7 +189,7 @@ describe("cloud symbol and cyclone", () => {
 
 describe("coordinates", () => {
   it("map hero points to the plate and back", () => {
-    const rect = plateRect(plateBreakpointFor(1475).symbol, 2);
+    const rect = plateRect(byName("desktop").symbol, 2);
     const { u, v } = heroToPlate(rect, 1.2, 0.3);
     const back = plateToHero(rect, u, v);
     expect(back.x).toBeCloseTo(1.2, 9);
@@ -125,7 +197,7 @@ describe("coordinates", () => {
   });
 
   it("put the hero's top-left corner in the sky on desktop", () => {
-    const rect = plateRect(plateBreakpointFor(1475).symbol, 2);
+    const rect = plateRect(byName("desktop").symbol, 2);
     const { u, v } = heroToPlate(rect, 0, 1);
     expect(v < 0 || horizonDistance(u, v) < 0).toBe(true);
   });
@@ -136,11 +208,23 @@ describe("coordinates", () => {
 });
 
 describe("plateBreakpointFor", () => {
-  it("picks the widest breakpoint at or below the width", () => {
-    expect(plateBreakpointFor(390).minWidth).toBe(0);
-    expect(plateBreakpointFor(640).minWidth).toBe(640);
-    expect(plateBreakpointFor(1023).minWidth).toBe(640);
-    expect(plateBreakpointFor(1024).minWidth).toBe(1024);
+  it("picks the last breakpoint that matches, skipping the aspect ones without a height", () => {
+    expect(plateBreakpointFor(390).name).toBe("phone");
+    expect(plateBreakpointFor(640).name).toBe("tablet");
+    expect(plateBreakpointFor(1023).name).toBe("tablet");
+    // Every breakpoint from desktop up needs a landscape window, so width alone stops at the tablet.
+    expect(plateBreakpointFor(5120).name).toBe("tablet");
+  });
+
+  it("uses the aspect when it has a height", () => {
+    expect(plateBreakpointFor(1023, 1023 / 1.6).name).toBe("landscape phone");
+    expect(plateBreakpointFor(1023, 1023 / 1.59).name).toBe("tablet");
+    expect(plateBreakpointFor(2200, 1000).name).toBe("wide");
+    expect(plateBreakpointFor(2900, 1000).name).toBe("ultrawide");
+    // A large tablet held upright keeps the tablet layout; a phone on its side narrower than 640 px stays a phone.
+    expect(plateBreakpointFor(1024, 1366).name).toBe("tablet");
+    expect(plateBreakpointFor(1366, 1024).name).toBe("desktop");
+    expect(plateBreakpointFor(600, 300).name).toBe("phone");
   });
 });
 
@@ -153,12 +237,25 @@ describe("plateLayoutCss", () => {
     }
   });
 
-  it("writes each breakpoint's symbol target, the first without a media query", () => {
+  it("writes each breakpoint's emblem target in cascade order, the first without a media query", () => {
     expect(css.match(/@media/g)).toHaveLength(PLATE_BREAKPOINTS.length - 1);
-    for (const { minWidth, symbol } of PLATE_BREAKPOINTS) {
+    let from = 0;
+    for (const bp of PLATE_BREAKPOINTS) {
+      const { symbol } = bp;
       const rule = `.x{--plate-symbol-right:${symbol.right};--plate-symbol-bottom:${symbol.bottom};--plate-symbol-height:${symbol.height}}`;
-      expect(css).toContain(minWidth === 0 ? rule : `@media (min-width:${minWidth}px){${rule}}`);
+      const query = plateMediaQuery(bp);
+      const block = query ? `@media ${query}{${rule}}` : rule;
+      const at = css.indexOf(block, from);
+      expect(at, bp.name).toBeGreaterThanOrEqual(from);
+      from = at + block.length;
     }
+  });
+
+  it("writes the aspect as an integer ratio", () => {
+    expect(plateMediaQuery({ name: "t", minWidth: 1024, minAspect: 2.2, symbol: byName("desktop").symbol })).toBe(
+      "(min-width:1024px) and (min-aspect-ratio:2200/1000)",
+    );
+    expect(plateMediaQuery(byName("phone"))).toBe("");
   });
 
   it("compares the same lengths as plateRect(), the two left-edge options with min()", () => {
