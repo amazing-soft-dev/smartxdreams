@@ -2,7 +2,7 @@
 
 The Home hero's backdrop, split along the planet's oval limb:
 
-- **Outside the limb (the sky):** the starfield of the Framer reference, recreated in `src/components/sky` (see [sky.md](sky.md)). It never reacts to the pointer.
+- **Outside the limb (the sky):** the starfield of the Framer reference, recreated in `src/components/sky` (see [sky.md](sky.md)), with only the painted atmosphere (rim, sunrise, high streaks) crossing the limb into it. It never reacts to the pointer.
 - **Inside the limb (the Earth):** the painted Earth plate (`public/brand/earth`, the Cloud-Formed Emblem art, with the SmartxDreams emblem in its clouds), animated as on generalcontextlabs.com: a slow drift, weather bands and a turning cyclone, and a fluid wake where a mouse moves over the planet, and only there.
 
 Code lives in `src/components/earth`; the shared WebGL helpers are in `src/components/webgl`.
@@ -95,8 +95,18 @@ The emblem is about 1.8 times as wide as it is tall, so at 0.3 H it spans about 
 `EarthScene` draws the painted plate in one full-screen pass. Every pixel is mapped into the plate with `uPlateRect` (from `plateRect()` for the breakpoint in force) and measured against the limb with the same cubic as `plate.ts`, generated into the GLSL from `HORIZON`:
 
 - **On the planet:** the plate's colour, sampled where the motion says.
-- **Just outside the limb** (`GLOW_BAND`, 0.06 plate heights): only the painted atmosphere glow, with its brightness as coverage (the painted sky is black), fading out across the band. This also drops the painted stars beyond it.
+- **Just outside the limb** (`GLOW_BAND`, 0.12 plate heights): only the painted atmosphere glow (see [The limb between sky and Earth](#the-limb-between-sky-and-earth)), fading out across the band. This also drops the painted stars beyond it.
 - **Elsewhere**, and until the texture has loaded: `uSky`, which is transparent, so the starfield sky in the fallback underneath shows through.
+
+### The limb between sky and Earth
+
+The hero is split along the planet's round limb: the Framer starfield on the start side, the Earth on the end side. What crosses the limb into the sky is only the painted atmosphere: the bright cyan rim and its halo, the sunrise, and the thin streaks of high cloud the art paints over the limb between the sunrise and the cyclone.
+
+- **Coverage** (`glowCoverage()` in `plate.ts`, and the same in the shader): the painted sky is navy, near 0 in red and under 0.1 in green away from the planet, and only its blue rises in the haze over the rim. The rim (0.35-0.45 within 12 px), the sunrise (0.6-0.75) and the streaks (about 0.25 at 40 px out) are bright in red or green. So the glow's coverage is how far the brighter of red and green rises above `SKY_FLOOR` (0.1), opaque at `SKY_FLOOR + GLOW_RISE` (0.45). Counting blue too, as a black-sky plate allowed, would lay the navy haze over the starfield as a veil.
+- **Band** (`glowFade()`): kept whole within `GLOW_EDGE` (0.008) of the limb, faded out by `GLOW_BAND` (0.12), far enough for the streaks, which reach about 0.115.
+- **Colour:** as painted, at that coverage (premultiplied over the transparent sky), so the sky beneath shows through the thin parts.
+
+The CSS fallback masks its glow canvas on the CPU with the same two functions (`maskGlow()` in `glow-mask.ts`), so with the scene's canvas hidden the limb is the same. `glow-mask.test.ts` and `plate-shader.test.ts` check the navy sky gets no glow, the rim and streaks do, the fade, and that the shader carries the same constants.
 
 The texture is the narrowest WebP variant that covers the plate's device pixels (DPR capped at 2); a resize that needs more loads a sharper one. It is sampled as stored, without mipmaps or colour conversion. The canvas fades in over 700 ms once the plate is on screen.
 
@@ -135,7 +145,7 @@ What shows without WebGL, and under the scene everywhere:
 - **Sky:** `<StarfieldSky />`, filling the hero.
 - **Plate:** two canvases, placed by `plateLayoutCss()` (`plateRect()` in CSS, container query units), into which the plate is drawn once it has loaded:
   - the planet: the plate clipped to the limb (`Path2D` of `horizonPath()`);
-  - the glow: the plate kept inside a soft band reaching `GLOW_BAND` above the limb, blended with `screen`: the painted sky is black, so it adds nothing, and the glow lightens the stars behind it, as the shader's brightness-as-coverage does.
+  - the glow: on a half-size canvas, the plate with each pixel's alpha set as the shader sets it outside the limb (`maskGlow()`: `glowCoverage()` times `glowFade()`), composited normally. The planet stays opaque on it, so the planet canvas's anti-aliased edge has the plate under it and the limb shows no dark seam.
 - **Variant:** `pickPlateVariant()` for the plate's device pixels (DPR capped at 2), loaded with the same CORS mode as three.js's loader, so the scene reuses the cached file. A resize that needs more loads a sharper one. The canvases never hold more pixels than the plate itself.
 
 **Why canvases, not images:** a canvas is never a Largest Contentful Paint candidate. Drawn as an `<img>`, the large decorative plate became Home's LCP on a throttled phone (3.47 s in CI, over the 2.5 s budget), taking it from the description paragraph. With canvases the paragraph is the LCP again (`e2e/vitals.spec.ts`).
