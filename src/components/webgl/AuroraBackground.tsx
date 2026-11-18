@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import { cx } from "@/lib/cx";
 import { auroraPalette } from "./aurora-palette";
 import { auroraFragmentShader, auroraVertexShader } from "./aurora-shader";
+import { createPointerTracker, pointerFollowAllowed } from "./pointer-tracker";
 import { isTopScene, SCENE_PRIORITY, setSceneVisible } from "./scene-budget";
 
 type AuroraBackgroundProps = {
@@ -22,6 +23,11 @@ type AuroraBackgroundProps = {
   fade?: number;
   /** Render at this fraction of the device resolution. The aurora is soft, so half resolution looks the same. */
   quality?: number;
+  /**
+   * Let the curtains lean toward and brighten under the cursor while it is over the aurora's parent (with
+   * a mouse or trackpad, never for touch or reduced motion).
+   */
+  followPointer?: boolean;
 };
 
 const MAX_DPR = 2;
@@ -68,6 +74,8 @@ function setup(gl: WebGLRenderingContext) {
       intensity: gl.getUniformLocation(program, "uIntensity"),
       horizon: gl.getUniformLocation(program, "uHorizon"),
       fade: gl.getUniformLocation(program, "uFade"),
+      pointer: gl.getUniformLocation(program, "uPointer"),
+      pointerStrength: gl.getUniformLocation(program, "uPointerStrength"),
     },
     dispose: () => {
       gl.deleteBuffer(buffer);
@@ -85,7 +93,7 @@ type AuroraProgram = NonNullable<ReturnType<typeof setup>>;
  * slowly through the palette in aurora-palette.ts. Decorative: aria-hidden and pointer-events none.
  * The canvas renders at `quality` x device pixel ratio (capped at 2) and follows its box with a ResizeObserver.
  * Until the first frame is drawn (and for reduced motion, no WebGL or a failed shader) a still CSS aurora
- * shows instead.
+ * shows instead. With `followPointer`, the curtains near the cursor lean toward it and brighten.
  */
 export function AuroraBackground({
   className,
@@ -94,6 +102,7 @@ export function AuroraBackground({
   ridge,
   fade = 0.3,
   quality = 0.5,
+  followPointer = false,
 }: AuroraBackgroundProps) {
   const rootRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -161,20 +170,39 @@ export function AuroraBackground({
     resizeObserver.observe(canvas);
     resize();
 
+    // The cursor, eased every frame. Listened for on the aurora's parent (the footer), since the aurora
+    // itself never takes the pointer and the links above it must keep working. Passive, and only with a
+    // mouse or trackpad.
+    const pointer = createPointerTracker();
+    const host = followPointer && pointerFollowAllowed((query) => window.matchMedia(query)) ? root.parentElement : null;
+    const onPointerMove = (event: PointerEvent) => {
+      if (event.pointerType === "touch") return;
+      const box = root.getBoundingClientRect();
+      if (box.width <= 0 || box.height <= 0) return;
+      pointer.move((event.clientX - box.left) / box.width, 1 - (event.clientY - box.top) / box.height);
+    };
+    const onPointerLeave = () => pointer.leave();
+    host?.addEventListener("pointermove", onPointerMove, { passive: true });
+    host?.addEventListener("pointerleave", onPointerLeave, { passive: true });
+
     // Animation time only advances while running, so the aurora resumes where it paused, colours included.
     let frame = 0;
     let elapsed = 0;
     let last = 0;
     let onScreen = false;
     const render = (now: number) => {
-      if (last) elapsed += now - last;
+      const dt = last ? now - last : 0;
+      elapsed += dt;
       last = now;
+      const cursor = pointer.step(dt);
       // Yield to a higher-priority visible scene (the hero): keep the last frame.
       if (scene && isTopScene("aurora")) {
         const seconds = elapsed / 1000;
         const { low, high } = auroraPalette(seconds);
         gl.uniform1f(scene.uniforms.time, seconds);
         gl.uniform1f(scene.uniforms.horizon, horizonRef.current);
+        gl.uniform2f(scene.uniforms.pointer, cursor.x, cursor.y);
+        gl.uniform1f(scene.uniforms.pointerStrength, cursor.strength);
         gl.uniform3fv(scene.uniforms.colorLow, low);
         gl.uniform3fv(scene.uniforms.colorHigh, high);
         gl.drawArrays(gl.TRIANGLES, 0, 3);
@@ -229,6 +257,8 @@ export function AuroraBackground({
 
     return () => {
       pause();
+      host?.removeEventListener("pointermove", onPointerMove);
+      host?.removeEventListener("pointerleave", onPointerLeave);
       canvas.removeEventListener("webglcontextlost", onContextLost);
       canvas.removeEventListener("webglcontextrestored", onContextRestored);
       setSceneVisible("aurora", SCENE_PRIORITY.aurora, false);
@@ -238,7 +268,7 @@ export function AuroraBackground({
       scene?.dispose();
       delete root.dataset.live;
     };
-  }, [intensity, fade, quality]);
+  }, [intensity, fade, quality, followPointer]);
 
   // The still aurora's pillars stand on the horizon line: the measured ridge once known, else `horizon`.
   const base = `var(--aurora-base, ${(1 - horizon) * 100}%)`;
