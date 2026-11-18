@@ -13,6 +13,8 @@ import {
   ProductSteps,
   ProductWaitlist,
 } from "@/components/product/ProductSections";
+import { RetiredProduct } from "@/components/product/RetiredProduct";
+import { retiredProducts } from "@/content/products/retired";
 import { productBySlug, productSlugs } from "@/content/selectors";
 import { company } from "@/content/site";
 import type { Product } from "@/content/types";
@@ -20,15 +22,34 @@ import { absoluteUrl, pageMetadata } from "@/lib/seo";
 
 type ProductPageProps = { params: Promise<{ slug: string }> };
 
-/** Every product page is generated at build time; any other slug is a 404. */
+/**
+ * Every product page is generated at build time, and so is a forwarding page for each renamed product's old
+ * slug (for the static export, which cannot redirect). Any other slug is a 404.
+ */
 export const dynamicParams = false;
 
 export function generateStaticParams() {
-  return productSlugs().map((slug) => ({ slug }));
+  return [...productSlugs(), ...Object.keys(retiredProducts)].map((slug) => ({ slug }));
+}
+
+/** The renamed product behind an old slug, with its old name. */
+function retired(slug: string): { oldName: string; product: Product } | undefined {
+  const entry = retiredProducts[slug];
+  const product = entry && productBySlug(entry.successor);
+  return entry && product ? { oldName: entry.name, product } : undefined;
 }
 
 export async function generateMetadata({ params }: ProductPageProps): Promise<Metadata> {
   const { slug } = await params;
+  const old = retired(slug);
+  if (old) {
+    // Never indexed; the canonical link tells search engines where the page lives now.
+    return {
+      title: `${old.oldName} is now ${old.product.name}`,
+      robots: { index: false, follow: true },
+      alternates: { canonical: absoluteUrl(`/products/${old.product.slug}`) },
+    };
+  }
   const product = productBySlug(slug);
   if (!product) return {};
   return pageMetadata({ title: product.seo.title, description: product.seo.description, path: `/products/${product.slug}` });
@@ -60,6 +81,8 @@ function productJsonLd(product: Product): Record<string, unknown> {
 /** One template for all six products; copy comes from src/content/products/<slug>.ts. */
 export default async function ProductPage({ params }: ProductPageProps) {
   const { slug } = await params;
+  const old = retired(slug);
+  if (old) return <RetiredProduct oldName={old.oldName} product={old.product} />;
   const product = productBySlug(slug);
   if (!product) notFound();
   return (
