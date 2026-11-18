@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
+import { AboutCredits } from "@/components/about/AboutCredits";
 import { AboutHero } from "@/components/about/AboutHero";
 import { AboutRoadmap } from "@/components/about/AboutRoadmap";
 import { AboutStats } from "@/components/about/AboutStats";
 import { AboutStory } from "@/components/about/AboutStory";
 import { AboutTeam } from "@/components/about/AboutTeam";
 import { AboutValues } from "@/components/about/AboutValues";
+import { ProductStrip } from "@/components/home/ProductStrip";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { company } from "@/content/site";
 import { absoluteUrl, pageMetadata, siteUrl } from "@/lib/seo";
@@ -37,6 +39,9 @@ export default function AboutPage() {
       <AboutValues />
       <AboutRoadmap />
       <AboutTeam />
+      {/* Where Ignivo closes its About page with its partners' logos: the products this team is building. */}
+      <ProductStrip label="What the team is building" />
+      <AboutCredits />
     </main>
   );
 }
