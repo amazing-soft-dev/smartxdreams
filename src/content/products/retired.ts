@@ -8,3 +8,8 @@ export const retiredProducts: Readonly<Record<string, { name: string; successor:
   applypilot: { name: "ApplyPilot", successor: "acorn" },
   kinly: { name: "Kinly", successor: "senioraiplans" },
 };
+
+/** The slug a product lives at now: its successor's for a retired slug, otherwise the slug itself. */
+export function currentProductSlug(slug: string): string {
+  return retiredProducts[slug]?.successor ?? slug;
+}
