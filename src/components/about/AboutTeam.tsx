@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/Button";
+import { DigitRoller } from "@/components/ui/DigitRoller";
 import { Photo } from "@/components/ui/Photo";
 import { PhotoCredits } from "@/components/ui/PhotoCredits";
 import { Section } from "@/components/ui/Section";
@@ -27,7 +28,9 @@ export function AboutTeam() {
               {aboutStats().map((stat) => (
                 <div key={stat.label} className="flex flex-col">
                   <dt className="mt-1 text-micro text-white/65">{stat.short}</dt>
-                  <dd className="order-first text-h3 leading-none">{stat.value}</dd>
+                  <dd className="order-first text-h3 leading-none">
+                    <DigitRoller value={String(stat.value)} />
+                  </dd>
                 </div>
               ))}
             </dl>
