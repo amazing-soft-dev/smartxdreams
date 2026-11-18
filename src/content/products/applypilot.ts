@@ -71,7 +71,7 @@ export const applypilot: Product = {
   disclaimer:
     "You are responsible for the accuracy of every application you submit and for following each site's terms of use.",
   photo: { slot: "product-applypilot" },
-  related: ["jobatlas"],
+  related: ["joined"],
   seo: {
     title: "ApplyPilot: fill job applications from your resume",
     description:
