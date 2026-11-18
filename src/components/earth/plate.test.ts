@@ -120,3 +120,12 @@ describe("horizonPath", () => {
     expect(path.endsWith(`L${PLATE.width} ${PLATE.height}L0 ${PLATE.height}Z`)).toBe(true);
   });
 });
+
+describe("emblem mask", () => {
+  it("is built next to the variants", async () => {
+    const { existsSync } = await import("node:fs");
+    const { EMBLEM_MASK_SRC } = await import("./plate");
+    expect(EMBLEM_MASK_SRC).toBe("/brand/earth/earth-emblem-mask.png");
+    expect(existsSync(`public${EMBLEM_MASK_SRC}`)).toBe(true);
+  });
+});
