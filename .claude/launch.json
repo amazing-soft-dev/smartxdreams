@@ -27,6 +27,15 @@
         "cd /d .worktrees\\w && set WAITLIST_SECRET=local-test-secret-not-real-0123456789abcdef&& set RESEND_API_KEY=re_local_fake_key&& set CONTACT_FROM_EMAIL=test@example.com&& set CONTACT_TO_EMAIL=team@example.com&& npx next start -p 3300"
       ],
       "port": 3300
+    },
+    {
+      "name": "hero",
+      "runtimeExecutable": "cmd",
+      "runtimeArgs": [
+        "/c",
+        "cd /d E:\\1.workspace\\1Mine\\smartxdreams-hero && npx next dev --turbopack -p 3101"
+      ],
+      "port": 3101
     }
   ]
 }
