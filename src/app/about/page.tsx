@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { AboutCredits } from "@/components/about/AboutCredits";
 import { AboutHero } from "@/components/about/AboutHero";
 import { AboutRoadmap } from "@/components/about/AboutRoadmap";
 import { AboutStats } from "@/components/about/AboutStats";
@@ -45,7 +44,6 @@ export default function AboutPage() {
       <AboutTeam />
       {/* Where Ignivo closes its About page with its partners' logos: the products this team is building. */}
       <ProductStrip label="What the team is building" />
-      <AboutCredits />
     </main>
   );
 }

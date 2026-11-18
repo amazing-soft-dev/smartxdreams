@@ -71,7 +71,7 @@ export const acorn: Product = {
   disclaimer:
     "You are responsible for the accuracy of every application you submit and for following each site's terms of use.",
   photo: { slot: "product-acorn" },
-  logo: { alt: "Acorn logo: a black letter A crossed by a brown leaf" },
+  logo: { alt: "Acorn logo: a black letter A crossed by a brown leaf", tile: { background: "#F7EFE4" } },
   related: ["joined"],
   seo: {
     title: "Acorn: fill job applications from your resume",

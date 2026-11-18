@@ -35,4 +35,40 @@ describe("product logos", () => {
     const decorative = renderToStaticMarkup(createElement(ProductLogo, { product, decorative: true }));
     expect(decorative).toMatch(/alt=""[^>]*aria-hidden="true"/);
   });
+
+  it("sits on the tile colour its product names", () => {
+    for (const product of products.filter((p) => p.logo.tile !== "none")) {
+      const tile = product.logo.tile as { background: string };
+      expect(tile.background).toMatch(/^#[0-9A-F]{6}$/);
+      const html = renderToStaticMarkup(createElement(ProductLogo, { product, size: 40 }));
+      expect(html).toContain(`background-color:${tile.background}`);
+      // Inset on the tile: the artwork is 72% of the square.
+      expect(html).toMatch(/<img[^>]*width="29"/);
+    }
+  });
+
+  it("takes a one-off tile colour from tileBackground", () => {
+    const product = products.find((p) => p.logo.tile !== "none")!;
+    const html = renderToStaticMarkup(createElement(ProductLogo, { product, tileBackground: "#123456" }));
+    expect(html).toContain("background-color:#123456");
+  });
+
+  it("draws an app-icon logo edge to edge, on no second square", () => {
+    const toothledger = products.find((p) => p.slug === "toothledger")!;
+    expect(toothledger.logo.tile).toBe("none");
+    for (const props of [{}, { tileBackground: "#FFFFFF" }]) {
+      const html = renderToStaticMarkup(createElement(ProductLogo, { product: toothledger, size: 40, ...props }));
+      expect(html).toContain('data-logo-tile="none"');
+      expect(html).not.toContain("background-color");
+      expect(html).not.toContain("ring-1");
+      expect(html).toMatch(/<img[^>]*width="40"[^>]*height="40"/);
+    }
+  });
+
+  it("still returns the bare artwork with tile={false}", () => {
+    for (const product of products) {
+      const html = renderToStaticMarkup(createElement(ProductLogo, { product, size: 20, tile: false }));
+      expect(html.startsWith("<img")).toBe(true);
+    }
+  });
 });

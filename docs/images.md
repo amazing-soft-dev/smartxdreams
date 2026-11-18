@@ -27,7 +27,7 @@ The server build resizes photos on request with the Next.js optimizer. The stati
 
 - Widths come from `widths` in `src/lib/image-config.json`: **320, 640, 1024, 1600 and 2400 px**. The build script, the loader, `npm run verify:out` and the export's `deviceSizes` all read that list, so a width is added or removed in that file only.
 - The loader serves the smallest variant at least as wide as the browser asks for, and the 2400 px one above that. A smaller original is never upscaled.
-- The 320 px variant is for small images: thumbnails such as the photo credits (64 px, so 128 px on a 2x screen) and narrow cards. Without it they would each download the 640 px file.
+- The 320 px variant is for small images: thumbnails (64 px, so 128 px on a 2x screen) and narrow cards. Without it they would each download the 640 px file.
 - `src/lib/image-loader.test.ts` covers the rounding.
 
 ## What `npm run check:images` enforces
@@ -38,9 +38,9 @@ The server build resizes photos on request with the Next.js optimizer. The stati
 
 ## Credits
 
-`<PhotoCredits />` lists every registered photo with its photographer and source. It is shown on the About page.
+The site does not show photo credits. The Unsplash and Pexels licenses do not require attribution, and the About page's credits grid was removed in #517.
 
-Each credit shows a 64 × 48 px thumbnail of the photo it credits, so readers can match a credit to a picture even when the photo lives on another page. The thumbnail is rendered by `<Photo slot={photo.slot} />` from the registry entry, so it gets the blur preview and lazy loading like any other photo. It does not count as a use for `npm run check:images` (only a literal `slot="<id>"` does), and it is hidden from screen readers: the photo's alt text belongs where the photo is used, and here the credit text is what matters.
+Each registry entry in `src/content/photos.json` still carries its `credit` (photographer, profile, photo page, license). It is provenance: `npm run check:images` requires it, and it is what the license log below is checked against. If a future photo's license asks for attribution, credit it next to the photo itself.
 
 ## License log
 

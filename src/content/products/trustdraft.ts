@@ -67,7 +67,7 @@ export const trustdraft: Product = {
     "Delete documents or the whole workspace at any time.",
   ],
   photo: { slot: "product-trustdraft" },
-  logo: { alt: "TrustDraft logo: a teal figure with raised arms inside a navy arc" },
+  logo: { alt: "TrustDraft logo: a teal figure with raised arms inside a navy arc", tile: { background: "#E3F5FA" } },
   related: ["sitelog"],
   seo: {
     title: "TrustDraft: answer security questionnaires from your own policies",

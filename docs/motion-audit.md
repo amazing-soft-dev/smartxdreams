@@ -97,14 +97,45 @@ not delayed, the left one is (Inferred: a 0.2 s offset, like the groups).
 Beemas' only "appear" animation (Framer's on-load effect, read from its appear-animation script): the
 header from opacity 0.001 and 10 px above, a spring with `duration` 2.7 and `bounce` 0.2 (Confirmed).
 
+## Page transition
+
+Ignivo's transition, captured on 2026-11-18 (#516): home → Blog via the header link, at 1440 × 900, in
+headless Chromium. The capture used CDP screencast frames 16–60 ms apart, a per-frame style sampler and a
+`history.pushState` hook. Coverage of each column was measured from the dark pixels in every frame. Times
+are from the click.
+
+| Phase | Ignivo (Confirmed) | SmartxDreams |
+|---|---|---|
+| Lead-in | ~260 ms before anything moves | none: the cover starts on the click |
+| Cover | 5 columns left to right, alternating top / bottom, ~500 ms each, ~55 ms stagger, closed ~760 ms after it starts | 500 ms, 55 ms stagger, closed at 720 ms (`PANEL_MS.in`, `STAGGER_MS.in`) |
+| Content in | logo lockup and name fade in place ~340 ms into the cover | 240 ms fade after 340 ms (`CONTENT_*`) |
+| Route swap | `pushState` under the full cover | `router.push` as the cover closes |
+| Hold | name readable ~700 ms | at least 700 ms after closing (`MIN_HOLD_MS`), longer if the route is slow (up to 1.5 s) |
+| Exit | name slides up out of its mask (~170 ms), then lockup and glow fade (~390 ms) | name up 260 ms; 120 ms in, mark and glow fade 380 ms (`LABEL_OUT_MS`, `FADE_*`) |
+| Reveal | columns carry on the way they came, ~450 ms each, ~45 ms stagger | 450 ms, 45 ms stagger (`PANEL_MS.out`, `STAGGER_MS.out`); the new page's entrance starts here (`PAGE_REVEALED`) |
+| Total | ~2.7 s click to clear page | ~2.4 s plus any route wait |
+
+- **Ease.** Column 1 covered 3, 8, 17, 34, 55, 78, 88, 96, 99 and 100 % at about 47 ms steps: a slow start,
+  fast middle and long settle. The site's `panel` ease, `cubic-bezier(.76, 0, .24, 1)`, matches it
+  (Inferred fit).
+- **Look.** Ignivo: near-black `#121214` columns, one dim radial glow in its ember orange (~60 vmin), its logo
+  lockup ~26 px tall, the name in Inter Tight 400 at 86.4 px with −0.02 em tracking. SmartxDreams, in brand
+  colours: ink `#0F1226` panels, a 70 vmin glow from violet-500 at the heart to coral-500 at the rim, the full
+  on-dark logo 28 px tall, and the name at `clamp(2.5rem, 6vw, 5.5rem)` (86.4 px at 1440).
+- **Kept from before.** Back and forward use the View Transitions cross-fade, not the panels. Reduced motion
+  skips the overlay but still moves focus to the new `h1` and announces the page. A hidden tab's stalled
+  animations are finished by a safety timer.
+- **Not captured.** Phone widths, and whether Ignivo plays its overlay on back/forward.
+
 ## Gaps
 
 - **Hover.** Arrow and card hover states on Beemas did not change under a headless pointer, so their
   timing is not measured. The site keeps its own hover motion: rolling button labels and card lifts.
 - **Page transitions.** Beemas navigates without a visible transition (Framer's default instant route
-  change, Inferred from the absence of overlay elements). The site keeps its five-panel transition.
-- **Ignivo timings** were not sampled. Its kinds are listed above for completeness; the site already
-  implements the ones it uses.
+  change, Inferred from the absence of overlay elements). The site follows Ignivo's five-column transition
+  instead (see [Page transition](#page-transition)).
+- **Ignivo timings** were not sampled, except its page transition. Its other kinds are listed above for
+  completeness; the site already implements the ones it uses.
 - Frames were sampled, not filmed.
 
 ## In code

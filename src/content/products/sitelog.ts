@@ -64,7 +64,7 @@ export const sitelog: Product = {
     },
   ],
   photo: { slot: "product-sitelog" },
-  logo: { alt: "SiteLog logo: a yellow hard hat over the word SiteLog" },
+  logo: { alt: "SiteLog logo: a yellow hard hat over the word SiteLog", tile: { background: "#FFF6D1" } },
   related: ["trustdraft"],
   seo: {
     title: "SiteLog: daily site reports from photos and a voice note",

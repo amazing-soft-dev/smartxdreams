@@ -6,13 +6,26 @@ import { Logo } from "@/components/ui/Logo";
 import { cssEase } from "@/styles/motion";
 import { routeLabel } from "./route-label";
 
-/** Panel timing: 400 ms per panel, 35 ms stagger, so the cover is closed after 540 ms. */
-const PANEL_MS = 400;
-const STAGGER_MS = 35;
+/**
+ * Panel timing, measured frame by frame on the reference transition (docs/motion-audit.md#page-transition):
+ * the cover takes 500 ms per panel with a 55 ms stagger, so it is closed after 720 ms; the reveal is a
+ * touch quicker, 450 ms per panel with a 45 ms stagger. Both on the panel ease, a slow start and long settle.
+ */
+const PANEL_MS = { in: 500, out: 450 } as const;
+const STAGGER_MS = { in: 55, out: 45 } as const;
 const PANELS = 5;
-/** The mark's entrance: it starts as the first panels land and finishes as the cover closes. */
-const MARK_DELAY_MS = 180;
-const MARK_IN_MS = 420;
+/** The lockup and the destination fade in together, readable while the last panels are still closing. */
+const CONTENT_DELAY_MS = 340;
+const CONTENT_IN_MS = 240;
+/**
+ * Least time the closed cover stays up with the destination on it, however fast the route renders: on the
+ * reference the name is readable for about 700 ms before it leaves.
+ */
+const MIN_HOLD_MS = 700;
+/** The exit: the name leaves upward; FADE_DELAY_MS in, the lockup and the glow fade; then the panels go. */
+const LABEL_OUT_MS = 260;
+const FADE_DELAY_MS = 120;
+const FADE_OUT_MS = 380;
 /** Longest we wait for the new route to render before revealing anyway. */
 const ROUTE_TIMEOUT_MS = 1500;
 /** Extra time before a stalled panel animation is forced to finish. */
@@ -39,6 +52,8 @@ export function useTransitionNav(): TransitionApi {
   return api ?? { navigate: (href: string) => router.push(href) };
 }
 
+const wait = (ms: number) => new Promise<void>((resolve) => window.setTimeout(resolve, ms));
+
 /** Even panels enter from the top, odd ones from the bottom. */
 const offscreen = (i: number, phase: "in" | "out") => {
   const fromTop = i % 2 === 0;
@@ -58,6 +73,7 @@ export function TransitionProvider({ children }: { children: ReactNode }) {
   const content = useRef<HTMLDivElement>(null);
   const label = useRef<HTMLSpanElement>(null);
   const mark = useRef<HTMLSpanElement>(null);
+  const glow = useRef<HTMLDivElement>(null);
   const announcer = useRef<HTMLDivElement>(null);
   const busy = useRef(false);
   // Resolves when the pathname changes, so the reveal waits for the new page.
@@ -129,14 +145,14 @@ export function TransitionProvider({ children }: { children: ReactNode }) {
         phase === "in"
           ? [{ transform: offscreen(i, "in") }, { transform: "translateY(0)" }]
           : [{ transform: "translateY(0)" }, { transform: offscreen(i, "out") }],
-        { duration: PANEL_MS, delay: i * STAGGER_MS, easing: ease, fill: "forwards" },
+        { duration: PANEL_MS[phase], delay: i * STAGGER_MS[phase], easing: ease, fill: "forwards" },
       ),
     );
     // Safety net: if the browser stops advancing animations (a hidden or throttled tab), jump them to
     // their end instead of leaving the overlay blocking the page.
     const safety = window.setTimeout(
       () => animations.forEach((a) => a.finish()),
-      PANEL_MS + STAGGER_MS * PANELS + SAFETY_MARGIN_MS,
+      PANEL_MS[phase] + STAGGER_MS[phase] * PANELS + SAFETY_MARGIN_MS,
     );
     return Promise.all(animations.map((a) => a.finished.catch(() => undefined))).finally(() =>
       window.clearTimeout(safety),
@@ -183,25 +199,17 @@ export function TransitionProvider({ children }: { children: ReactNode }) {
       const layer = content.current;
       if (word) word.textContent = routeLabel(url.pathname);
       const logo = mark.current;
+      const halo = glow.current;
 
-      // The mark settles in as the panels close: from 92% and transparent, on the panels' own ease, starting
-      // as the first panels land, so it is still at rest when the label rises beneath it.
-      logo?.animate(
-        [
-          { opacity: 0, transform: "scale(0.92)" },
-          { opacity: 1, transform: "scale(1)" },
-        ],
-        { duration: MARK_IN_MS, delay: MARK_DELAY_MS, easing: cssEase("panel"), fill: "forwards" },
-      );
-      // The label rises out of its mask while the panels are still closing.
-      layer?.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 260, delay: 220, fill: "forwards" });
-      word?.animate([{ transform: "translateY(110%)" }, { transform: "translateY(0)" }], {
-        duration: 380,
-        delay: 240,
+      // The lockup and the destination fade in together, in place, while the last panels are still closing.
+      layer?.animate([{ opacity: 0 }, { opacity: 1 }], {
+        duration: CONTENT_IN_MS,
+        delay: CONTENT_DELAY_MS,
         easing: cssEase("outQuint"),
         fill: "forwards",
       });
       await animatePanels("in");
+      const closedAt = performance.now();
 
       const routeChanged = new Promise<void>((resolve) => {
         routeWaiter.current = resolve;
@@ -209,30 +217,27 @@ export function TransitionProvider({ children }: { children: ReactNode }) {
       });
       router.push(href);
       await routeChanged;
-      // A moment for the new page to paint under the cover. A timer, not requestAnimationFrame, which
-      // never fires in a hidden tab.
-      await new Promise((resolve) => window.setTimeout(resolve, 32));
+      // Hold the cover until the destination has been readable for MIN_HOLD_MS, and in any case a moment
+      // for the new page to paint underneath. Timers, not requestAnimationFrame, which never fires in a
+      // hidden tab.
+      await wait(Math.max(32, MIN_HOLD_MS - (performance.now() - closedAt)));
 
-      // Label leaves upward and the layer fades, then the panels reveal the page.
+      // The exit runs in sequence, as on the reference: the name slides up out of its mask; 120 ms in, the
+      // lockup and the glow start to fade; only once they are gone do the panels carry on through.
       word?.animate([{ transform: "translateY(0)" }, { transform: "translateY(-110%)" }], {
-        duration: 260,
+        duration: LABEL_OUT_MS,
         easing: cssEase("inOutCubic"),
         fill: "forwards",
       });
-      // The mark leaves with the panels: a slight shrink inside the layer's fade.
-      logo?.animate([{ transform: "scale(1)" }, { transform: "scale(0.96)" }], {
-        duration: 260,
-        easing: cssEase("inOutCubic"),
-        fill: "forwards",
-      });
-      // The panels start moving 100 ms into the fade, so the two overlap.
-      layer?.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 200, fill: "forwards" });
-      await new Promise((resolve) => window.setTimeout(resolve, 100));
+      await wait(FADE_DELAY_MS);
+      logo?.animate([{ opacity: 0, transform: "scale(0.96)" }], { duration: FADE_OUT_MS, easing: cssEase("standard"), fill: "forwards" });
+      halo?.animate([{ opacity: 0 }], { duration: FADE_OUT_MS, easing: cssEase("standard"), fill: "forwards" });
+      await wait(FADE_OUT_MS);
       // The panels are about to leave: let the new page begin its entrance as it comes into sight.
       delete document.documentElement.dataset.pageCovered;
       window.dispatchEvent(new Event(PAGE_REVEALED));
       await animatePanels("out");
-      for (const node of [...panels(), word, layer, logo]) node?.getAnimations().forEach((a) => a.cancel());
+      for (const node of [...panels(), word, layer, logo, halo]) node?.getAnimations().forEach((a) => a.cancel());
       delete el.dataset.state;
       busy.current = false;
       arrive(url.pathname);
@@ -248,6 +253,7 @@ export function TransitionProvider({ children }: { children: ReactNode }) {
       <div ref={announcer} role="status" aria-live="polite" aria-atomic="true" className="sr-only" />
       <div
         ref={overlay}
+        data-page-transition=""
         aria-hidden="true"
         className="pointer-events-none invisible fixed inset-0 z-[100] flex data-[state=active]:pointer-events-auto data-[state=active]:visible"
       >
@@ -259,19 +265,28 @@ export function TransitionProvider({ children }: { children: ReactNode }) {
             style={{ transform: offscreen(i, "in") }}
           />
         ))}
-        {/* Destination label over a soft brand glow, shown while the panels cover the page. */}
+        {/*
+          The brand lockup and the destination over one soft glow, shown while the panels cover the page. Where
+          the reference glows in its own ember orange, the glow is the brand's: violet-500 at the heart, warming
+          to coral-500 at the rim, kept dim so the white type reads on it.
+        */}
         <div ref={content} className="absolute inset-0 flex flex-col items-center justify-center gap-5 opacity-0">
           <div
-            className="absolute top-1/2 left-1/2 size-[60vmin] -translate-1/2 rounded-full opacity-60"
-            style={{ background: "radial-gradient(closest-side, rgb(109 74 255 / 0.85), rgb(255 107 61 / 0.35) 60%, rgb(255 107 61 / 0))" }}
+            ref={glow}
+            className="absolute top-1/2 left-1/2 size-[70vmin] -translate-1/2 rounded-full"
+            style={{
+              background:
+                "radial-gradient(closest-side, rgb(109 74 255 / 0.42), rgb(109 74 255 / 0.24) 32%, rgb(182 90 158 / 0.13) 58%, rgb(255 107 61 / 0.05) 80%, rgb(255 107 61 / 0))",
+            }}
           />
-          <span ref={mark} className="relative block opacity-0">
-            <Logo variant="mark" tone="light" height={36} decorative fetchPriority="low" />
+          <span ref={mark} className="relative block">
+            <Logo variant="full" tone="light" height={28} decorative fetchPriority="low" />
           </span>
           <div className="relative overflow-hidden px-1">
             <span
               ref={label}
-              className="block translate-y-[110%] text-[clamp(2.5rem,6vw,5.5rem)] leading-[1.1] tracking-[-0.02em] text-white"
+              data-transition-label=""
+              className="block text-[clamp(2.5rem,6vw,5.5rem)] leading-[1.1] tracking-[-0.02em] text-white"
             />
           </div>
         </div>
