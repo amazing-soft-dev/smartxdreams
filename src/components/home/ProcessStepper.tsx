@@ -10,6 +10,11 @@ import { cx } from "@/lib/cx";
 
 /** The tick bar fills the content row: one tick every 7 px (2 px tick, 5 px gap), as many as fit. */
 const TICK_PITCH = 7;
+/**
+ * Width of the wave as a share of the row: the Gaussian's sigma. Three ticks of the original 40-tick bar
+ * (3 / 39), so the bump covers the same stretch of the line however many ticks fill it.
+ */
+const WAVE_SIGMA = 3 / 39;
 /** Ticks drawn before the row is measured (the server render, and the first frame). */
 const TICKS_BEFORE_MEASURE = 40;
 
@@ -30,7 +35,8 @@ export function ProcessStepper() {
   const rail = useSpring(scrollYProgress, { stiffness: 140, damping: 30, mass: 0.4 });
   const [active, setActive] = useState(0);
   // Tick bar: each tick is 8 px tall plus a Gaussian bump (up to 22 px) centred on the current progress,
-  // so a wave travels along the bar as you scroll. Heights are written directly to the DOM, not to state,
+  // so a wave travels along the bar as you scroll. The bump's width is a share of the row (WAVE_SIGMA), not a
+  // number of ticks, so it keeps its shape from 1024 px to 1920 px. Heights are written directly to the DOM, not to state,
   // so scrolling does not re-render the section 60 times a second.
   const ticks = useRef<Array<HTMLSpanElement | null>>([]);
   // How many ticks fit between the row's left edge and the step counter, measured as the row resizes.
@@ -48,10 +54,11 @@ export function ProcessStepper() {
   const paint = (p: number) => {
     const count = ticks.current.length;
     const centre = p * (count - 1);
+    const sigma = Math.max(1, WAVE_SIGMA * (count - 1));
     ticks.current.forEach((tick, i) => {
       if (!tick) return;
       const d = i - centre;
-      tick.style.height = `${8 + 22 * Math.exp(-(d * d) / 18)}px`;
+      tick.style.height = `${8 + 22 * Math.exp(-(d * d) / (2 * sigma * sigma))}px`;
       tick.style.backgroundColor = i <= centre ? "var(--color-coral-500)" : "rgb(15 18 38 / 0.18)";
     });
   };
