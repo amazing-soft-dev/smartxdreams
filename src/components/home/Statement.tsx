@@ -4,6 +4,7 @@ import { motion, useReducedMotion } from "motion/react";
 import { Fragment } from "react";
 import { Section } from "@/components/ui/Section";
 import { homeStatement } from "@/content/home";
+import { ProductLogo } from "@/components/product/ProductLogo";
 import { productBySlug } from "@/content/selectors";
 
 type Token = { kind: "word"; text: string } | { kind: "chip"; slug: string };
@@ -57,7 +58,8 @@ export function Statement() {
                         visible: { opacity: 1, scale: 1, transition: { type: "spring", bounce: 0.45, duration: 0.5 } },
                       }}
                     >
-                      <span aria-hidden="true" className="size-2 rounded-full bg-coral-500" />
+                      {/* The chip is white, so the bare logo reads without its tile. */}
+                      <ProductLogo product={product} size={20} tile={false} decorative />
                       {product.name}
                     </motion.span>{" "}
                   </Fragment>
