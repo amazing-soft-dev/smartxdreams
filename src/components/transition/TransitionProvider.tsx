@@ -10,6 +10,9 @@ import { routeLabel } from "./route-label";
 const PANEL_MS = 400;
 const STAGGER_MS = 35;
 const PANELS = 5;
+/** The mark's entrance: it starts as the first panels land and finishes as the cover closes. */
+const MARK_DELAY_MS = 180;
+const MARK_IN_MS = 420;
 /** Longest we wait for the new route to render before revealing anyway. */
 const ROUTE_TIMEOUT_MS = 1500;
 /** Extra time before a stalled panel animation is forced to finish. */
@@ -47,6 +50,7 @@ export function TransitionProvider({ children }: { children: ReactNode }) {
   const overlay = useRef<HTMLDivElement>(null);
   const content = useRef<HTMLDivElement>(null);
   const label = useRef<HTMLSpanElement>(null);
+  const mark = useRef<HTMLSpanElement>(null);
   const announcer = useRef<HTMLDivElement>(null);
   const busy = useRef(false);
   // Resolves when the pathname changes, so the reveal waits for the new page.
@@ -156,7 +160,17 @@ export function TransitionProvider({ children }: { children: ReactNode }) {
       const word = label.current;
       const layer = content.current;
       if (word) word.textContent = routeLabel(url.pathname);
+      const logo = mark.current;
 
+      // The mark settles in as the panels close: from 92% and transparent, on the panels' own ease, starting
+      // as the first panels land, so it is still at rest when the label rises beneath it.
+      logo?.animate(
+        [
+          { opacity: 0, transform: "scale(0.92)" },
+          { opacity: 1, transform: "scale(1)" },
+        ],
+        { duration: MARK_IN_MS, delay: MARK_DELAY_MS, easing: cssEase("panel"), fill: "forwards" },
+      );
       // The label rises out of its mask while the panels are still closing.
       layer?.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 260, delay: 220, fill: "forwards" });
       word?.animate([{ transform: "translateY(110%)" }, { transform: "translateY(0)" }], {
@@ -183,11 +197,17 @@ export function TransitionProvider({ children }: { children: ReactNode }) {
         easing: cssEase("inOutCubic"),
         fill: "forwards",
       });
+      // The mark leaves with the panels: a slight shrink inside the layer's fade.
+      logo?.animate([{ transform: "scale(1)" }, { transform: "scale(0.96)" }], {
+        duration: 260,
+        easing: cssEase("inOutCubic"),
+        fill: "forwards",
+      });
       // The panels start moving 100 ms into the fade, so the two overlap.
       layer?.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 200, fill: "forwards" });
       await new Promise((resolve) => window.setTimeout(resolve, 100));
       await animatePanels("out");
-      for (const node of [...panels(), word, layer]) node?.getAnimations().forEach((a) => a.cancel());
+      for (const node of [...panels(), word, layer, logo]) node?.getAnimations().forEach((a) => a.cancel());
       delete el.dataset.state;
       busy.current = false;
       arrive(url.pathname);
@@ -220,7 +240,9 @@ export function TransitionProvider({ children }: { children: ReactNode }) {
             className="absolute top-1/2 left-1/2 size-[60vmin] -translate-1/2 rounded-full opacity-60"
             style={{ background: "radial-gradient(closest-side, rgb(109 74 255 / 0.85), rgb(255 107 61 / 0.35) 60%, rgb(255 107 61 / 0))" }}
           />
-          <Logo variant="mark" tone="light" height={36} decorative className="relative" />
+          <span ref={mark} className="relative block opacity-0">
+            <Logo variant="mark" tone="light" height={36} decorative />
+          </span>
           <div className="relative overflow-hidden px-1">
             <span
               ref={label}
