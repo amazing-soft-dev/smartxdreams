@@ -144,8 +144,8 @@
       }
     },
     {
-      "slot": "product-applypilot",
-      "src": "/images/products/applypilot.jpg",
+      "slot": "product-acorn",
+      "src": "/images/products/acorn.jpg",
       "width": 2400,
       "height": 1600,
       "alt": "Close-up of hands typing on a laptop",

@@ -70,7 +70,7 @@ export const acorn: Product = {
   ],
   disclaimer:
     "You are responsible for the accuracy of every application you submit and for following each site's terms of use.",
-  photo: { slot: "product-applypilot" },
+  photo: { slot: "product-acorn" },
   related: ["joined"],
   seo: {
     title: "Acorn: fill job applications from your resume",
