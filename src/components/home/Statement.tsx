@@ -2,6 +2,7 @@
 
 import { motion, useReducedMotion } from "motion/react";
 import { Fragment } from "react";
+import { WORD_STAGGER, wordVariants } from "@/components/motion/WordReveal";
 import { Section } from "@/components/ui/Section";
 import { homeStatement } from "@/content/home";
 import { ProductLogo } from "@/components/product/ProductLogo";
@@ -18,8 +19,6 @@ function tokenize(line: string): Token[] {
 }
 
 const lines = homeStatement.map(tokenize);
-/** Seconds between words. */
-const STAGGER = 0.045;
 
 /**
  * The statement: four lines that sharpen word by word as they scroll into view (opacity 0.15 to 1 and blur
@@ -40,7 +39,7 @@ export function Statement() {
         initial={reduced ? "visible" : "hidden"}
         whileInView="visible"
         viewport={{ once: true, amount: 0.4 }}
-        transition={{ staggerChildren: STAGGER }}
+        transition={{ staggerChildren: WORD_STAGGER }}
       >
         {lines.map((tokens, li) => (
           <Fragment key={li}>
@@ -70,10 +69,7 @@ export function Statement() {
                   <motion.span
                     data-reveal=""
                     className="inline-block"
-                    variants={{
-                      hidden: { opacity: 0.15, filter: "blur(6px)" },
-                      visible: { opacity: 1, filter: "blur(0px)", transition: { duration: 0.5 } },
-                    }}
+                    variants={wordVariants}
                   >
                     {token.text}
                   </motion.span>{" "}
