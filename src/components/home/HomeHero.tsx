@@ -17,14 +17,16 @@ const targets: SelectionTarget[] = [
 
 /**
  * The Home hero, laid out like the generalcontextlabs.com hero: the copy left-aligned over the starfield sky,
- * the painted Earth with the SmartxDreams symbol in its clouds filling the right (see EarthField and
- * docs/earth.md). On phones and tablets the copy sits across the top and the planet rises below it; on phones
- * the hero keeps a band below the copy (88vw, at most 360 px) for the planet, whatever the copy's length.
+ * the painted Earth with the SmartxDreams emblem in its clouds filling the right (see EarthField and
+ * docs/earth.md). On phones and tablets (a large tablet held upright included) the copy sits across the top and
+ * the planet rises below it; on phones the hero keeps a band below the copy (88vw, at most 360 px) for the
+ * planet, whatever the copy's length. Landscape windows from 1024 px (the `desktop` variant) and phones on their
+ * side (`landscape-phone`) put the copy in a left column, the planet rising beside it.
  *
  * The hero fills the screen at every width (at least 100svh, plus the 28 or 36 px the cards band rises over it),
- * growing only if the copy needs more room, so the cards band always starts below the fold. The plate's placement handles every window shape this
- * gives, from 4:3 laptops to ultrawides. Text is the largest element on screen, so it is also the Largest
- * Contentful Paint.
+ * growing only if the copy needs more room, so the cards band always starts below the fold. The plate's
+ * placement handles every window shape this gives, from 4:3 laptops to 32:9 monitors. Text is the largest
+ * element on screen, so it is also the Largest Contentful Paint.
  */
 export function HomeHero() {
   return (
@@ -32,34 +34,43 @@ export function HomeHero() {
       aria-labelledby="home-hero-title"
       data-surface="dark"
       data-nav-theme="dark"
-      className="relative isolate flex min-h-[calc(100svh+28px)] md:min-h-[calc(100svh+36px)] items-start overflow-hidden bg-space pt-28 pb-[min(88vw,360px)] text-white md:pt-36 md:pb-16 lg:items-center lg:pt-28 lg:pb-24"
+      className="relative isolate flex min-h-[calc(100svh+28px)] md:min-h-[calc(100svh+36px)] items-start overflow-hidden bg-space pt-28 pb-[min(88vw,360px)] text-white md:pt-36 md:pb-16 desktop:items-center desktop:pt-28 desktop:pb-24 landscape-phone:items-center landscape-phone:pt-24! landscape-phone:pb-14!"
     >
       {/* The still sky and plate first; the three.js plate loads on top when the device allows it. The backdrop
           is placed against the visible hero, above the strip the cards band covers (28 px, 36 px from md); the
           plate runs on into that strip, so the band's rounded corners show it. */}
       <EarthField className="bottom-[28px] md:bottom-[36px]" />
-      {/* Desktop: a soft wash of the sky's own colour behind the copy column, so the sunrise and the glow on the
-          limb, which rise close to the description's last lines, never cut its contrast. Phones and tablets keep
-          the copy above the planet, on clear sky. */}
+      {/* Desktop and landscape phones: a soft wash of the sky's own colour behind the copy column, so the sunrise
+          and the glow on the limb, which rise close to the description's last lines, never cut its contrast.
+          Phones and tablets keep the copy above the planet, on clear sky. */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0 -z-10 hidden bg-[radial-gradient(48%_62%_at_20%_52%,rgb(7_1_23/0.7),rgb(7_1_23/0.35)_60%,rgb(7_1_23/0)_100%)] lg:block"
+        className="pointer-events-none absolute inset-0 -z-10 hidden bg-[radial-gradient(48%_62%_at_20%_52%,rgb(7_1_23/0.7),rgb(7_1_23/0.35)_60%,rgb(7_1_23/0)_100%)] desktop:block landscape-phone:block"
       />
       <Container>
-        <div className="max-w-xl lg:max-w-[min(44vw,620px)]">
+        {/* The column grows with large screens (up to 860 px from 1800 px wide), so the copy is not a small
+            block in the corner of a 1440p or 4K window. */}
+        <div className="max-w-xl desktop:max-w-[min(44vw,620px)] min-[1800px]:max-w-[min(40vw,860px)] landscape-phone:max-w-[52vw]">
           <Reveal aboveFold preset="left60" delay={0.2}>
             <Tag tone="dark">{company.tagline}</Tag>
           </Reveal>
           <Reveal aboveFold delay={0.4} className="w-full">
-            <SelectionHeadline id="home-hero-title" text={headline} targets={targets} className="mt-7 text-display md:mt-9" />
+            {/* From 1024 px the headline follows the window's height as well as its width (7.4svh), so a short
+                laptop's copy still fits above the limb, and it grows to 88 px on large screens. */}
+            <SelectionHeadline
+              id="home-hero-title"
+              text={headline}
+              targets={targets}
+              className="mt-7 text-display md:mt-9 desktop:text-[length:clamp(2.5rem,min(1.6rem+3.2vw,7.4svh),5.5rem)] landscape-phone:mt-5! landscape-phone:text-[length:clamp(1.75rem,9svh,2.5rem)]"
+            />
           </Reveal>
           <Reveal aboveFold delay={0.5}>
-            <p className="mt-5 max-w-lg text-body-l text-white/70 md:mt-6">
+            <p className="mt-5 max-w-lg text-body-l text-white/70 md:mt-6 min-[1800px]:max-w-[36rem] min-[1800px]:text-[1.3125rem] landscape-phone:mt-3! landscape-phone:text-body">
               Job searches, applications, site reports, dental bills, paperwork and security questionnaires. Each
               product does one job, shows its sources and leaves the final call to you.
             </p>
           </Reveal>
-          <Reveal aboveFold delay={0.6} className="mt-7 flex flex-wrap gap-3 md:mt-9">
+          <Reveal aboveFold delay={0.6} className="mt-7 flex flex-wrap gap-3 md:mt-9 landscape-phone:mt-5!">
             {/* Coral with ink text: 6.54:1. */}
             <Button href="/products" variant="coral" size="lg">
               Explore the products

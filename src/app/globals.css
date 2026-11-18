@@ -1,6 +1,20 @@
 @import "tailwindcss";
 
 /*
+ * A phone on its side, or a short, wide window: 640-1023 px wide and at least 1.6:1. Too short for the Home
+ * hero's copy across the top, so it gets the desktop's left column. Matches the "landscape phone" plate
+ * breakpoint in src/components/earth/plate-layout.ts.
+ */
+@custom-variant landscape-phone (@media (min-width: 640px) and (max-width: 1023.98px) and (min-aspect-ratio: 1600/1000));
+
+/*
+ * The Home hero's desktop layout (copy in a left column, the planet rising beside it): 1024 px and wider, in a
+ * landscape window. A large tablet held upright (1024 x 1366) keeps the tablet's copy across the top. Matches
+ * the "desktop" plate breakpoint.
+ */
+@custom-variant desktop (@media (min-width: 1024px) and (min-aspect-ratio: 1000/1000));
+
+/*
  * SmartxDreams design tokens. Brand colors are sampled from the logo:
  * ink #0F1226 (rounded square), violet #6D4AFF (circle), coral #FF6B3D (overlap).
  * Contrast for every pairing is in docs/design-tokens.md.

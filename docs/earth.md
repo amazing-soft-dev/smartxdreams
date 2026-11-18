@@ -20,21 +20,24 @@ Place `<EarthField />` inside a positioned container the size of the hero (on Ho
 
 ## Hero composition (`HomeHero`, `HomeCards`)
 
-The Home hero fills the screen at every width (at least 100svh plus the 28 or 36 px the cards band rises over it), so the band starts below the fold. It is laid out like the generalcontextlabs.com hero: the copy over the sky, the planet rising beside or below it, and nothing covering the SmartxDreams symbol in the clouds.
+The Home hero fills the screen at every resolution (at least 100svh plus the 28 or 36 px the cards band rises over it), so the band starts below the fold. It is laid out like the generalcontextlabs.com hero: the copy over the sky, the planet rising beside or below it, and nothing covering the SmartxDreams emblem in the clouds.
 
-| Width | Hero | Copy | Planet and symbol |
+| Window | Hero | Copy | Planet and emblem |
 |---|---|---|---|
-| under 768 px | at least the viewport; copy height plus a band of min(88vw, 360 px) below it if that is taller | across the top | rises in the band below the copy; emblem 0.14 H, low on the right |
-| 768–1023 px | at least the viewport | across the top | fills the lower half; emblem 0.3 H |
-| 1024 px and up | at least the viewport, so its shape is the window's (4:3 to ultrawide) | left column (44vw, at most 620 px), centred vertically | rises from under the copy to the right edge; emblem 0.3 H at the bottom right |
+| phone, under 640 px | at least the viewport; copy height plus a band of min(88vw, 360 px) below it if that is taller | across the top | rises in the band below the copy; emblem 0.14 H, nearly all inside the first screen |
+| tablet, 640–1023 px (and 1024 px and up held upright) | at least the viewport | across the top | fills the lower half; emblem 0.3 H |
+| landscape phone, 640–1023 px and at least 1.6:1 (`landscape-phone` variant) | at least the viewport | left column (52vw), centred, smaller headline (clamp(1.75rem, 9svh, 2.5rem)) | rises on the right; emblem 0.3 H |
+| desktop, 1024 px and up in a landscape window (`desktop` variant) | at least the viewport, so its shape is the window's (5:4 to 21:9) | left column (44vw, at most 620 px; from 1800 px, 40vw up to 860 px), centred vertically | rises from under the copy to the right edge; emblem 0.3 H, 0.34 H from 2.2:1, 0.44 H from 2.9:1 |
 
-- **Placement:** `PLATE_BREAKPOINTS` in `plate-layout.ts`. On desktop the plate sits low on the right: its left edge may start partway across the hero, since the planet along that edge is below the hero's bottom and only sky shows beside it (see [Placement](#placement-plate-layoutts)).
-- **Scrim:** on desktop a soft radial wash of the sky's colour sits behind the copy column, so the sunrise and the limb's glow never cut the description's contrast.
+- **Placement:** `PLATE_BREAKPOINTS` in `plate-layout.ts`, picked by width and aspect. On desktop the plate sits low on the right: its left edge may start partway across the hero, since the planet along that edge is below the hero's bottom and only sky shows beside it (see [Placement](#placement-plate-layoutts)).
+- **Variants:** `landscape-phone` and `desktop` are custom variants in `globals.css`, with the same media queries as the plate breakpoints of the same names, so the copy and the planet always change layout together.
+- **Type:** from 1024 px the headline is clamp(2.5rem, min(1.6rem + 3.2vw, 7.4svh), 5.5rem): it follows the window's height too, so a short laptop's copy clears the limb (44 px at 1280 × 600) and a 1440p window gets 88 px. From 1800 px the description is 21 px.
+- **Scrim:** on desktop and landscape phones a soft radial wash of the sky's colour sits behind the copy column, so the sunrise and the limb's glow never cut the description's contrast.
 - **Cards:** the six product mockups (`HeroWave`) live in `HomeCards`, a dark band right under the hero that rises over its bottom edge by exactly its corner radius (28 px, 36 px from md), like the reference's page surface, so its corners show the hero, never the page background, and the planet runs under it instead of stopping at a hard line. The backdrop is placed against the visible hero, above that strip (`EarthField` stops 28 or 36 px short of the hero's bottom), and the plate runs on into it. It declares `data-nav-theme="dark"`.
 
-`e2e/home-hero.spec.ts` checks, on desktop and mobile, that the headline, description and button never overlap the symbol, that the symbol is inside the hero and above the band, that the cards are in the band and not the hero, and that "How we build" still links to the process section. `plate-layout.test.ts` checks the placement over the hero shapes each breakpoint has to handle.
+`e2e/home-hero.spec.ts` checks, on a phone and on eleven windows from 915 × 412 and an upright 1024 × 1366 to 3440 × 1440 and 5120 × 1440, that the hero fills the screen with the band below the fold and no sideways scroll, that the emblem is on screen, above the band and clear of the headline and description; and that the button never overlaps the emblem, that the cards are in the band and not the hero, and that "How we build" still links to the process section. `plate-layout.test.ts` checks the placement over the hero shapes each breakpoint has to handle and over 24 real windows (see [Placement](#placement-plate-layoutts)).
 
-If you change the copy's length or the hero's padding, run both, and look at 375, 820 and 1475 px.
+If you change the copy's length or the hero's padding, run both, and look at 390 × 844, 915 × 412, 820 × 1180, 1280 × 600, 1475 × 830 and 2560 × 1440.
 
 ## How it loads
 
@@ -68,19 +71,24 @@ If the art changes, run both scripts, update `PLATE`, `HORIZON` and the landmark
 
 ### Placement (`plate-layout.ts`)
 
-Each breakpoint names where the cloud symbol's centre goes and how tall it is, in hero heights (H) from the bottom-left. `plateRect(target, aspect)` scales and moves the plate to put it there, then grows it about the symbol's centre just enough to cover the hero's left, right and bottom edges, so the planet is never cut off. Only the top can stay uncovered; above the plate is sky.
+Each breakpoint names where the cloud emblem's centre goes and how tall it is, in hero heights (H) from the bottom-left. `plateRect(target, aspect)` scales and moves the plate to put it there, then grows it about the emblem's centre just enough to cover the hero's left, right and bottom edges, so the planet is never cut off. Only the top can stay uncovered; above the plate is sky.
 
-| From | Emblem centre (right, bottom) | Emblem height | Copy |
-|---|---|---|---|
-| 0 px (phone) | 0.15 H, 0.1 H | 0.14 H | across the top |
-| 640 px (tablet) | 0.3 H, 0.18 H | 0.3 H | across the top |
-| 1024 px (desktop) | 0.3 H, 0.18 H | 0.3 H | left column |
+Breakpoints match by viewport width and, for some, aspect (`minAspect`, width / height), in cascade order: the last one that matches wins, in the scene (`plateBreakpointFor(innerWidth, innerHeight)`) as in the fallback's media queries (`plateMediaQuery()`).
 
-The emblem is about 1.8 times as wide as it is tall, so at 0.3 H it spans about 0.54 H.
+| Name | Matches from | Emblem centre (right, bottom) | Emblem height | Copy |
+|---|---|---|---|---|
+| phone | 0 px | 0.17 H, 0.17 H | 0.14 H | across the top |
+| tablet | 640 px | 0.3 H, 0.18 H | 0.3 H | across the top |
+| landscape phone | 640 px and 1.6:1 | 0.36 H, 0.22 H | 0.3 H | left column |
+| desktop | 1024 px and 1:1 | 0.3 H, 0.2 H | 0.3 H | left column |
+| wide | 1024 px and 2.2:1 | 0.34 H, 0.2 H | 0.34 H | left column |
+| ultrawide | 1024 px and 2.9:1 | 0.44 H, 0.3 H | 0.44 H | left column |
+
+The emblem is about 1.8 times as wide as it is tall, so at 0.3 H it spans about 0.54 H. A tablet held upright at 1024 px or wider is under 1:1, so it keeps the tablet placement and layout.
 
 `heroToPlate()` and `plateToHero()` convert between hero and plate coordinates (the pointer test and the shader use them). `plateLayoutCss(selector)` writes the same placement for the fallback, with `plateRect()` itself in CSS (`--plate-height`, `--plate-left`, `--plate-bottom`, in container query units); in Chromium it matches `plateRect()` within 0.1 px.
 
-`plate-layout.test.ts` checks every breakpoint over the hero shapes it must handle (tall phones, portrait to landscape tablets, a 1024 × 660 laptop up to an ultrawide): the plate covers the edges, the symbol is wholly on screen and on the planet, clear of the copy, and the cyclone's eye is on screen on desktop.
+`plate-layout.test.ts` runs one set of checks over the hero shapes each breakpoint must handle and over 24 real windows, from a 360 × 780 phone to a 5120 × 1440 monitor: the plate covers the edges, the emblem is wholly on screen and on the planet, out of the copy column (or below copy that runs across the top), the cyclone's eye is on screen where the copy is a column, and the limb passes under the desktop copy column. It also checks which breakpoint each kind of window gets.
 
 ## The plate scene (`plate-shader.ts`, `EarthScene.tsx`)
 
