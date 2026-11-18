@@ -231,6 +231,17 @@ describe("emblem mask", () => {
   });
 });
 
+describe("the scene's first frame", () => {
+  it("starts every motion from zero: the drift and weather are sines from t = 0, and so is the cyclone's turn", () => {
+    expect(plateFragmentShader).toContain("vec2(12.0 * sin(uTime * 0.055), 4.5 * sin(uTime * 0.043))");
+    expect(plateFragmentShader).toContain("sin(uTime * 0.22 + q.y * 3.0) - sin(q.y * 3.0)");
+    expect(plateFragmentShader).toContain(
+      "CYCLONE_TURN * sin(uTime * CYCLONE_TURN_RATE) + CYCLONE_SWAY * sin(uTime * CYCLONE_SWAY_RATE)",
+    );
+    for (const gone of ["currents(", "CURRENT_"]) expect(plateFragmentShader).not.toContain(gone);
+  });
+});
+
 describe("pointer wake", () => {
   it("pushes the clouds a few pixels at most, through a blur wider than a cell", () => {
     expect(WAKE_GAIN).toBeGreaterThan(0);
