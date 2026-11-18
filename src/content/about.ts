@@ -1,6 +1,6 @@
 /**
- * About page copy. No people, dates or numbers are named here: the studio introduces its team and
- * history only once there is something true to say.
+ * About page copy. The people themselves are listed in team.ts; numbers on the page are counted from content
+ * (selectors.ts), never written here.
  */
 export const about = {
   hero: {
@@ -35,16 +35,11 @@ export const about = {
   ],
   team: {
     title: "The *people* behind the products",
-    body: "Team profiles will appear here once the people behind each product are ready to be introduced. Until then, here is how the work is split.",
-    roles: [
-      {
-        title: "Founders",
-        body: "Choose which problems to take on, and decide when a product is ready to leave the waitlist.",
-      },
-      {
-        title: "Builders",
-        body: "Design, build and test each product, and review every claim and disclaimer before it ships.",
-      },
-    ],
+    body: "Engineers, designers and data people who build each product, test it, and check every claim before it ships.",
+    join: {
+      title: "Building with us",
+      body: "We are a small studio with one rule for every product: it prepares the work, and a person decides. If that is how you want to build, talk to us.",
+      cta: { label: "Get in touch", href: "/contact" },
+    },
   },
 } as const;
