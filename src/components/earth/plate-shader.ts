@@ -14,7 +14,18 @@
  */
 
 import { MAX_DISPLACEMENT } from "./fluid";
-import { GLOW_BAND, GLOW_EDGE, GLOW_RISE, HORIZON, LANDMARKS, PLATE, PLATE_ASPECT, SKY_FLOOR } from "./plate";
+import {
+  EMBLEM_REGION_RANGE,
+  emblemDistance,
+  GLOW_BAND,
+  GLOW_EDGE,
+  GLOW_RISE,
+  HORIZON,
+  LANDMARKS,
+  PLATE,
+  PLATE_ASPECT,
+  SKY_FLOOR,
+} from "./plate";
 
 /** A GLSL float literal: always with a decimal point, and with a sign when negative. */
 export function glslFloat(value: number): string {
@@ -67,25 +78,24 @@ export function motionPx(pxToPlate: number): number {
  *
  * It replaces curl-noise currents that warped the whole planet, coasts and land included, and bands switched on
  * in small noise patches, whose sharp edges stretched and squeezed the clouds as they slid (patches of cloud
- * changed area by up to 44% at their edges; now at most about 19%, and 3% on average).
+ * changed area by up to 44% at their edges; now at most about 15%, and 2% on average).
  * - WEATHER_BANDS: how far the bands slide, sideways and up and down, in pixels (see motionPx()); the
  *   difference of two sines doubles it at most
  * - WEATHER_RATES: their rates, radians per second (29 s and 35 s)
  * - WEATHER_WAVE: how fast the slide varies across the plate, radians per plate height
  * - WEATHER_SYSTEMS: each system's centre and size (half its extent) in plate heights, x right and y down: the
- *   cloud fields over the Pacific at the lower left, over the Atlantic coast above the Caribbean, and over the
- *   open Atlantic below the emblem. A system's strength falls off as exp(-2 d²) in its own size, so it fades
- *   out over most of its size and the slide never stops at an edge. The systems are wider than tall because
- *   the sideways slide is the larger one: a slide squeezes or stretches clouds where the system fades along
- *   it, so it fades slowly that way.
+ *   cloud fields over the Pacific at the lower left and over the open Atlantic below the emblem. (The clouds
+ *   over the Atlantic coast, beside the emblem, drift with the emblem: EMBLEM_DRIFT.) A system's strength falls
+ *   off as exp(-2 d²) in its own size, so it fades out over most of its size and the slide never stops at an
+ *   edge. The systems are wider than tall because the sideways slide is the larger one: a slide squeezes or
+ *   stretches clouds where the system fades along it, so it fades slowly that way.
  */
 export const WEATHER_BANDS = [24, 10] as const;
 export const WEATHER_RATES = [0.22, 0.18] as const;
 export const WEATHER_WAVE = 2;
 export const WEATHER_SYSTEMS = [
   { name: "pacific", x: 0.42, y: 0.85, width: 0.6, height: 0.22 },
-  { name: "coast", x: 1.16, y: 0.38, width: 0.42, height: 0.15 },
-  { name: "atlantic", x: 1.62, y: 0.8, width: 0.5, height: 0.24 },
+  { name: "atlantic", x: 1.62, y: 0.86, width: 0.5, height: 0.2 },
 ] as const;
 
 /** How strongly the weather moves the plate at (x, y), 0..1: the strongest system there. Mirrors weatherField(). */
@@ -115,6 +125,48 @@ export function weatherAt(x: number, y: number, t: number, px = MASTER_PX): { x:
   const b = weatherBands(x, y, t);
   const k = weatherField(x, y) * px;
   return { x: b.x * k, y: b.y * k };
+}
+
+/**
+ * The cloud emblem drifts, as the cloud forms on generalcontextlabs.com flow with the weather: as one rigid piece,
+ * on its own slow sines, so it moves visibly while every stroke keeps its shape. The plate near it drifts with it
+ * and fades back to the weather with distance from the strokes (the mask's green channel, emblemDistance()), so
+ * the open ocean between and around the strokes moves with the emblem and nothing tears at a stroke's edge.
+ * Read pixel by pixel instead, the weather bent the strokes apart, so until now the emblem was calmed and only
+ * followed the slow orbital drift: it looked static.
+ * - EMBLEM_DRIFT: how far it drifts, sideways and up and down, in pixels (see motionPx())
+ * - EMBLEM_DRIFT_RATES: the rates, radians per second (31 s and 42 s); sines from zero, so still at t = 0
+ * - EMBLEM_FADE: over how many plate heights from the strokes the plate fades from the emblem's drift back to the
+ *   weather (about 240 px on the master). Shorter squeezes the clouds in between; longer drags the coast of
+ *   Florida and the Carolinas, the land nearest the emblem, along with it (now under two fifths of the drift).
+ */
+export const EMBLEM_DRIFT = [16, 7] as const;
+export const EMBLEM_DRIFT_RATES = [0.2, 0.15] as const;
+export const EMBLEM_FADE = 0.25;
+
+/** How much of the plate at (x, y) drifts with the emblem, 0..1: all of it on the strokes. Mirrors emblemWhole(). */
+export function emblemWholeAt(x: number, y: number): number {
+  const s = Math.min(1, emblemDistance(x, y) / EMBLEM_FADE);
+  return 1 - s * s * (3 - 2 * s);
+}
+
+/** The emblem's drift at time t, in plate heights at `px` plate heights per pixel. Mirrors emblemDrift(). */
+export function emblemDrift(t: number, px = MASTER_PX): { x: number; y: number } {
+  return {
+    x: EMBLEM_DRIFT[0] * Math.sin(t * EMBLEM_DRIFT_RATES[0]) * px,
+    y: EMBLEM_DRIFT[1] * Math.sin(t * EMBLEM_DRIFT_RATES[1]) * px,
+  };
+}
+
+/**
+ * The slow motion at plate point (x, y) and time t without the cyclone, the orbital drift or the pointer: the
+ * weather, giving way to the emblem's drift near the emblem. Mirrors the shader's mix in sharedMotion().
+ */
+export function ambientAt(x: number, y: number, t: number, px = MASTER_PX): { x: number; y: number } {
+  const w = weatherAt(x, y, t, px);
+  const d = emblemDrift(t, px);
+  const k = emblemWholeAt(x, y);
+  return { x: w.x + (d.x - w.x) * k, y: w.y + (d.y - w.y) * k };
 }
 
 /** Motion is off within this many plate heights inside the limb, and at full strength from FULL_MOTION in. */
@@ -225,6 +277,12 @@ const float MASTER_PX = ${glslFloat(MASTER_PX)};
 const vec2 SYMBOL = vec2(${glslFloat(LANDMARKS.symbol.u * PLATE_ASPECT)}, ${glslFloat(LANDMARKS.symbol.v)});
 const vec2 SYMBOL_HALF = vec2(${glslFloat((LANDMARKS.symbol.width * PLATE_ASPECT) / 2)}, ${glslFloat(LANDMARKS.symbol.height / 2)});
 
+// The emblem's drift (see EMBLEM_* in plate-shader.ts), and the distance the mask's green channel spans.
+const vec2 EMBLEM_DRIFT = vec2(${glslFloat(EMBLEM_DRIFT[0])}, ${glslFloat(EMBLEM_DRIFT[1])});
+const vec2 EMBLEM_DRIFT_RATES = vec2(${glslFloat(EMBLEM_DRIFT_RATES[0])}, ${glslFloat(EMBLEM_DRIFT_RATES[1])});
+const float EMBLEM_FADE = ${glslFloat(EMBLEM_FADE)};
+const float EMBLEM_REGION_RANGE = ${glslFloat(EMBLEM_REGION_RANGE)};
+
 // Motion works in plate heights, x right and y down: q = (u * PLATE_ASPECT, v).
 
 // Converts screen pixels to plate heights at the current size.
@@ -237,23 +295,19 @@ vec2 orbital() {
   return vec2(12.0 * sin(uTime * 0.055), 4.5 * sin(uTime * 0.043)) * pxToPlate();
 }
 
-// The weather bands vary across the picture, so over the cloud emblem they would slowly bend it out of shape. A soft ellipse around it (with the mask, emblemWhole()) carries it whole instead.
-float symbolCalm(vec2 q) {
-  return 1.0 - smoothstep(0.85, 1.35, length((q - SYMBOL) / SYMBOL_HALF));
-}
-
-// How much of the plate at q (plate heights) is the cloud emblem, 0..1, from its soft mask. Until the mask
-// has loaded the scene holds a 1 x 1 white texture, so everything counts as emblem and nothing turns.
+// How much of the plate at q (plate heights) is the cloud emblem, 0..1, from its soft mask (red). Until the
+// mask has loaded the scene holds a 1 x 1 white texture, so everything counts as emblem and nothing turns.
 float emblemAt(vec2 q) {
   return texture2D(uEmblem, vec2(q.x / PLATE_ASPECT, 1.0 - q.y)).r;
 }
 
-// How much of the plate at q rides with the cloud emblem as one piece, 0..1: the soft ellipse around it
-// (symbolCalm), and its own strokes (the mask) where they reach past that ellipse, as the tail and the outer
-// C's ends do. The ellipse gives a wide, gentle blend over the open ocean around the emblem; the mask makes
-// sure no stroke is left half outside it.
+// How much of the plate at q drifts with the cloud emblem as one piece, 0..1: all of it on the strokes, fading
+// out over EMBLEM_FADE plate heights from them (the mask's green channel is that distance, white at
+// EMBLEM_REGION_RANGE). The placeholder's white green reads as far away, so nothing drifts with the emblem until
+// the mask has loaded. Mirrors emblemWholeAt().
 float emblemWhole(vec2 q) {
-  return max(symbolCalm(q), emblemAt(q));
+  float distance = texture2D(uEmblem, vec2(q.x / PLATE_ASPECT, 1.0 - q.y)).g * EMBLEM_REGION_RANGE;
+  return 1.0 - smoothstep(0.0, EMBLEM_FADE, distance);
 }
 
 // How strongly one weather system (centre and size) moves the plate at q: exp(-2 d^2), d in its own size.
@@ -282,9 +336,14 @@ float motionPx() {
 }
 
 // The weather at q, in plate heights: whole cloud systems sliding over the open ocean, as on the reference,
-// and the land left still. Calmed over the cloud emblem, which it would bend. Mirrors weatherAt().
+// and the land left still. Mirrors weatherAt().
 vec2 weather(vec2 q) {
-  return bands(q) * weatherField(q) * (1.0 - emblemWhole(q)) * motionPx();
+  return bands(q) * weatherField(q) * motionPx();
+}
+
+// The emblem's drift, in plate heights: one slide for the whole emblem, sines from t = 0. Mirrors emblemDrift().
+vec2 emblemDrift() {
+  return EMBLEM_DRIFT * vec2(sin(uTime * EMBLEM_DRIFT_RATES.x), sin(uTime * EMBLEM_DRIFT_RATES.y)) * motionPx();
 }
 
 // The cyclone at q: where the content comes from, relative to q. The storm is turned around its eye by an
@@ -326,23 +385,24 @@ vec2 canvasAt(vec2 q) {
   return vec2(hero.x / (uResolution.x / uResolution.y), hero.y);
 }
 
-// The wake at this pixel. Over the cloud symbol it is the wake averaged across the symbol, so the symbol is
-// carried as one piece and keeps its shape, while the clouds around it flow; the two blend over the same soft
-// ellipse that calms the weather bands.
-vec2 wake(vec2 q) {
+// The wake at this pixel. Near the cloud emblem it is the wake averaged across the emblem, so the emblem is
+// carried as one piece and keeps its shape, while the clouds around it flow; the two blend by the same weight
+// that carries the plate near the emblem with its drift (emblemWhole()), so the whole emblem, tail and outer
+// strokes included, moves together.
+vec2 wake(vec2 q, float whole) {
   vec2 local = wakeAt(vUv);
-  float calm = symbolCalm(q);
-  if (calm < 0.001) return local;
-  vec2 whole = (wakeAt(canvasAt(SYMBOL)) * 2.0
+  if (whole < 0.001) return local;
+  vec2 emblem = (wakeAt(canvasAt(SYMBOL)) * 2.0
     + wakeAt(canvasAt(SYMBOL + vec2(SYMBOL_HALF.x * 0.6, 0.0))) + wakeAt(canvasAt(SYMBOL - vec2(SYMBOL_HALF.x * 0.6, 0.0)))
     + wakeAt(canvasAt(SYMBOL + vec2(0.0, SYMBOL_HALF.y * 0.6))) + wakeAt(canvasAt(SYMBOL - vec2(0.0, SYMBOL_HALF.y * 0.6)))) / 6.0;
-  return mix(local, whole, calm);
+  return mix(local, emblem, whole);
 }
 
-// Motion that every pixel shares, whatever the cyclone does: the drift, the weather and the pointer wake.
-// Sampling against the wake moves the content along it.
+// Motion that every pixel shares, whatever the cyclone does: the orbital drift, the weather giving way to the
+// emblem's drift near the emblem, and the pointer wake. Sampling against the wake moves the content along it.
 vec2 sharedMotion(vec2 q) {
-  return orbital() + weather(q) - wake(q);
+  float whole = emblemWhole(q);
+  return orbital() + mix(weather(q), emblemDrift(), whole) - wake(q, whole);
 }
 
 // A motion delta (where the content at this pixel comes from, relative to it) made safe for the limb: off in

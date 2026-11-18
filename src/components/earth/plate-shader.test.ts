@@ -1,6 +1,19 @@
 import { describe, expect, it } from "vitest";
-import { GLOW_EDGE, GLOW_RISE, glowCoverage, glowFade, HORIZON, horizonDistance, LANDMARKS, PLATE_ASPECT, SKY_FLOOR } from "./plate";
 import {
+  EMBLEM_REGION_RANGE,
+  EMBLEM_STROKES,
+  GLOW_EDGE,
+  GLOW_RISE,
+  glowCoverage,
+  glowFade,
+  HORIZON,
+  horizonDistance,
+  LANDMARKS,
+  PLATE_ASPECT,
+  SKY_FLOOR,
+} from "./plate";
+import {
+  ambientAt,
   CALM_LIMB,
   CYCLONE_CORE,
   CYCLONE_SWAY,
@@ -10,6 +23,11 @@ import {
   cycloneAngle,
   cycloneAt,
   cycloneBody,
+  EMBLEM_DRIFT,
+  EMBLEM_DRIFT_RATES,
+  EMBLEM_FADE,
+  emblemDrift,
+  emblemWholeAt,
   FULL_MOTION,
   GLOW_BAND,
   glslFloat,
@@ -206,8 +224,9 @@ describe("weather systems", () => {
     }
   });
 
-  it("slide clouds past each other without zooming: no patch grows or shrinks by a fifth, and few by much", () => {
-    // Over the whole planet, for three minutes, on the master. The noise patches they replace reached 44%.
+  it("slide clouds past each other without zooming: no patch grows or shrinks by a sixth, and few by much", () => {
+    // Over the whole planet, for three minutes, on the master (worst about 15%, 2% on average). The noise patches
+    // they replace reached 44%.
     const motion: Motion = (x, y, t) => weatherAt(x, y, t);
     let worst = 0;
     let total = 0;
@@ -220,8 +239,8 @@ describe("weather systems", () => {
         count++;
       }
     }
-    expect(worst).toBeLessThan(0.2);
-    expect(total / count).toBeLessThan(0.06);
+    expect(worst).toBeLessThan(1 / 6);
+    expect(total / count).toBeLessThan(0.04);
   });
 
   it("move a plate drawn smaller than the master no further, for its size, than the master", () => {
@@ -242,7 +261,7 @@ describe("weather systems", () => {
       );
       expect(plateFragmentShader).toContain(`weatherSystem(q, WEATHER_SYSTEM_${i})`);
     });
-    expect(plateFragmentShader).toContain("return orbital() + weather(q) - wake(q);");
+    expect(plateFragmentShader).toContain("return bands(q) * weatherField(q) * motionPx();");
     for (const gone of ["noise3", "currents(", "CURRENT_", "patches"]) expect(plateFragmentShader).not.toContain(gone);
   });
 
@@ -253,6 +272,78 @@ describe("weather systems", () => {
     expect(plateFragmentShader).toContain(
       "CYCLONE_TURN * sin(uTime * CYCLONE_TURN_RATE) + CYCLONE_SWAY * sin(uTime * CYCLONE_SWAY_RATE)",
     );
+  });
+});
+
+describe("emblem drift", () => {
+  /** Points on the emblem's strokes: every traced point, in plate heights. */
+  const strokePoints = EMBLEM_STROKES.flatMap(({ points }) => points.map(([x, y]) => [x! * PX, y! * PX] as const));
+
+  it("starts still and drifts by tens of pixels within half a minute", () => {
+    expect(emblemDrift(0)).toEqual({ x: 0, y: 0 });
+    let widest = 0;
+    for (let t = 0; t < 30; t += 0.25) widest = Math.max(widest, Math.abs(emblemDrift(t).x) / PX);
+    expect(widest).toBeGreaterThan(14);
+    expect(widest).toBeLessThanOrEqual(EMBLEM_DRIFT[0]);
+  });
+
+  it("drifts slowly, on 31 s and 42 s sines", () => {
+    expect((2 * Math.PI) / EMBLEM_DRIFT_RATES[0]).toBeCloseTo(31.4, 1);
+    expect((2 * Math.PI) / EMBLEM_DRIFT_RATES[1]).toBeCloseTo(41.9, 1);
+  });
+
+  it("moves every stroke by the same amount at once, so the emblem keeps its shape", () => {
+    for (const t of [4, 11.3, 29, 77]) {
+      const drift = emblemDrift(t);
+      for (const [x, y] of strokePoints) {
+        expect(emblemWholeAt(x, y)).toBe(1);
+        const m = ambientAt(x, y, t);
+        expect(m.x).toBeCloseTo(drift.x, 12);
+        expect(m.y).toBeCloseTo(drift.y, 12);
+      }
+    }
+  });
+
+  it("carries the ocean beside it and lets the land go: the plains stay still, the nearest coast mostly so", () => {
+    // On the master, in pixels: the Great Plains, and the coasts of the Carolinas and of Florida.
+    expect(emblemWholeAt(713 * PX, 497 * PX)).toBe(0);
+    expect(emblemWholeAt(900 * PX, 455 * PX)).toBeLessThan(0.3);
+    expect(emblemWholeAt(853 * PX, 626 * PX)).toBeLessThan(0.4);
+    // The open ocean between the emblem's strokes moves with it.
+    expect(emblemWholeAt(1300 * PX, 470 * PX)).toBeGreaterThan(0.95);
+  });
+
+  it("blends into the weather without zooming: no patch grows or shrinks by much more than a fifth", () => {
+    // Over the whole planet, for three minutes, on the master: the weather, giving way to the drift near the emblem.
+    const motion: Motion = (x, y, t) => ambientAt(x, y, t);
+    let worst = 0;
+    let total = 0;
+    let count = 0;
+    for (let t = 0; t < 180; t += 3.1) {
+      for (let x = 0.02; x < PLATE_ASPECT; x += 0.03) {
+        for (let y = 0.02; y < 1; y += 0.03) {
+          if (horizonDistance(x / PLATE_ASPECT, y) < FULL_MOTION) continue;
+          const change = areaChange(motion, x, y, t);
+          worst = Math.max(worst, change);
+          total += change;
+          count++;
+        }
+      }
+    }
+    expect(worst).toBeLessThan(0.23);
+    expect(total / count).toBeLessThan(0.05);
+  });
+
+  it("is written into the shader, reading the distance from the mask's green channel", () => {
+    expect(plateFragmentShader).toContain(`const vec2 EMBLEM_DRIFT = vec2(${glslFloat(EMBLEM_DRIFT[0])}, ${glslFloat(EMBLEM_DRIFT[1])});`);
+    expect(plateFragmentShader).toContain(
+      `const vec2 EMBLEM_DRIFT_RATES = vec2(${glslFloat(EMBLEM_DRIFT_RATES[0])}, ${glslFloat(EMBLEM_DRIFT_RATES[1])});`,
+    );
+    expect(plateFragmentShader).toContain(`const float EMBLEM_FADE = ${glslFloat(EMBLEM_FADE)};`);
+    expect(plateFragmentShader).toContain(`const float EMBLEM_REGION_RANGE = ${glslFloat(EMBLEM_REGION_RANGE)};`);
+    expect(plateFragmentShader).toContain(".g * EMBLEM_REGION_RANGE;");
+    expect(plateFragmentShader).toContain("mix(weather(q), emblemDrift(), whole)");
+    expect(plateFragmentShader).toContain("* motionPx();\n}");
   });
 });
 
@@ -349,9 +440,10 @@ describe("pointer wake", () => {
     expect(plateFragmentShader).toContain(`const float WAKE_BLUR = ${glslFloat(WAKE_BLUR)};`);
   });
 
-  it("moves the cloud symbol as one piece: over the symbol the wake is the wake averaged across it", () => {
-    expect(plateFragmentShader).toContain("vec2 wake(vec2 q)");
-    expect(plateFragmentShader).toContain("return mix(local, whole, calm);");
-    expect(plateFragmentShader).toContain("- wake(q)");
+  it("moves the whole emblem as one piece: near it the wake is the wake averaged across it, by the drift's weight", () => {
+    expect(plateFragmentShader).toContain("vec2 wake(vec2 q, float whole)");
+    expect(plateFragmentShader).toContain("return mix(local, emblem, whole);");
+    expect(plateFragmentShader).toContain("- wake(q, whole)");
+    expect(plateFragmentShader).not.toContain("symbolCalm");
   });
 });
