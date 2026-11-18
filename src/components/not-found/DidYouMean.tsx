@@ -6,7 +6,7 @@ import { closestPath } from "@/lib/closest-path";
 
 /**
  * "Did you mean …?" for a mistyped address: the closest real page to the URL that 404ed, if any is close
- * enough to be a typo (/prodcts/kinly -> /products/kinly). Works in the static export too, because it runs
+ * enough to be a typo (/prodcts/acorns -> /products/acorn). Works in the static export too, because it runs
  * in the browser on the 404 page.
  */
 export function DidYouMean({ paths }: { paths: string[] }) {
