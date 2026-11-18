@@ -21,7 +21,7 @@ describe("imageLoader (static export)", () => {
 
   it("keeps sub-folders and swaps any photo extension for .webp", () => {
     expect(imageLoader({ src: "/images/blog/job-search.jpeg", width: 640 })).toBe("/_img/blog/job-search-640.webp");
-    expect(imageLoader({ src: "/images/products/kinly.png", width: 640 })).toBe("/_img/products/kinly-640.webp");
+    expect(imageLoader({ src: "/images/products/senioraiplans.png", width: 640 })).toBe("/_img/products/senioraiplans-640.webp");
   });
 
   it("passes non-photo sources through with the width as a query", () => {
