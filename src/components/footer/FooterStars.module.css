@@ -1,0 +1,49 @@
+/* The footer sky's drifting stars. Each layer is one round star-sized element; its box-shadow list paints
+   every star in the tile, and every shadow takes the element's round shape. The layer scrolls up one tile
+   height and its ::after copy, one tile lower, fills in behind it, so the loop has no seam. */
+
+.sky {
+  position: absolute;
+  inset: 0;
+  z-index: -10;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  border-radius: 50%;
+  background: transparent;
+  will-change: transform;
+  animation: drift var(--star-duration) linear infinite;
+}
+
+.layer::after {
+  content: "";
+  position: absolute;
+  top: var(--star-tile-height);
+  left: 0;
+  width: inherit;
+  height: inherit;
+  border-radius: inherit;
+  box-shadow: inherit;
+}
+
+@keyframes drift {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(calc(var(--star-tile-height) * -1));
+  }
+}
+
+/* The global reduced-motion rule shortens every animation to one 0.01 ms run, which with no fill mode leaves
+   each layer at its start: a still sky. This only removes the compositing hint. */
+@media (prefers-reduced-motion: reduce) {
+  .layer {
+    will-change: auto;
+  }
+}
