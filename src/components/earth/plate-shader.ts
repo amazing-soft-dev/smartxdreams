@@ -14,7 +14,7 @@
  */
 
 import { MAX_DISPLACEMENT } from "./fluid";
-import { GLOW_BAND, GLOW_EDGE, GLOW_RISE, HORIZON, LANDMARKS, PLATE_ASPECT, SKY_FLOOR } from "./plate";
+import { GLOW_BAND, GLOW_EDGE, GLOW_RISE, HORIZON, LANDMARKS, PLATE, PLATE_ASPECT, SKY_FLOOR } from "./plate";
 
 /** A GLSL float literal: always with a decimal point, and with a sign when negative. */
 export function glslFloat(value: number): string {
@@ -48,108 +48,73 @@ float horizonDistance(vec2 uv) {
 }
 `;
 
-/** Value noise in 3D, for static patches of weather. */
-export const noiseChunk = /* glsl */ `
-float hash13(vec3 p) {
-  p = fract(p * 0.1031);
-  p += dot(p, p.zyx + 31.32);
-  return fract((p.x + p.y) * p.z);
-}
-
-float noise3(vec3 p) {
-  vec3 i = floor(p);
-  vec3 f = fract(p);
-  f = f * f * (3.0 - 2.0 * f);
-  return mix(
-    mix(mix(hash13(i), hash13(i + vec3(1.0, 0.0, 0.0)), f.x),
-        mix(hash13(i + vec3(0.0, 1.0, 0.0)), hash13(i + vec3(1.0, 1.0, 0.0)), f.x), f.y),
-    mix(mix(hash13(i + vec3(0.0, 0.0, 1.0)), hash13(i + vec3(1.0, 0.0, 1.0)), f.x),
-        mix(hash13(i + vec3(0.0, 1.0, 1.0)), hash13(i + vec3(1.0, 1.0, 1.0)), f.x), f.y),
-    f.z);
-}
-`;
-
-const fract = (x: number) => x - Math.floor(x);
-
-/** The shader's hash13(), in JavaScript. GLSL works in 32-bit floats, so the two agree in kind, not digit for digit. */
-export function hash13(x: number, y: number, z: number): number {
-  let px = fract(x * 0.1031);
-  let py = fract(y * 0.1031);
-  let pz = fract(z * 0.1031);
-  const d = px * (pz + 31.32) + py * (py + 31.32) + pz * (px + 31.32);
-  px += d;
-  py += d;
-  pz += d;
-  return fract((px + py) * pz);
-}
-
-/** The shader's noise3(), in JavaScript: smooth value noise, 0..1. */
-export function noise3(x: number, y: number, z: number): number {
-  const ix = Math.floor(x);
-  const iy = Math.floor(y);
-  const iz = Math.floor(z);
-  const s = (t: number) => t * t * (3 - 2 * t);
-  const fx = s(x - ix);
-  const fy = s(y - iy);
-  const fz = s(z - iz);
-  const mix = (a: number, b: number, t: number) => a + (b - a) * t;
-  const h = (dx: number, dy: number, dz: number) => hash13(ix + dx, iy + dy, iz + dz);
-  return mix(
-    mix(mix(h(0, 0, 0), h(1, 0, 0), fx), mix(h(0, 1, 0), h(1, 1, 0), fx), fy),
-    mix(mix(h(0, 0, 1), h(1, 0, 1), fx), mix(h(0, 1, 1), h(1, 1, 1), fx), fy),
-    fz,
-  );
+/**
+ * Plate heights per screen pixel for motion sized in pixels: screen pixels, but never more than a pixel of the
+ * master, so a plate drawn smaller than the master (on a phone) is moved no further, for its size, than the
+ * master is. Mirrors the shader's motionPx(); `pxToPlate` is plate heights per screen pixel at the current size.
+ */
+export const MASTER_PX = 1 / PLATE.height;
+export function motionPx(pxToPlate: number): number {
+  return Math.min(pxToPlate, MASTER_PX);
 }
 
 /**
- * Ambient currents: with no pointer, the clouds still flow, along broad curling currents that drift slowly
- * across the planet, as on the reference. The plate is displaced by the curl of a smooth noise field (a stream
- * function), so the flow is divergence-free: clouds swirl and stream past one another without piling up or
- * thinning out. The field drifts across the planet and slowly changes, so the currents travel and turn; the
- * displacement is bounded, so after minutes nothing has smeared, and a single sample needs no crossfade.
- * - CURRENT_SCALE: noise cells per plate height (broad currents, a few across the planet)
- * - CURRENT_DRIFT: how fast the field travels across the planet, noise cells per second (x, y down)
- * - CURRENT_EVOLVE: how fast it changes in place, noise cells per second
- * - CURRENT_STRENGTH: displacement per unit of curl; the curl of this noise peaks near 2.7, so the currents
- *   move the plate up to about 0.013 plate heights (12-13 px on the master), about 4 px on average
- * - CURRENT_STEP: the finite-difference step for the curl, plate heights
+ * Weather systems: as on generalcontextlabs.com, the clouds move as whole systems over the open ocean, where the
+ * painted clouds are thickest, and the land stays put. In each system the plate slides as bands: the sideways
+ * slide varies with height and the up-and-down slide with x, so neighbouring bands shear past one another and
+ * the clouds stream rather than stretch. Each slide is a difference of sines from t = 0, so it starts at zero
+ * and stays bounded.
+ *
+ * It replaces curl-noise currents that warped the whole planet, coasts and land included, and bands switched on
+ * in small noise patches, whose sharp edges stretched and squeezed the clouds as they slid (patches of cloud
+ * changed area by up to 44% at their edges; now at most about 19%, and 3% on average).
+ * - WEATHER_BANDS: how far the bands slide, sideways and up and down, in pixels (see motionPx()); the
+ *   difference of two sines doubles it at most
+ * - WEATHER_RATES: their rates, radians per second (29 s and 35 s)
+ * - WEATHER_WAVE: how fast the slide varies across the plate, radians per plate height
+ * - WEATHER_SYSTEMS: each system's centre and size (half its extent) in plate heights, x right and y down: the
+ *   cloud fields over the Pacific at the lower left, over the Atlantic coast above the Caribbean, and over the
+ *   open Atlantic below the emblem. A system's strength falls off as exp(-2 d²) in its own size, so it fades
+ *   out over most of its size and the slide never stops at an edge. The systems are wider than tall because
+ *   the sideways slide is the larger one: a slide squeezes or stretches clouds where the system fades along
+ *   it, so it fades slowly that way.
  */
-export const CURRENT_SCALE = 2.2;
-export const CURRENT_DRIFT = [0.05, 0.015] as const;
-export const CURRENT_EVOLVE = 0.04;
-export const CURRENT_STRENGTH = 0.005;
-export const CURRENT_STEP = 0.02;
+export const WEATHER_BANDS = [24, 10] as const;
+export const WEATHER_RATES = [0.22, 0.18] as const;
+export const WEATHER_WAVE = 2;
+export const WEATHER_SYSTEMS = [
+  { name: "pacific", x: 0.42, y: 0.85, width: 0.6, height: 0.22 },
+  { name: "coast", x: 1.16, y: 0.38, width: 0.42, height: 0.15 },
+  { name: "atlantic", x: 1.62, y: 0.8, width: 0.5, height: 0.24 },
+] as const;
 
-/**
- * Seconds over which the currents grow from nothing when the scene starts. Every other motion is zero at its
- * first frame (the drift, the weather and the cyclone's turn are sines from zero, the wake is still), so the scene's first frame is the still plate the CSS fallback shows underneath, and it fades in
- * without a jump. The currents' field is not zero at any time, so they ease in instead.
- */
-export const CURRENT_EASE_IN = 4;
-
-/** How much of the currents is in force `t` seconds after the scene started (0..1). Mirrors the shader. */
-export function currentEase(t: number): number {
-  const x = Math.min(1, Math.max(0, t / CURRENT_EASE_IN));
-  return x * x * (3 - 2 * x);
+/** How strongly the weather moves the plate at (x, y), 0..1: the strongest system there. Mirrors weatherField(). */
+export function weatherField(x: number, y: number): number {
+  let most = 0;
+  for (const s of WEATHER_SYSTEMS) {
+    const dx = (x - s.x) / s.width;
+    const dy = (y - s.y) / s.height;
+    most = Math.max(most, Math.exp(-2 * (dx * dx + dy * dy)));
+  }
+  return most;
 }
 
-/** The stream function at plate point (x, y) and time t. Mirrors the shader's stream(). */
-export function currentStream(x: number, y: number, t: number): number {
-  return noise3(x * CURRENT_SCALE - CURRENT_DRIFT[0] * t, y * CURRENT_SCALE - CURRENT_DRIFT[1] * t, t * CURRENT_EVOLVE);
-}
-
-/**
- * The currents at plate point (x, y) and time t: where the content comes from, relative to the point, in plate
- * heights. The curl of the stream function, by central differences, eased in over the scene's first seconds.
- * Mirrors the shader's currents().
- */
-export function currentsAt(x: number, y: number, t: number): { x: number; y: number } {
-  const e = CURRENT_STEP;
-  const k = (CURRENT_STRENGTH / (2 * e)) * currentEase(t);
+/** The bands' slide at (x, y) and time t, in pixels, before any system's strength. Mirrors bands(). */
+export function weatherBands(x: number, y: number, t: number): { x: number; y: number } {
   return {
-    x: (currentStream(x, y + e, t) - currentStream(x, y - e, t)) * k,
-    y: (currentStream(x - e, y, t) - currentStream(x + e, y, t)) * k,
+    x: WEATHER_BANDS[0] * (Math.sin(t * WEATHER_RATES[0] + y * WEATHER_WAVE) - Math.sin(y * WEATHER_WAVE)),
+    y: WEATHER_BANDS[1] * (Math.sin(t * WEATHER_RATES[1] + x * WEATHER_WAVE) - Math.sin(x * WEATHER_WAVE)),
   };
+}
+
+/**
+ * The weather at plate point (x, y) and time t: where the content comes from, relative to the point, in plate
+ * heights, at `px` plate heights per pixel (the master by default). Mirrors weather(), without the emblem.
+ */
+export function weatherAt(x: number, y: number, t: number, px = MASTER_PX): { x: number; y: number } {
+  const b = weatherBands(x, y, t);
+  const k = weatherField(x, y) * px;
+  return { x: b.x * k, y: b.y * k };
 }
 
 /** Motion is off within this many plate heights inside the limb, and at full strength from FULL_MOTION in. */
@@ -228,7 +193,6 @@ uniform sampler2D uEmblem;  // the cloud emblem's mask over the plate (earth-emb
 varying vec2 vUv;
 
 ${horizonChunk}
-${noiseChunk}
 
 const float GLOW_BAND = ${glslFloat(GLOW_BAND)};
 const float GLOW_EDGE = ${glslFloat(GLOW_EDGE)};
@@ -249,13 +213,13 @@ const float CYCLONE_SWAY = ${glslFloat(CYCLONE_SWAY)};
 const float CYCLONE_SWAY_RATE = ${glslFloat(CYCLONE_SWAY_RATE)};
 const float CYCLONE_CORE = ${glslFloat(CYCLONE_CORE)};
 
-// The ambient currents (see CURRENT_* in plate-shader.ts).
-const float CURRENT_SCALE = ${glslFloat(CURRENT_SCALE)};
-const vec2 CURRENT_DRIFT = vec2(${glslFloat(CURRENT_DRIFT[0])}, ${glslFloat(CURRENT_DRIFT[1])});
-const float CURRENT_EVOLVE = ${glslFloat(CURRENT_EVOLVE)};
-const float CURRENT_STRENGTH = ${glslFloat(CURRENT_STRENGTH)};
-const float CURRENT_STEP = ${glslFloat(CURRENT_STEP)};
-const float CURRENT_EASE_IN = ${glslFloat(CURRENT_EASE_IN)};
+// The weather systems (see WEATHER_* in plate-shader.ts): how far and how fast the bands slide, and each
+// system's centre and size (half its extent), in plate heights.
+const vec2 WEATHER_BANDS = vec2(${glslFloat(WEATHER_BANDS[0])}, ${glslFloat(WEATHER_BANDS[1])});
+const vec2 WEATHER_RATES = vec2(${glslFloat(WEATHER_RATES[0])}, ${glslFloat(WEATHER_RATES[1])});
+const float WEATHER_WAVE = ${glslFloat(WEATHER_WAVE)};
+${WEATHER_SYSTEMS.map((s, i) => `const vec4 WEATHER_SYSTEM_${i} = vec4(${[s.x, s.y, s.width, s.height].map(glslFloat).join(", ")}); // ${s.name}`).join("\n")}
+const float MASTER_PX = ${glslFloat(MASTER_PX)};
 
 // The cloud symbol's centre and half-size, in plate heights (plate.ts).
 const vec2 SYMBOL = vec2(${glslFloat(LANDMARKS.symbol.u * PLATE_ASPECT)}, ${glslFloat(LANDMARKS.symbol.v)});
@@ -268,16 +232,12 @@ float pxToPlate() {
   return 1.0 / (uResolution.y * uPlateRect.w);
 }
 
-// The slow movement of the globe and its weather, in plate heights; zero at t = 0. As on the reference:
-// a shared orbital drift, small at every size, and weather bands sliding across the oceans, strongest in a
-// few static patches of weather. Broad and coherent, never tied to pixel brightness, which would tear the
-// painted coasts and clouds.
+// The slow drift of the whole globe, in plate heights, small at every size; zero at t = 0, as on the reference.
 vec2 orbital() {
   return vec2(12.0 * sin(uTime * 0.055), 4.5 * sin(uTime * 0.043)) * pxToPlate();
 }
 
-// The weather bands and the currents vary across the picture, so over the cloud emblem they would slowly bend it
-// out of shape. A soft ellipse around it (with the mask, emblemWhole()) carries it whole instead.
+// The weather bands vary across the picture, so over the cloud emblem they would slowly bend it out of shape. A soft ellipse around it (with the mask, emblemWhole()) carries it whole instead.
 float symbolCalm(vec2 q) {
   return 1.0 - smoothstep(0.85, 1.35, length((q - SYMBOL) / SYMBOL_HALF));
 }
@@ -296,25 +256,35 @@ float emblemWhole(vec2 q) {
   return max(symbolCalm(q), emblemAt(q));
 }
 
+// How strongly one weather system (centre and size) moves the plate at q: exp(-2 d^2), d in its own size.
+float weatherSystem(vec2 q, vec4 system) {
+  vec2 d = (q - system.xy) / system.zw;
+  return exp(-2.0 * dot(d, d));
+}
+
+// How strongly the weather moves the plate at q, 0..1: the strongest system there. Mirrors weatherField().
+float weatherField(vec2 q) {
+  return ${WEATHER_SYSTEMS.slice(1).reduce((acc, _, i) => `max(${acc}, weatherSystem(q, WEATHER_SYSTEM_${i + 1}))`, "weatherSystem(q, WEATHER_SYSTEM_0)")};
+}
+
+// The bands' slide at q, in pixels: sideways varying with height and up and down varying with x, so bands
+// shear past one another; differences of sines from t = 0, so zero at the start and bounded. Mirrors
+// weatherBands().
+vec2 bands(vec2 q) {
+  return WEATHER_BANDS * vec2(sin(uTime * WEATHER_RATES.x + q.y * WEATHER_WAVE) - sin(q.y * WEATHER_WAVE),
+                              sin(uTime * WEATHER_RATES.y + q.x * WEATHER_WAVE) - sin(q.x * WEATHER_WAVE));
+}
+
+// Plate heights per pixel for motion sized in pixels: screen pixels, but never more than a pixel of the master,
+// so a plate drawn smaller than the master is moved no further, for its size. Mirrors motionPx().
+float motionPx() {
+  return min(pxToPlate(), MASTER_PX);
+}
+
+// The weather at q, in plate heights: whole cloud systems sliding over the open ocean, as on the reference,
+// and the land left still. Calmed over the cloud emblem, which it would bend. Mirrors weatherAt().
 vec2 weather(vec2 q) {
-  vec2 bands = vec2(28.0 * (sin(uTime * 0.22 + q.y * 3.0) - sin(q.y * 3.0)),
-                    12.0 * (sin(uTime * 0.18 + q.x * 3.0) - sin(q.x * 3.0)));
-  float patches = smoothstep(0.35, 0.7, noise3(vec3(q * 2.4, 4.0)));
-  return bands * patches * (1.0 - emblemWhole(q)) * pxToPlate();
-}
-
-// The currents' stream function at q: smooth noise whose field drifts across the planet and slowly changes.
-float stream(vec2 q) {
-  return noise3(vec3(q * CURRENT_SCALE - CURRENT_DRIFT * uTime, uTime * CURRENT_EVOLVE));
-}
-
-// The ambient currents at q, in plate heights: the curl of the stream function, so the flow is divergence-free
-// and the clouds stream and curl without bunching up. They grow from nothing over the scene's first seconds,
-// so its first frame is the still plate the fallback shows and it fades in without a jump. Mirrors currentsAt().
-vec2 currents(vec2 q) {
-  vec2 e = vec2(CURRENT_STEP, 0.0);
-  float ease = smoothstep(0.0, CURRENT_EASE_IN, uTime);
-  return vec2(stream(q + e.yx) - stream(q - e.yx), stream(q - e) - stream(q + e)) * (CURRENT_STRENGTH / (2.0 * CURRENT_STEP) * ease);
+  return bands(q) * weatherField(q) * (1.0 - emblemWhole(q)) * motionPx();
 }
 
 // The cyclone at q: where the content comes from, relative to q. The storm is turned around its eye by an
@@ -369,19 +339,10 @@ vec2 wake(vec2 q) {
   return mix(local, whole, calm);
 }
 
-// The currents at q, with the emblem carried whole: over it the currents are those at its centre, so it
-// drifts with the flow around it and keeps its shape, while the clouds around it stream and curl.
-vec2 emblemSafeCurrents(vec2 q) {
-  float whole = emblemWhole(q);
-  if (whole < 0.001) return currents(q);
-  vec2 centre = currents(SYMBOL);
-  return whole > 0.999 ? centre : mix(currents(q), centre, whole);
-}
-
-// Motion that every pixel shares, whatever the cyclone does: the drift, the weather, the ambient currents and
-// the pointer wake. Sampling against the wake moves the content along it.
+// Motion that every pixel shares, whatever the cyclone does: the drift, the weather and the pointer wake.
+// Sampling against the wake moves the content along it.
 vec2 sharedMotion(vec2 q) {
-  return orbital() + weather(q) + emblemSafeCurrents(q) - wake(q);
+  return orbital() + weather(q) - wake(q);
 }
 
 // A motion delta (where the content at this pixel comes from, relative to it) made safe for the limb: off in
@@ -402,7 +363,7 @@ vec3 plateColor(vec2 uv) {
 // The plate's colour at q (plate heights) moved by everything: one sample of the plate.
 vec3 movedColor(vec2 q, float dist) {
   // Nothing moves in the calm band or outside the limb (limbSafe() would zero it), so those pixels skip the
-  // motion entirely: the currents' noise and the wake's texture reads. That is the whole glow band and the
+  // motion entirely: the weather and the wake's texture reads. That is the whole glow band and the
   // band just inside the limb.
   if (dist <= CALM_LIMB) return plateColor(vec2(q.x / PLATE_ASPECT, q.y));
   vec2 moved = q + limbSafe(sharedMotion(q) + cyclone(q), dist);
