@@ -17,6 +17,7 @@ import type { Product } from "@/content/types";
 import { ProductLogo } from "./ProductLogo";
 import { SplitText } from "@/components/motion/SplitText";
 import { stagger } from "@/styles/motion";
+import { PhotoReveal } from "@/components/motion/PhotoReveal";
 
 type ProductProps = { product: Product };
 
@@ -147,7 +148,9 @@ export function ProductLimits({ product }: ProductProps) {
         <div>
           {product.photo ? (
             <div className="relative mb-8 aspect-[16/10] overflow-hidden rounded-[30px]">
-              <Photo slot={product.photo.slot} fill sizes="(min-width: 1024px) 45vw, 100vw" />
+              <PhotoReveal>
+                <Photo slot={product.photo.slot} fill sizes="(min-width: 1024px) 45vw, 100vw" />
+              </PhotoReveal>
             </div>
           ) : null}
           <Tag>Who it is for</Tag>
