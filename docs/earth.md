@@ -2,8 +2,8 @@
 
 The Home hero's backdrop, split along the planet's oval limb:
 
-- **Outside the limb (the sky):** the starfield of the Framer reference, recreated in `src/components/sky` (see [sky.md](sky.md)). It never reacts to the pointer.
-- **Inside the limb (the Earth):** the painted Earth plate (`public/brand/earth`, the Cloud-Formed Emblem art, with the SmartxDreams emblem in its clouds), animated as on generalcontextlabs.com: a slow drift, weather bands and a turning cyclone, and a fluid wake where a mouse moves over the planet, and only there.
+- **Outside the limb (the sky):** the starfield of the Framer reference, recreated in `src/components/sky` (see [sky.md](sky.md)), with only the painted atmosphere (rim, sunrise, high streaks) crossing the limb into it. It never reacts to the pointer.
+- **Inside the limb (the Earth):** the painted Earth plate (`public/brand/earth`, the Cloud-Formed Emblem art, with the SmartxDreams emblem in its clouds), animated as on generalcontextlabs.com: a slow drift, weather bands, curling ambient currents and a cyclone that turns and breathes around its eye, and a fluid wake that curls around the cursor where it moves over the planet, and only there.
 
 Code lives in `src/components/earth`; the shared WebGL helpers are in `src/components/webgl`.
 
@@ -43,7 +43,7 @@ If you change the copy's length or the hero's padding, run both, and look at 390
 
 1. `EarthFallback` renders with the page: the starfield sky at once, and the plate, still, drawn into two canvases placed exactly where the scene will draw it, as soon as it has loaded.
 2. `LazyScene` imports `EarthScene`, and three.js with it, only when `useSceneSupport` allows it, the hero is near the viewport, and the browser is idle. The scene loads the same plate variant, fades in over 700 ms once it is on screen, and is transparent outside the planet, so the fallback's sky stays the sky.
-3. It never runs for reduced motion, data saver, low-power devices or missing WebGL 2: the still fallback stays.
+3. It never runs for reduced motion, data saver, low-power devices or missing WebGL 2: the fallback stays, still for reduced motion and slowly drifting otherwise (see [Fallback](#fallback-earthfallbacktsx)).
 
 `npm run check:bundle` (run in CI) keeps three.js out of the initial scripts of every route.
 
@@ -62,10 +62,10 @@ Plate coordinates: `u` 0..1 left to right, `v` 0..1 top to bottom. The plate is 
 | Landmark | Plate px | Use |
 |---|---|---|
 | Sunrise | about (688, 345), just inside the limb | the hot point on the limb |
-| Cyclone | eye about (1458, 292); painted arms about 190 px, turning reach 105 px | turns around its eye in the scene |
+| Cyclone | eye about (1458, 292); painted arms about 190 px (the reach) | turns and breathes around its eye in the scene |
 | Cloud emblem | about x 1005–1540, y 355–650 | placed per breakpoint; kept legible |
 
-The cyclone's turning reach is smaller than its painted arms because the emblem's upper stroke passes only about 95 px below the eye; a larger reach would bend it.
+The emblem's upper stroke passes only about 100 px from the eye, inside the cyclone's reach. The **emblem mask** (`EMBLEM_MASK_SRC`, `public/brand/earth/earth-emblem-mask.png`, 415 × 237) keeps the storm's motion off it: white on the emblem's two cloud strokes (traced as centre lines in `scripts/build-earth-plate.mjs`, the inner hook and the outer C, with about 8 px of margin and a soft edge), black elsewhere. The script builds it with the variants.
 
 If the art changes, run both scripts, update `PLATE`, `HORIZON` and the landmarks, and run `npm test`.
 
@@ -95,38 +95,66 @@ The emblem is about 1.8 times as wide as it is tall, so at 0.3 H it spans about 
 `EarthScene` draws the painted plate in one full-screen pass. Every pixel is mapped into the plate with `uPlateRect` (from `plateRect()` for the breakpoint in force) and measured against the limb with the same cubic as `plate.ts`, generated into the GLSL from `HORIZON`:
 
 - **On the planet:** the plate's colour, sampled where the motion says.
-- **Just outside the limb** (`GLOW_BAND`, 0.06 plate heights): only the painted atmosphere glow, with its brightness as coverage (the painted sky is black), fading out across the band. This also drops the painted stars beyond it.
+- **Just outside the limb** (`GLOW_BAND`, 0.12 plate heights): only the painted atmosphere glow (see [The limb between sky and Earth](#the-limb-between-sky-and-earth)), fading out across the band. This also drops the painted stars beyond it.
 - **Elsewhere**, and until the texture has loaded: `uSky`, which is transparent, so the starfield sky in the fallback underneath shows through.
+
+### The limb between sky and Earth
+
+The hero is split along the planet's round limb: the Framer starfield on the start side, the Earth on the end side. What crosses the limb into the sky is only the painted atmosphere: the bright cyan rim and its halo, the sunrise, and the thin streaks of high cloud the art paints over the limb between the sunrise and the cyclone.
+
+- **Coverage** (`glowCoverage()` in `plate.ts`, and the same in the shader): the painted sky is navy, near 0 in red and under 0.1 in green away from the planet, and only its blue rises in the haze over the rim. The rim (0.35-0.45 within 12 px), the sunrise (0.6-0.75) and the streaks (about 0.25 at 40 px out) are bright in red or green. So the glow's coverage is how far the brighter of red and green rises above `SKY_FLOOR` (0.1), opaque at `SKY_FLOOR + GLOW_RISE` (0.45). Counting blue too, as a black-sky plate allowed, would lay the navy haze over the starfield as a veil.
+- **Band** (`glowFade()`): kept whole within `GLOW_EDGE` (0.008) of the limb, faded out by `GLOW_BAND` (0.12), far enough for the streaks, which reach about 0.115.
+- **Colour:** as painted, at that coverage (premultiplied over the transparent sky), so the sky beneath shows through the thin parts.
+
+The CSS fallback masks its glow canvas on the CPU with the same two functions (`maskGlow()` in `glow-mask.ts`), so with the scene's canvas hidden the limb is the same. `glow-mask.test.ts` and `plate-shader.test.ts` check the navy sky gets no glow, the rim and streaks do, the fade, and that the shader carries the same constants.
 
 The texture is the narrowest WebP variant that covers the plate's device pixels (DPR capped at 2); a resize that needs more loads a sharper one. It is sampled as stored, without mipmaps or colour conversion. The canvas fades in over 700 ms once the plate is on screen.
 
 ### Motion
 
-Motion moves where the plate is sampled, in plate heights (the limb distance's units), so the limb and its glow never move: it is off within `CALM_LIMB` (0.018) inside the limb, eases in by `FULL_MOTION` (0.065), and its travel is capped at half the distance to the calm band.
+Motion moves where the plate is sampled, in plate heights (the limb distance's units), so the limb and its glow never move: it is off within `CALM_LIMB` (0.018) inside the limb, eases in by `FULL_MOTION` (0.065), and its travel is capped at half the distance to the calm band (`limbSafe()`). Pixels in the calm band or outside the limb skip the motion altogether.
 
 | Motion | Values | Where |
 |---|---|---|
 | Orbital drift | 12 px and 4.5 px on sines of 0.055 and 0.043 rad/s | everywhere on the planet |
-| Weather bands | up to 28 px and 12 px, 0.22 and 0.18 rad/s | static noise patches, calmed over the cloud symbol |
-| Cyclone | turns counter-clockwise (as seen) at 0.16 rad/s at the eye, clouds drifting in 3%/s | around the painted eye, fading out past its reach |
+| Weather bands | up to 28 px and 12 px, 0.22 and 0.18 rad/s | static noise patches, calmed over the cloud emblem |
+| Ambient currents | curl noise, up to about 13 px (4 px on average), drifting across the planet and slowly changing | everywhere on the planet; the emblem rides them whole |
+| Cyclone turn | counter-clockwise (as seen): 0.16 rad/s inside a 28 px core, then the same speed along every ring; clouds drifting in at 3.3 px/s | the painted spiral, 190 px around the eye; not the emblem |
+| Cyclone breath | in toward the eye and back out, 11 px each way, every 9 s | the same, the eye itself still |
 
-The cloud symbol keeps its shape: the bands fade out over a soft ellipse around it, so it rides the orbital drift as one piece. `plate-shader.test.ts` checks that the generated GLSL uses `plate.ts`'s horizon and landmarks and that the bands suit the landmarks.
+(px are master pixels; on screen they scale with the plate.)
 
-**How the cyclone turns:** a real storm turns one way and its bands spiral in, so the cyclone spins continuously instead of rocking. Turning the picture without end would wind the spiral tighter forever, so, as flow-map water shaders do, two layers swirl the plate half a 4 s cycle apart (`CYCLONE_CYCLE`): each turns a small, bounded amount from the middle of its cycle (`CYCLONE_SPIN`, `CYCLONE_INFLOW`), and they are crossfaded with weights 1 - |2p - 1| (`swirlLayers()` mirrors them) so neither restart shows. Only pixels within the cyclone's reach take the second texture sample.
+**Ambient flow:** with no pointer the Earth still flows, as on the reference: the clouds stream along broad, curling currents. The plate is displaced by the curl of a smooth noise field, a stream function (`currents()`, mirrored by `currentsAt()`), so the flow is divergence-free: clouds stream and curl past each other without bunching up or thinning out. The field is broad (`CURRENT_SCALE`, 2.2 noise cells per plate height), drifts across the planet (`CURRENT_DRIFT`) and slowly changes in place (`CURRENT_EVOLVE`), so the currents travel and turn instead of repeating. The displacement is bounded (`CURRENT_STRENGTH`; the curl peaks near 2.7), so after minutes nothing has smeared, and it is one sample, with no crossfade to ghost. `currents.test.ts` checks it is divergence-free, bounded at any time, a few pixels in size and changing within seconds, and that the shader carries the same field.
+
+**The emblem keeps its shape:** read pixel by pixel, the weather and the currents would bend its strokes apart. `emblemWhole()` is the larger of a soft ellipse around the emblem (`symbolCalm()`, a wide, gentle blend over the open ocean around it) and the emblem mask (so the tail and the outer C's ends, which reach past the ellipse, are covered too). Over the emblem the weather is calmed by that weight and the currents are blended toward the currents at its centre (`emblemSafeCurrents()`), so it drifts with the flow around it as one piece while the clouds around it stream. In headless Chromium, over 8 s the emblem moved about 3 px and, with that shift taken out, its pixels changed by about 3 of 255.
+
+`plate-shader.test.ts` checks that the generated GLSL uses `plate.ts`'s horizon and landmarks and that the bands suit the landmarks.
+
+**How the cyclone moves:** clouds go round one point, the eye, and toward it, as in a storm seen from orbit.
+
+- **Turn and inflow:** a real storm turns one way and its bands spiral in, so the cyclone spins continuously instead of rocking. Turning the picture without end would wind the spiral tighter forever, so, as flow-map water shaders do, two layers swirl the plate half a 3 s cycle apart (`CYCLONE_CYCLE`): each turns a small, bounded amount from the middle of its cycle, and they are crossfaded with weights 1 - |2p - 1| (`swirlLayers()` mirrors them) so neither restart shows.
+- **No ghosting:** where the two layers sample different points, the crossfade shows both, a ghost of every bright edge. So the turn is a real vortex's, not a rigid one: rigid inside `CYCLONE_CORE` (0.03 plate heights, about 28 px), then the same speed along every ring further out (the angle falls off as 1/r); and the inflow is a constant speed (`CYCLONE_INFLOW`, 0.0035 plate heights/s), growing from nothing over the core so the eye never pinches. The layers stay within about 8.5 px of each other anywhere in the storm (`swirlLayerGap()`); a rigid turn of the whole reach would put them 24 px apart.
+- **Breath:** on top of the turn, the whole spiral moves in toward the eye and eases back out: the content comes from `cycloneBreath(t)` (11 px, a 9 s sine) further out along the radius. It is bounded, so it needs no crossfade and is the same in both layers. The eye stays still (the breath grows over the inner fifth of the reach).
+- **Reach:** turn, inflow and breath are full over the inner 55% of the 190 px reach and gone at its edge; only pixels inside the reach take the second plate sample. The arms above the eye run up to the limb, where the calm band stills them.
+- **Emblem:** all three are multiplied by 1 minus the emblem mask (`emblemAt()`), so the emblem keeps its shape while the arms beside it turn. Until the mask has loaded, the scene's placeholder counts everything as emblem and the storm holds still.
+
+`plate-shader.test.ts` checks the layer gap over the whole reach, the vortex profile, that the breath is bounded and returns to rest after any number of breaths, and that the shader keeps all of it off the eye and the emblem.
 
 ### Pointer wake (`fluid.ts`, `earth-pointer.ts`)
 
-When a mouse moves over the Earth, and only the Earth, the painted plate flows under it like fluid and settles back, as on the reference. The sky never reacts.
+When a mouse moves over the Earth, and only the Earth, the clouds move around it like fluid: pushed along its path, curling into eddies on either side, then settling back, as on the reference. The sky never reacts.
 
 - **Who stirs it** (`earth-pointer.ts`): a fine pointer that can hover (`(hover: hover) and (pointer: fine)`); not touch or coarse pointers; not over links, buttons, form fields, summaries or anything marked `data-earth-ignore`; and only over the planet, past the limb's still band (`isOnEarth()`). A long move is split into steps of at most 10 px (`splatCount()`), so a quick sweep leaves a continuous wake.
-- **The fluid** (`fluid.ts`, our own implementation of Stam's stable fluids): a 128 × 64 grid over the canvas. Each step advects and damps the velocity, adds vorticity confinement, projects it divergence-free (20 Jacobi iterations, warm-started, with the two-cell Laplacian that matches the central differences), then carries a displacement field along the flow, feeds it, and lets it decay. Splats are wide (5 cells) and gentle (velocity 12 and displacement 0.3 per cell moved), vorticity is mild (1.5), velocity is clamped to 30 cells/s and displacement to 8 cells, and a step is at most 1/30 s.
-- **Feel:** a drag peaks at about 2.5 cells and is about a twentieth of a cell 2.5 s later. On screen one cell moves the plate by `WAKE_GAIN` (0.3) of a cell's width, about 3.4 px on a 1460 px canvas, so a drag pushes the clouds up to about 9 px.
-- **Smoothness:** clouds should be pushed, not stretched. After a quick sweep no cell's displacement differs from its neighbour's by 0.8 cells or more (`fluid.test.ts`; the earlier narrow, strong splats reached 1.4 and drew streaks), and the shader reads the wake through a 5-tap blur `WAKE_BLUR` (1.5 cells) wide.
-- **Cost:** the scene uploads the displacement as a 128 × 64 texture only while the wake moves; once the peak falls below 0.02 cells the solver resets and stops stepping.
-- **Limb:** the wake joins the drift, weather and cyclone inside the same limb-safe motion, so the limb never moves.
-- **Symbol:** the cloud symbol moves as one piece. Read pixel by pixel, the wake bent its strands apart and the picture seemed to stretch, so over the symbol `wake()` blends the local wake towards the wake averaged across the symbol (five samples, centre weighted), by the same soft ellipse that calms the weather there (`symbolCalm`). The S/D slides with the clouds around it and settles back keeping its shape, while the clouds beside it still flow.
+- **No jumps:** the scene forgets the pointer's last position when it leaves the page, when the window loses focus and when the page scrolls (the canvas moves under a still pointer, and the next move would splat the scroll distance as a stroke). A move longer than `MAX_STROKE` (160 px between two events, as far as `splatCount()` splits evenly; a quick flick is 25-50 px) is a jump (`isJump()`): it sets the new position without splatting.
+- **The fluid** (`fluid.ts`, our own implementation of Stam's stable fluids): a grid of 128 columns and as many rows as keep the cells square over the canvas (`fluidGridFor()`, 32 to 128 rows: 64 on a 2:1 hero, 96 on 4:3, 37 on 32:9), rebuilt when a resize changes it, so splats and eddies stay round on every hero shape. Each step advects and damps the velocity, adds vorticity confinement, projects it divergence-free (20 Jacobi iterations, warm-started, with the two-cell Laplacian that matches the central differences), then carries a displacement field along the flow, feeds it, and lets it decay. Splats are wide (5 cells) and gentle (velocity 11 and displacement 0.3 per cell moved), vorticity is mild (1.5), velocity is clamped to 30 cells/s and displacement to 8 cells, and a step is at most 1/30 s. The shader reads the grid's size from `uFlowCells`.
+- **Eddies:** each splat also adds a pair of counter-rotating swirls, `EDDY_OFFSET` (12) cells either side of the path and `EDDY_RADIUS` (10) cells in radius, the left one counter-clockwise and the right one clockwise, as anything moving through a fluid leaves behind it. Between them the flow runs with the pointer; outside them it curls back. They add velocity only (`EDDY_VELOCITY`, 5 per cell moved) and the flow carries the picture round with them. After a short sweep the clouds on the path move about 1.8 cells forward and, 16 to 20 cells to the side, about 0.9 cells back.
+- **Feel:** a drag peaks at about 2.5 cells and has settled 2.5 s later. On screen one cell moves the plate by `WAKE_GAIN` (0.3) of a cell's width, about 3.4 px on a 1460 px canvas, so a drag pushes the clouds up to about 9 px; the wake keeps that size relative to the hero on any screen.
+- **Smoothness:** clouds should be pushed, not stretched. After a quick sweep no cell's displacement differs from its neighbour's by 0.8 cells or more (`fluid.test.ts`; narrow, strong splats reached 1.4 and drew streaks, and so did tighter, stronger eddies, which is why they are broad and gentle), and the shader reads the wake through a 5-tap blur `WAKE_BLUR` (1.5 cells) wide.
+- **Cost:** the scene uploads the displacement texture only while the wake moves; once the peak falls below 0.02 cells the solver resets and stops stepping.
+- **Limb:** the wake joins the drift, weather, currents and cyclone inside the same limb-safe motion, so the limb never moves.
+- **Emblem:** the cloud emblem moves as one piece. Read pixel by pixel, the wake bent its strokes apart and the picture seemed to stretch, so over the emblem `wake()` blends the local wake towards the wake averaged across it (five samples, centre weighted), by the soft ellipse that calms the weather there (`symbolCalm`). It slides with the clouds around it and settles back keeping its shape, while the clouds beside it still flow.
 
-Measured in Chromium as the mean pixel change over the cloud symbol: idle 0.89; after a sweep across the Earth 9.67; after a sweep across the sky 0.86 (no reaction); three seconds after an Earth sweep, within about one of the ambient drift over the same time.
+`fluid.test.ts` checks the eddies push forward on the path and back beside it, mirror each other across the path and settle; `earth-pointer.test.ts` checks the jump limit.
 
 ## Fallback (`EarthFallback.tsx`)
 
@@ -135,12 +163,15 @@ What shows without WebGL, and under the scene everywhere:
 - **Sky:** `<StarfieldSky />`, filling the hero.
 - **Plate:** two canvases, placed by `plateLayoutCss()` (`plateRect()` in CSS, container query units), into which the plate is drawn once it has loaded:
   - the planet: the plate clipped to the limb (`Path2D` of `horizonPath()`);
-  - the glow: the plate kept inside a soft band reaching `GLOW_BAND` above the limb, blended with `screen`: the painted sky is black, so it adds nothing, and the glow lightens the stars behind it, as the shader's brightness-as-coverage does.
-- **Variant:** `pickPlateVariant()` for the plate's device pixels (DPR capped at 2), loaded with the same CORS mode as three.js's loader, so the scene reuses the cached file. A resize that needs more loads a sharper one. The canvases never hold more pixels than the plate itself.
+  - the glow: on a half-size canvas, the plate with each pixel's alpha set as the shader sets it outside the limb (`maskGlow()`: `glowCoverage()` times `glowFade()`), composited normally. The planet stays opaque on it, so the planet canvas's anti-aliased edge has the plate under it and the limb shows no dark seam.
+- **Variant:** `pickPlateVariant()` for the plate's device pixels (DPR capped at 2), loaded with the same CORS mode as three.js's loader, so the scene reuses the cached file. A resize that needs more loads a sharper one; loads can finish out of order, and a late, smaller one never replaces a sharper one (in the scene too). The canvases never hold more pixels than the plate itself. A breakpoint change that resizes the plate redraws it (a `ResizeObserver` on the planet canvas); a move alone needs no redraw.
+- **Drift:** where the scene will never run but motion is welcome (no WebGL 2, data saver, a low-power device: `fallbackDrifts()`), the root is marked `data-drift` and both canvases drift as the scene's orbital drift does: 12 px across on a 114 s sine and 4.5 px up and down on a 146 s one. Each axis animates its own registered property (`@property --drift-x`, `--drift-y`) in two alternating ease-in-out runs of half a period, so the planet feels alive without WebGL. Where the scene will run, the fallback stays still: it cannot follow the scene's own clock, and a drifted plate under the scene would show double while the scene fades in. With reduced motion nothing moves (in CSS too).
 
-**Why canvases, not images:** a canvas is never a Largest Contentful Paint candidate. Drawn as an `<img>`, the large decorative plate became Home's LCP on a throttled phone (3.47 s in CI, over the 2.5 s budget), taking it from the description paragraph. With canvases the paragraph is the LCP again (`e2e/vitals.spec.ts`).
+**Why canvases, not images:** a canvas is never a Largest Contentful Paint candidate. Drawn as an `<img>`, the large decorative plate became Home's LCP on a throttled phone (3.47 s in CI, over the 2.5 s budget), taking it from the description paragraph. With canvases the paragraph is the LCP again (`e2e/vitals.spec.ts`: 1.49 s locally with the emblem plate).
 
-With the scene's canvas hidden, the fallback is indistinguishable from the scene. `e2e/earth.spec.ts` checks the sky and that both plate canvases are drawn, that reduced motion creates no scene canvas, stops the stars and still draws the plate, and that the scene fades in where WebGL 2 is available.
+**Handoff to the scene:** with the scene's canvas hidden, the fallback is indistinguishable from the scene's first frame. Every motion starts from zero (the drift, weather and breath are sines from t = 0, the cyclone's layers start untouched, the wake is still) and the ambient currents, whose field is never zero, grow in over the scene's first 4 s (`CURRENT_EASE_IN`), so the scene fades in over the still plate without a jump.
+
+`e2e/earth.spec.ts` checks the sky and that both plate canvases are drawn; that reduced motion creates no scene canvas, stops the stars, keeps the planet still and still draws the plate; that a low-power device's planet drifts, both canvases together, with no scene; and that the scene fades in where WebGL 2 is available.
 
 ## Sharing the GPU
 

@@ -1,5 +1,17 @@
 import { describe, expect, it } from "vitest";
-import { createFluid, FLUID_HEIGHT, FLUID_WIDTH, MAX_DISPLACEMENT, MAX_STEP } from "./fluid";
+import {
+  createFluid,
+  EDDY_OFFSET,
+  EDDY_RADIUS,
+  EDDY_VELOCITY,
+  FLUID_HEIGHT,
+  FLUID_MAX_HEIGHT,
+  FLUID_MIN_HEIGHT,
+  FLUID_WIDTH,
+  fluidGridFor,
+  MAX_DISPLACEMENT,
+  MAX_STEP,
+} from "./fluid";
 
 /** A pointer dragged right across the middle of the canvas in ten moves. */
 function dragRight(fluid: ReturnType<typeof createFluid>) {
@@ -103,5 +115,77 @@ describe("createFluid", () => {
     dragRight(fluid);
     fluid.reset();
     expect(fluid.step(1 / 60)).toBe(0);
+  });
+});
+
+describe("eddies", () => {
+  /** A short rightward sweep through the middle, then a little time for the flow to carry the picture. */
+  function sweep() {
+    const fluid = createFluid();
+    for (let i = 0; i < 12; i++) fluid.splat(0.4 + i * 0.006, 0.5, 0.006, 0);
+    run(fluid, 0.4);
+    return fluid;
+  }
+  const x = 0.4 + 6 * 0.006;
+  const row = (cells: number) => 0.5 + cells / FLUID_HEIGHT;
+
+  it("push the clouds along the path and curl them back on both sides", () => {
+    const fluid = sweep();
+    expect(fluid.displacementAt(x, row(0)).x).toBeGreaterThan(1);
+    // Past the eddies' centres, on either side, the clouds come back against the stroke.
+    expect(fluid.displacementAt(x, row(EDDY_OFFSET + 6)).x).toBeLessThan(-0.3);
+    expect(fluid.displacementAt(x, row(-(EDDY_OFFSET + 6))).x).toBeLessThan(-0.3);
+  });
+
+  it("turn opposite ways, so the wake is mirror-symmetric about the path", () => {
+    const fluid = sweep();
+    for (const cells of [4, 8, 14, 20]) {
+      const above = fluid.displacementAt(x, row(cells));
+      const below = fluid.displacementAt(x, row(-cells));
+      expect(above.x).toBeCloseTo(below.x, 1);
+      expect(above.y).toBeCloseTo(-below.y, 1);
+    }
+  });
+
+  it("settle back with the rest of the wake", () => {
+    const fluid = sweep();
+    run(fluid, 3);
+    expect(fluid.peak()).toBeLessThan(0.1);
+  });
+
+  it("add nothing for a pointer that does not move", () => {
+    const fluid = createFluid();
+    fluid.splat(0.5, 0.5, 0, 0);
+    expect(fluid.peak()).toBe(0);
+    expect(fluid.step(1 / 60)).toBe(0);
+  });
+
+  it("are broader than a splat and sit beside it", () => {
+    expect(EDDY_RADIUS).toBeGreaterThan(5);
+    expect(EDDY_OFFSET).toBeGreaterThanOrEqual(EDDY_RADIUS);
+    expect(EDDY_VELOCITY).toBeGreaterThan(0);
+  });
+});
+
+describe("fluidGridFor", () => {
+  it("keeps the cells square: 128 columns and as many rows as the canvas's shape needs", () => {
+    expect(fluidGridFor(1460, 730)).toEqual({ width: 128, height: 64 });
+    expect(fluidGridFor(1024, 768)).toEqual({ width: 128, height: 96 });
+    expect(fluidGridFor(3440, 1476)).toEqual({ width: 128, height: 55 });
+  });
+
+  it("stays within its row limits for extreme shapes, and falls back for an empty canvas", () => {
+    expect(fluidGridFor(5120, 1000).height).toBe(FLUID_MIN_HEIGHT);
+    expect(fluidGridFor(500, 2000).height).toBe(FLUID_MAX_HEIGHT);
+    expect(fluidGridFor(0, 0)).toEqual({ width: FLUID_WIDTH, height: FLUID_HEIGHT });
+  });
+
+  it("gives a grid the solver runs on: a square-celled wake still settles", () => {
+    const { width, height } = fluidGridFor(1024, 768);
+    const fluid = createFluid(width, height);
+    for (let i = 0; i < 10; i++) fluid.splat(0.4 + i * 0.01, 0.5, 0.01, 0);
+    run(fluid, 3);
+    expect(fluid.peak()).toBeLessThan(0.1);
+    expect(fluid.divergence()).toBeLessThan(0.5);
   });
 });

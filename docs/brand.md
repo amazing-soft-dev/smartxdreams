@@ -35,6 +35,7 @@ The header, footer and page transition still draw the stroke symbol in code (`sr
 | `earth-emblem-1659.webp` | 1659 x 948, quality 82, 227 KB | Master width; large and high-density screens |
 | `earth-emblem-1200.webp` | 1200 x 686, quality 80, 126 KB | Laptops and tablets |
 | `earth-emblem-768.webp` | 768 x 439, quality 78, 53 KB | Phones |
+| `earth-emblem-mask.png` | 415 x 237, greyscale, 10 KB | The cloud emblem's mask: keeps the cyclone's motion off the emblem (see [earth.md](earth.md#the-plate-platets)) |
 
 It is brand artwork, not a stock photo, so it lives here and not in `public/images` (which holds only credited Unsplash and Pexels photos used through `<Photo>`; see [images.md](images.md)). To regenerate the variants from a new master PNG:
 

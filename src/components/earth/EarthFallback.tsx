@@ -2,21 +2,28 @@
 
 import { useEffect, useRef } from "react";
 import { StarfieldSky } from "@/components/sky/StarfieldSky";
+import { type SceneSupport, useSceneSupport } from "@/components/webgl/useSceneSupport";
 import { cx } from "@/lib/cx";
 import styles from "./EarthFallback.module.css";
-import { GLOW_BAND, horizonPath, PLATE, pickPlateVariant } from "./plate";
+import { maskGlow } from "./glow-mask";
+import { horizonPath, PLATE, pickPlateVariant } from "./plate";
 import { plateLayoutCss } from "./plate-layout";
 
 /** The plate's placement per breakpoint: plateRect() in CSS, the same numbers the scene uses. */
 const LAYOUT_CSS = plateLayoutCss("[data-earth-fallback]");
 
-/** The planet's outline, and the glow band's outer edge (the outline lifted by GLOW_BAND), in plate pixels. */
+/** The planet's outline, in plate pixels. */
 const PLANET_PATH = horizonPath();
-const GLOW_PATH = horizonPath(32, GLOW_BAND);
-/** Softness of the glow band's outer edge, in plate pixels. */
-const GLOW_SOFTNESS = 10;
 /** The glow is soft, so its canvas holds half the planet's pixels in each direction: a quarter of the work. */
 const GLOW_RESOLUTION = 0.5;
+
+/**
+ * Whether the still planet drifts: only once it is known that the scene will not run, and not because the
+ * visitor asked for reduced motion. Undecided ("pending", the server render) is still.
+ */
+export function fallbackDrifts(support: SceneSupport): boolean {
+  return support.status === "fallback" && support.reason !== "reduced-motion";
+}
 
 type IdleWindow = Window & {
   requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number;
@@ -30,25 +37,31 @@ type IdleWindow = Window & {
  * it and is transparent outside the planet, so the sky here is the sky in both cases. Decorative.
  *
  * The plate is drawn into two canvases sized by the layout CSS: the planet, clipped to the limb, and the glow,
- * the plate masked to a soft band above the limb and blended with `screen` (the painted sky is black, so it
- * adds nothing, and the glow lightens the stars behind it, as the scene's brightness-as-coverage does).
+ * the plate outside the limb with each pixel kept as much as the scene's shader keeps it (maskGlow()): the
+ * rim, the sunrise and the high streaks, fading out across the band, and none of the painted navy sky.
  * Canvases rather than images on purpose: a canvas is never a Largest Contentful Paint candidate, so the large,
  * decorative plate cannot take that over from the headline on a slow phone. The variant is picked as the scene
  * picks it, with the same request mode, so the scene reuses the download. Drawing waits for an idle moment, so
  * it never competes with the first paint of the copy on a slow phone.
+ *
+ * Where the scene will never run but motion is welcome (no WebGL 2, data saver, a low-power device), the still
+ * planet drifts slowly, as the scene's orbital drift does (fallbackDrifts()), so it still feels alive. Where
+ * the scene will run, it stays still until the scene fades in over it: a drift under the scene would not line
+ * up with it during the fade. With reduced motion nothing moves.
  */
 export function EarthFallback({ className }: { className?: string }) {
   const planetRef = useRef<HTMLCanvasElement>(null);
   const glowRef = useRef<HTMLCanvasElement>(null);
+  const drift = fallbackDrifts(useSceneSupport());
 
   useEffect(() => {
     const planet = planetRef.current;
     const glow = glowRef.current;
     const planetCtx = planet?.getContext("2d");
-    const glowCtx = glow?.getContext("2d");
+    // The glow's pixels are read back once per draw to mask them.
+    const glowCtx = glow?.getContext("2d", { willReadFrequently: true });
     if (!planet || !glow || !planetCtx || !glowCtx) return;
     const planetPath = new Path2D(PLANET_PATH);
-    const glowPath = new Path2D(GLOW_PATH);
     let image: HTMLImageElement | null = null;
     let requestedWidth = 0;
     let cancelled = false;
@@ -82,18 +95,13 @@ export function EarthFallback({ className }: { className?: string }) {
       planetCtx.drawImage(image, 0, 0, PLATE.width, PLATE.height);
       planetCtx.restore();
 
-      // The glow: the plate kept only inside a soft band reaching GLOW_BAND above the limb.
+      // The glow: the plate, then each pixel kept as the shader keeps it outside the limb.
       glowCtx.setTransform(glowScale, 0, 0, glowScale, 0, 0);
-      glowCtx.globalCompositeOperation = "source-over";
       glowCtx.clearRect(0, 0, PLATE.width, PLATE.height);
       glowCtx.drawImage(image, 0, 0, PLATE.width, PLATE.height);
-      glowCtx.globalCompositeOperation = "destination-in";
-      // Canvas filters are in canvas pixels. Browsers without them get a hard band edge, which the glow's own
-      // fade mostly hides.
-      glowCtx.filter = `blur(${(GLOW_SOFTNESS * glowScale).toFixed(2)}px)`;
-      glowCtx.fill(glowPath);
-      glowCtx.filter = "none";
-      glowCtx.globalCompositeOperation = "source-over";
+      const pixels = glowCtx.getImageData(0, 0, glow.width, glow.height);
+      maskGlow(pixels.data, glow.width, glow.height);
+      glowCtx.putImageData(pixels, 0, 0);
     };
 
     // The narrowest variant that covers the plate's device pixels, as EarthScene picks it; a sharper one if a
@@ -109,7 +117,9 @@ export function EarthFallback({ className }: { className?: string }) {
       next
         .decode()
         .then(() => {
-          if (cancelled) return;
+          // Decodes can finish out of order (a small variant still decoding when a resize asks for a sharper
+          // one): a late small one must not replace the sharp one.
+          if (cancelled || (image && image.naturalWidth >= next.naturalWidth)) return;
           image = next;
           scheduleDraw();
         })
@@ -147,10 +157,10 @@ export function EarthFallback({ className }: { className?: string }) {
   }, []);
 
   return (
-    <div data-earth-fallback="" aria-hidden="true" className={cx(styles.root, className)}>
+    <div data-earth-fallback="" data-drift={drift ? "" : undefined} aria-hidden="true" className={cx(styles.root, className)}>
       <style>{LAYOUT_CSS}</style>
       <StarfieldSky />
-      <canvas ref={glowRef} data-earth-plate="glow" className={cx(styles.plate, styles.glow)} />
+      <canvas ref={glowRef} data-earth-plate="glow" className={styles.plate} />
       <canvas ref={planetRef} data-earth-plate="planet" className={styles.plate} />
     </div>
   );

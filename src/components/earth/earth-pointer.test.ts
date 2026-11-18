@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { EARTH_IGNORE_SELECTOR, EARTH_POINTER_QUERY, isOnEarth, splatCount } from "./earth-pointer";
+import { EARTH_IGNORE_SELECTOR, EARTH_POINTER_QUERY, isJump, isOnEarth, MAX_STROKE, splatCount } from "./earth-pointer";
 import { horizonV, LANDMARKS } from "./plate";
 import { plateBreakpointFor, plateRect, plateToHero } from "./plate-layout";
 
-const rect = plateRect(plateBreakpointFor(1475).symbol, 2);
+const rect = plateRect(plateBreakpointFor(1475, 830).symbol, 2);
 
 describe("isOnEarth", () => {
   it("is true over the planet: the cloud symbol and the cyclone", () => {
@@ -47,5 +47,22 @@ describe("gates", () => {
   it("ignore the page's controls and take only fine pointers that hover", () => {
     for (const selector of ["a", "button", "input", "select"]) expect(EARTH_IGNORE_SELECTOR).toContain(selector);
     expect(EARTH_POINTER_QUERY).toBe("(hover: hover) and (pointer: fine)");
+  });
+});
+
+describe("isJump", () => {
+  it("takes quick flicks as strokes", () => {
+    expect(isJump(40, 20)).toBe(false);
+    expect(isJump(MAX_STROKE, 0)).toBe(false);
+  });
+
+  it("takes a pointer arriving from far away as a jump, not one huge stroke", () => {
+    expect(isJump(MAX_STROKE + 1, 0)).toBe(true);
+    expect(isJump(300, -400)).toBe(true);
+  });
+
+  it("allows exactly as far as splatCount() can split evenly", () => {
+    expect(splatCount(MAX_STROKE, 0)).toBe(16);
+    expect(MAX_STROKE / splatCount(MAX_STROKE, 0)).toBeLessThanOrEqual(10);
   });
 });
