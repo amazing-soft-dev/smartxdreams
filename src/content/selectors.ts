@@ -29,10 +29,10 @@ export function productSlugs(): string[] {
 }
 
 /** The About page's numbers, each counted from content: people on the team, its disciplines, products. */
-export function aboutStats(): { label: string; value: number }[] {
+export function aboutStats(): { label: string; short: string; value: number }[] {
   return [
-    { label: "People on the team", value: team.length },
-    { label: "Disciplines, from design to AI", value: new Set(team.map((p) => p.group)).size },
-    { label: "Products in development", value: products.length },
+    { label: "People on the team", short: "People", value: team.length },
+    { label: "Disciplines, from design to AI", short: "Disciplines", value: new Set(team.map((p) => p.group)).size },
+    { label: "Products in development", short: "Products", value: products.length },
   ];
 }
