@@ -47,7 +47,13 @@ export function ProductGrid() {
                 >
                   {/* The product's logo on its white tile, then who it is for and where it is in its launch. */}
                   <div className="mb-6 flex items-start justify-between gap-4">
-                    <ProductLogo product={product} size={56} decorative />
+                    {/* On hover the logo tile tilts and grows a touch, as the arrow tile used to. */}
+                    <ProductLogo
+                      product={product}
+                      size={56}
+                      decorative
+                      className="transition-transform duration-500 ease-[var(--ease-out-quint)] group-hover:-rotate-6 group-hover:scale-106 motion-reduce:group-hover:rotate-0 motion-reduce:group-hover:scale-100"
+                    />
                     <div className="flex flex-wrap justify-end gap-2">
                       <span className={pill}>{audienceLabel(product.audience)}</span>
                       <span className={pill}>
@@ -70,11 +76,18 @@ export function ProductGrid() {
                     <span
                       aria-hidden="true"
                       className={cx(
-                        "inline-flex size-10 shrink-0 items-center justify-center rounded-xl",
-                        tone.dark ? "bg-white/15 text-white" : "bg-ink/[0.07] text-ink",
+                        "inline-flex size-10 shrink-0 items-center justify-center rounded-xl transition-colors duration-500",
+                        tone.dark ? "bg-white/15 text-white group-hover:bg-white group-hover:text-ink" : "bg-ink/[0.07] text-ink group-hover:bg-ink group-hover:text-white",
                       )}
                     >
-                      <svg viewBox="0 0 16 16" width="16" height="16" fill="none">
+                      {/* The arrow travels out along its own direction on hover. */}
+                      <svg
+                        viewBox="0 0 16 16"
+                        width="16"
+                        height="16"
+                        fill="none"
+                        className="transition-transform duration-500 ease-[var(--ease-out-quint)] group-hover:translate-x-0.5 group-hover:-translate-y-0.5 motion-reduce:group-hover:translate-0"
+                      >
                         <path
                           d="M4.5 11.5l7-7M6 4.5h5.5V10"
                           stroke="currentColor"
