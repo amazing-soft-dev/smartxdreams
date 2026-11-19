@@ -126,7 +126,10 @@ const mainNavLink = (page: Page, name: string) =>
 test.describe("page transition", () => {
   test.skip(({ isMobile }) => isMobile, "the main nav is desktop-only; the mobile menu navigates instantly");
   // Loading Home until the network is idle and clicking a link each take seconds when every core is busy.
-  test.describe.configure({ timeout: 90_000 });
+  // One at a time, so these three do not add to that load themselves: the transition waits 1.5 s for the
+  // new route and then reveals whatever is there, and with eight copies of Home open at once the route took
+  // longer than that in one run of fifteen, which the tests rightly report as a reveal before the route.
+  test.describe.configure({ mode: "serial", timeout: 90_000 });
 
   test("covers the page with the destination, then reveals it and focuses its title", async ({ page }) => {
     await openHome(page);
