@@ -33,8 +33,8 @@ statically generated page (gzipped) and fails when any budget is exceeded:
   CSS aurora shows; when the context comes back it rebuilds its shader program and carries on. The
   footer's drifting stars are box-shadows on three elements, moved by compositor-only transforms, with
   no JavaScript.
-- **Photos:** responsive AVIF/WebP with intrinsic sizes and blur placeholders. Only the largest image
-  above the fold uses `priority`.
+- **Photos:** responsive WebP (the Next.js default; `next.config.ts` sets no `images.formats`) with
+  intrinsic sizes and blur placeholders. Only the largest image above the fold uses `priority`.
 
 ## Layout-shift safeguards
 
@@ -53,7 +53,8 @@ on in `npm run dev`.
 
 **Throttled run in CI:** `e2e/vitals.spec.ts` loads Home on the phone profile with Lighthouse's mobile
 throttling applied through the DevTools Protocol (150 ms latency, 1.6 Mbps down, 4× CPU slowdown). It fails
-if LCP reaches 2.5 s or CLS reaches 0.05, and runs in the "End-to-end (smoke and axe)" job.
+if LCP reaches 2.5 s or CLS reaches 0.05. It runs in CI's one job, "CI passed", after every other
+Playwright test has finished (see [pipeline.md](pipeline.md#what-ci-checks)).
 
 **Lighthouse (before launch, for the full report):**
 
@@ -69,4 +70,5 @@ for `/products/senioraiplans` and a blog post.
 | Date | Page | LCP | CLS | Notes |
 |---|---|---|---|---|
 | 2026-11-16 | `/` | 1.21–1.24 s | 0.000 | `e2e/vitals.spec.ts`, three runs on a local production build; LCP element: the hero paragraph |
+| 2026-11-18 | `/` | 1.65–1.72 s | 0.000 | `e2e/vitals.spec.ts`, three runs on a local production build of `7b530ac`; LCP element: the hero paragraph |
 | _pending_ | `/` | | | Lighthouse report on the deployed site |
