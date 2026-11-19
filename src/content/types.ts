@@ -90,6 +90,16 @@ export type Product = {
   };
 };
 
+/**
+ * What the header menus and the page transition show of a product, and no more. They are client components
+ * on every page, so the root layout builds this list on the server (navProducts in selectors.ts) and hands it
+ * to them: importing the products themselves would put all their copy in every page's JavaScript.
+ */
+export type NavProduct = Pick<Product, "slug" | "name" | "tagline" | "summary" | "logo"> & {
+  /** The display label of the product's audience, for example "Job seekers". */
+  audienceLabel: string;
+};
+
 /** Which part of the work a person does, in the order the About page lists the groups. */
 export type TeamGroup = "founders" | "engineering" | "design" | "data" | "ai";
 
