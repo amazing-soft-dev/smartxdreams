@@ -5,6 +5,7 @@ import { type Camera, type Scene, WebGLRenderer } from "three";
 import { isTopScene, setSceneVisible } from "./scene-budget";
 import { mountSceneCanvas } from "./scene-canvas";
 import { getLiveWebGL2Context, SCENE_CONTEXT_ATTRIBUTES } from "./webgl-context";
+import { isMotionPaused, subscribeMotionPaused } from "@/components/motion/motion-pause";
 
 /** Highest device pixel ratio we render at; above this the extra pixels are not worth the GPU time. */
 export const MAX_SCENE_DPR = 1.75;
@@ -23,7 +24,8 @@ export type SceneHandle = {
 /**
  * Owns a three.js WebGLRenderer for its whole life: creates a canvas inside `hostRef` and the renderer on it,
  * keeps it sized to the canvas box (pixel ratio capped at 1.75), runs the render loop only while the canvas
- * is on screen, the tab is visible and the WebGL context is live, and on unmount disposes everything, releases the WebGL context and
+ * is on screen, the tab is visible, the WebGL context is live and the visitor has not paused animations
+ * (motion-pause.ts), and on unmount disposes everything, releases the WebGL context and
  * removes the canvas. The canvas is new on every mount (see scene-canvas.ts), so a remount never picks up
  * the context the previous mount released.
  *
@@ -88,7 +90,7 @@ export function useThreeRenderer(
       frame = requestAnimationFrame(tick);
     };
     const play = () => {
-      if (frame || !onScreen || document.hidden || contextLost) return;
+      if (frame || !onScreen || document.hidden || contextLost || isMotionPaused()) return;
       last = 0;
       frame = requestAnimationFrame(tick);
     };
@@ -106,6 +108,9 @@ export function useThreeRenderer(
     intersection.observe(canvas);
     const onVisibility = () => (document.hidden ? pause() : play());
     document.addEventListener("visibilitychange", onVisibility);
+    // "Pause animations" (the footer's switch) stops the loop the same way: the canvas keeps its last frame,
+    // and since time only advances while the loop runs, the scene carries on from it afterwards.
+    const unsubscribePaused = subscribeMotionPaused(() => (isMotionPaused() ? pause() : play()));
 
     // The browser can drop the context at any time: a GPU reset, too many live contexts, a backgrounded
     // mobile tab. The canvas then goes blank over the fallback. three.js calls preventDefault() on the loss
@@ -131,6 +136,7 @@ export function useThreeRenderer(
       intersection.disconnect();
       resizeObserver.disconnect();
       document.removeEventListener("visibilitychange", onVisibility);
+      unsubscribePaused();
       handle.dispose?.();
       renderer.dispose();
       renderer.forceContextLoss();

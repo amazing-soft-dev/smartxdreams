@@ -2,6 +2,7 @@
 
 import { useReducedMotion } from "motion/react";
 import { useEffect, useState } from "react";
+import { useMotionPaused } from "@/components/motion/motion-pause";
 
 type TypedWordProps = {
   /** Words to cycle through. */
@@ -28,8 +29,11 @@ export function TypedWord({ words, staticText, className }: TypedWordProps) {
   const [deleting, setDeleting] = useState(false);
   const word = words[index % words.length] ?? "";
 
+  // Paused by the visitor (the footer's switch): the letters typed so far stay, and typing carries on from
+  // them afterwards. The caret's blink is held in CSS (globals.css).
+  const paused = useMotionPaused();
   useEffect(() => {
-    if (reduced) return;
+    if (reduced || paused) return;
     let delay = deleting ? DELETE_MS : TYPE_MS;
     if (!deleting && length === word.length) delay = HOLD_MS;
     const timer = window.setTimeout(() => {
@@ -40,7 +44,7 @@ export function TypedWord({ words, staticText, className }: TypedWordProps) {
       } else setLength((n) => n + (deleting ? -1 : 1));
     }, delay);
     return () => window.clearTimeout(timer);
-  }, [deleting, length, word.length, reduced]);
+  }, [deleting, length, word.length, reduced, paused]);
 
   return (
     <span aria-hidden="true" data-motion="typed" className={className}>

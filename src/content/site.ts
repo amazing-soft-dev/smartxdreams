@@ -67,6 +67,9 @@ export const footerGroups: NavGroup[] = [
 export const trademarkNote =
   "Product and company names are trademarks of their respective owners. SmartxDreams is not affiliated with them.";
 
+/** The footer's switch for motion that runs on its own: its label while motion plays, and while it is paused. */
+export const motionToggle = { pause: "Pause animations", play: "Play animations" } as const;
+
 /** Company FAQ, used on Home and Contact. */
 export const companyFaq: Faq[] = [
   {

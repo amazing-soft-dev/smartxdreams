@@ -5,9 +5,10 @@ import { Logo } from "@/components/ui/Logo";
 import { FooterAurora } from "./FooterAurora";
 import { FooterHorizon } from "./FooterHorizon";
 import { FooterStars } from "./FooterStars";
+import { PauseMotionToggle } from "./PauseMotionToggle";
 import { SocialIcons } from "./SocialIcons";
 import { products } from "@/content/products";
-import { company, footerGroups, trademarkNote } from "@/content/site";
+import { company, footerGroups, motionToggle, trademarkNote } from "@/content/site";
 import type { NavGroup } from "@/content/types";
 import { stagger } from "@/styles/motion";
 
@@ -21,8 +22,8 @@ const productGroup: NavGroup = {
 const legalLinks = footerGroups.find((g) => g.label === "Legal")?.items ?? [];
 
 /** Dark site footer under a night sky: brand column, link groups, and a bottom bar with the copyright,
- * legal links and the third-party trademark note. Behind it all: the stars, the aurora, and the ridge the
- * aurora rises behind. */
+ * legal links, the pause-animations switch and the third-party trademark note. Behind it all: the stars,
+ * the aurora, and the ridge the aurora rises behind. */
 export function Footer() {
   const groups = [productGroup, ...footerGroups];
   const year = new Date().getFullYear();
@@ -84,6 +85,13 @@ export function Footer() {
                   </TransitionLink>
                 </li>
               ))}
+              {/* Holds every looping animation on the site until it is pressed again (WCAG 2.2.2). */}
+              <li>
+                <PauseMotionToggle
+                  labels={motionToggle}
+                  className="inline-flex min-h-11 min-w-11 cursor-pointer items-center transition-colors hover:text-white"
+                />
+              </li>
             </ul>
           </div>
           <p className="max-w-3xl">{trademarkNote}</p>
