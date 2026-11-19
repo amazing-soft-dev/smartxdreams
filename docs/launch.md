@@ -32,7 +32,8 @@ with a message naming each one that is wrong: `NEXT_PUBLIC_SITE_URL` must be set
 the email and waitlist variables that are set must be valid (`CONTACT_TO_EMAIL` an address on its own, not
 `Team <team@example.com>`; `WAITLIST_SECRET` at least 32 characters). Leaving them unset still builds.
 Preview deployments, CI and local builds are not checked; there the site URL defaults to
-`http://localhost:3000`.
+`http://localhost:3000`, and an invalid email or waitlist value makes the forms answer 503 with a log line
+naming it.
 
 3. **Analytics:** Project → Analytics → enable **Web Analytics** and **Speed Insights**. They run only on
    the production deployment and use no cookies (see the privacy policy).

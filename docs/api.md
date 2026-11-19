@@ -67,6 +67,11 @@ addresses or message text.
 | `CONTACT_FROM_EMAIL` | Sender on the verified Resend domain, e.g. `SmartxDreams <hello@example.com>` |
 | `CONTACT_TO_EMAIL` | Team inbox for contact-form messages |
 
+A value that is set but invalid, such as `CONTACT_TO_EMAIL` written as `Team <team@example.com>` or a
+`WAITLIST_SECRET` under 32 characters, counts as missing: every form route answers 503, and the log names
+the setting and what is wrong with it, never its value. The production build refuses such values
+(docs/launch.md).
+
 ## `POST /api/contact`
 
 `src/app/api/contact/route.api.ts`. Body: the contact form fields (`name`, `email`, `topic`, `product`
