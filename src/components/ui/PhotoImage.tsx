@@ -22,7 +22,10 @@ export type PhotoImageProps = {
   photo: PhotoImageData;
   /** The image's rendered width per breakpoint, e.g. "(min-width: 1024px) 50vw, 100vw". */
   sizes: string;
-  /** Load eagerly: only for the largest image above the fold. */
+  /**
+   * Preload the image and load it eagerly: only for the largest image above the fold. Goes to next/image as
+   * `preload`, which replaces its own `priority` prop (deprecated in Next.js 16) and does the same.
+   */
   priority?: boolean;
   /** Fill the parent box (which must be positioned and sized) instead of using intrinsic size. */
   fill?: boolean;
@@ -43,7 +46,7 @@ export function PhotoImage({ photo, sizes, priority = false, fill = false, class
       alt={photo.alt}
       fill
       sizes={sizes}
-      priority={priority}
+      preload={priority}
       placeholder="blur"
       blurDataURL={photo.blurDataURL}
       className={cx("object-cover", className)}
@@ -56,7 +59,7 @@ export function PhotoImage({ photo, sizes, priority = false, fill = false, class
       width={photo.width}
       height={photo.height}
       sizes={sizes}
-      priority={priority}
+      preload={priority}
       placeholder="blur"
       blurDataURL={photo.blurDataURL}
       className={cx("h-auto w-full", className)}
