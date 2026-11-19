@@ -187,6 +187,20 @@
       opacity: 1 !important;
     }
   }
+
+  /* Paused by the visitor: the footer's "Pause animations" sets data-motion-paused on the root element
+     (src/components/motion/motion-pause.ts), and every CSS animation that loops on its own holds the frame
+     it is on. Each loop is reached through the attribute its component already carries, so the CSS modules
+     stay as they are; script-driven loops read the same store and stop themselves. Only the loops are
+     listed: pausing every animation would freeze one-shot entrances (the menu preview, the digit roller)
+     on their first, hidden frame. A new endless animation needs a line here. */
+  [data-motion-paused] [data-motion="ticker"] > *, /* the ticker's track */
+  [data-motion-paused] [data-footer-stars] > *, /* the footer's drifting star layers */
+  [data-motion-paused] [data-starfield-sky] [data-star], /* the hero sky's twinkle and pulse */
+  [data-motion-paused] [data-earth-plate], /* the still planet's drift */
+  [data-motion-paused] [class*="caret-blink"] /* the carets of the typed word and the statement */ {
+    animation-play-state: paused !important;
+  }
 }
 
 @layer base {

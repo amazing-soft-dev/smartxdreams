@@ -7,6 +7,7 @@ import { createShootingStarLoop, SHOOTING_STAR } from "./shooting-stars";
 import { parallaxOffset, scrollProgress, visibleStarCount } from "./scroll";
 import { createStars, DEPTH_LAYERS, layerDepth, PULSE_PERIOD_MS, pulseDelayMs, type Star } from "./stars";
 import styles from "./StarfieldSky.module.css";
+import { isMotionPaused, subscribeMotionPaused } from "@/components/motion/motion-pause";
 
 /** The seeded sky, built once at module load: the same stars on the server and the client. */
 const STARS = createStars();
@@ -32,8 +33,8 @@ export function StarfieldSky({ className }: { className?: string }) {
   // Reduced motion: a still sky. No shooting stars or scroll response here; the CSS stops twinkle and pulse.
   const reduced = useReducedMotion();
 
-  // Shooting stars: one rAF loop that runs only while the sky is on screen and the tab is visible. The same
-  // check pauses the CSS twinkle and pulse.
+  // Shooting stars: one rAF loop that runs only while the sky is on screen, the tab is visible and the
+  // visitor has not paused animations (the footer's switch). The same check pauses the CSS twinkle and pulse.
   useEffect(() => {
     const root = rootRef.current;
     const layer = shootingRef.current;
@@ -41,7 +42,7 @@ export function StarfieldSky({ className }: { className?: string }) {
     const loop = createShootingStarLoop(layer, { filter: `url(#${blurId})` });
     let onScreen = false;
     const sync = () => {
-      const run = onScreen && document.visibilityState === "visible";
+      const run = onScreen && document.visibilityState === "visible" && !isMotionPaused();
       root.toggleAttribute("data-paused", !run);
       if (run) loop.start();
       else loop.stop();
@@ -52,9 +53,11 @@ export function StarfieldSky({ className }: { className?: string }) {
     });
     observer.observe(root);
     document.addEventListener("visibilitychange", sync);
+    const unsubscribe = subscribeMotionPaused(sync);
     return () => {
       observer.disconnect();
       document.removeEventListener("visibilitychange", sync);
+      unsubscribe();
       loop.dispose();
       root.removeAttribute("data-paused");
     };
