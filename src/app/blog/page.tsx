@@ -11,12 +11,18 @@ import { featuredPost, listedPosts, type Post } from "@/lib/blog/posts";
 import { pageMetadata } from "@/lib/seo";
 import { SplitText } from "@/components/motion/SplitText";
 
-export const metadata: Metadata = pageMetadata({
+const base = pageMetadata({
   title: "Blog",
   description:
     "Plain-language notes on job search, site reports, dental costs, paperwork and security reviews, and on how SmartxDreams builds its products.",
   path: "/blog",
 });
+
+// Lets feed readers find the blog feed from the index, as they can from any post or category.
+export const metadata: Metadata = {
+  ...base,
+  alternates: { ...base.alternates, types: { "application/rss+xml": [{ url: "/blog/rss.xml", title: "SmartxDreams blog" }] } },
+};
 
 /** Server-rendered grid shown until the browser reads ?category=, and in the static HTML: every post but the featured one. */
 function ArticleGrid({ posts }: { posts: Post[] }) {
