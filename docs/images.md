@@ -18,7 +18,7 @@ Photos come from **Unsplash** and **Pexels** only. Product hero visuals are code
    - `src`: the public path, `/images/<area>/<slot>.jpg`
    - `alt`: what the photo shows, for screen readers; or `"decorative": true` with an empty `alt`
    - `credit`: photographer name, profile URL, photo URL, `source` (`unsplash` or `pexels`) and `license` (`Unsplash License` or `Pexels License`)
-4. Use it once, with `<Photo slot="<slot>" sizes="..." />`.
+4. Use it once, with `<Photo slot="<slot>" sizes="..." />`. `Photo` is for server components: it imports the whole registry. A client component takes the photo as a prop instead: a server component resolves it with `photoImageData(slot)` and the client component renders `<PhotoImage photo={...} />`, as Home's process steps do.
 5. Run `npm run images` (WebP variants for the static export) and `npm run check:images`.
 
 ## Variants for the static export
