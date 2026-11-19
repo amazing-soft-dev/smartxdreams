@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { ComponentPropsWithoutRef, CSSProperties, ReactNode } from "react";
 import { cx } from "@/lib/cx";
 import styles from "./Button.module.css";
+import { InPageLink } from "./InPageLink";
 
 export type ButtonVariant = "coral" | "ink" | "white" | "ghost";
 export type ButtonSize = "sm" | "md" | "lg";
@@ -97,10 +98,12 @@ export function Button({ children, variant = "coral", size = "md", icon = true, 
 
   if (rest.href !== undefined) {
     const linkProps = rest as Omit<LinkButtonProps, keyof CommonProps>;
+    // A link to a section of the same page ("#waitlist") also moves keyboard focus there.
+    const Anchor = linkProps.href.startsWith("#") ? InPageLink : Link;
     return (
-      <Link {...linkProps} className={classes}>
+      <Anchor {...linkProps} className={classes}>
         {content}
-      </Link>
+      </Anchor>
     );
   }
   const buttonProps = rest as Omit<NativeButtonProps, keyof CommonProps | "href">;

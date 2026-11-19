@@ -157,8 +157,10 @@
   }
 
   /* The main landmark takes focus from the skip link and after page transitions; the h1 inside is what
-     screen readers announce, so the container itself needs no ring. */
-  main:focus {
+     screen readers announce, so the container itself needs no ring. A section takes focus from an in-page
+     button (InPageLink) in the same way: the page scrolls to it and its heading names it. */
+  main:focus,
+  section:focus {
     outline: none;
   }
 
