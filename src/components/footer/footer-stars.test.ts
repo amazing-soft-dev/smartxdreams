@@ -1,11 +1,21 @@
 import { describe, expect, it } from "vitest";
 import { buildStarShadows, STAR_ALPHA, STAR_LAYERS, STAR_TILE } from "./footer-stars";
 
+/** One shadow: x, y, a blur unless it is zero, a spread on halos only, then the colour as #rrggbbaa. */
+const SHADOW = /^(\d+)px (\d+)px (?:([\d.]+)px (?:(\d+)px )?)?#([0-9a-f]{6})([0-9a-f]{2})$/;
+
 const parse = (value: string) =>
-  value.split(", ").map((shadow) => {
-    const match = /^(\d+)px (\d+)px ([\d.]+)px (?:(\d+)px )?rgb\(\d+ \d+ \d+ \/ ([\d.]+)\)$/.exec(shadow);
+  value.split(",").map((shadow) => {
+    const match = SHADOW.exec(shadow);
     if (!match) throw new Error(`Unexpected shadow: ${shadow}`);
-    return { x: Number(match[1]), y: Number(match[2]), spread: match[4], alpha: Number(match[5]) };
+    return {
+      x: Number(match[1]),
+      y: Number(match[2]),
+      blur: match[3],
+      spread: match[4],
+      rgb: match[5]!,
+      alpha: parseInt(match[6]!, 16) / 255,
+    };
   });
 
 describe("buildStarShadows", () => {
