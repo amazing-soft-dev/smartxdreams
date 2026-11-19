@@ -2,8 +2,9 @@ import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import sharp from "sharp";
 import { describe, expect, it } from "vitest";
+import { company } from "@/content/site";
 import { team } from "@/content/team";
-import { absoluteUrl, organizationJsonLd, organizationLogoPath, teamJsonLd } from "./seo";
+import { absoluteUrl, organizationJsonLd, organizationLogoPath, pageMetadata, socialImage, teamJsonLd } from "./seo";
 
 const publicDir = path.resolve(import.meta.dirname, "..", "..", "public");
 const logoFile = path.join(publicDir, organizationLogoPath);
@@ -49,6 +50,17 @@ describe("organizationJsonLd", () => {
     expect(lum / solid).toBeLessThan(90);
     expect(left).toBeGreaterThan(0);
     expect(right).toBeLessThan(info.width - 1);
+  });
+});
+
+describe("pageMetadata", () => {
+  const meta = pageMetadata({ title: "About", description: "Who we are.", path: "/about" });
+
+  it("names the social image for Open Graph and Twitter, with its size and alt text", () => {
+    expect(meta.openGraph?.images).toEqual([socialImage]);
+    expect(meta.twitter?.images).toEqual([socialImage]);
+    expect(socialImage).toMatchObject({ url: "/opengraph-image", type: "image/png", width: 1200, height: 630 });
+    expect(socialImage.alt).toContain(company.name);
   });
 });
 
