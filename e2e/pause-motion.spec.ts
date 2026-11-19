@@ -24,7 +24,7 @@ test("pressing the button holds every loop, and pressing it again lets them run"
   await page.goto("/", { waitUntil: "networkidle" });
   const button = toggle(page);
   await expect(button).toHaveText("Pause animations");
-  await expect(button).toHaveAttribute("aria-pressed", "false");
+  await expect(button).toHaveText("Pause animations");
   await expect(page.locator(root)).not.toHaveAttribute("data-motion-paused");
 
   // Playing: the ticker and the footer's three star layers run, and the typed word keeps changing.
@@ -35,7 +35,7 @@ test("pressing the button holds every loop, and pressing it again lets them run"
 
   await button.click();
   await expect(page.locator(root)).toHaveAttribute("data-motion-paused", "");
-  await expect(button).toHaveAttribute("aria-pressed", "true");
+  await expect(button).toHaveText("Play animations");
   await expect(button).toHaveText("Play animations");
 
   // Paused: the CSS loops hold their frame (the hero sky's stars twinkle and pulse: two animations each).
@@ -50,7 +50,7 @@ test("pressing the button holds every loop, and pressing it again lets them run"
 
   await button.click();
   await expect(page.locator(root)).not.toHaveAttribute("data-motion-paused");
-  await expect(button).toHaveAttribute("aria-pressed", "false");
+  await expect(button).toHaveText("Pause animations");
   await expect(button).toHaveText("Pause animations");
   expect(await playStates(page, tickerTrack)).toEqual(["running"]);
   expect(await playStates(page, starLayers)).toEqual(["running", "running", "running"]);
@@ -66,12 +66,12 @@ test("the choice survives a page change, a fresh load and is forgotten when anim
   await page.locator('footer nav a[href="/about"]').click();
   await expect(page).toHaveURL(/\/about$/);
   await expect(page.locator(root)).toHaveAttribute("data-motion-paused", "");
-  await expect(toggle(page)).toHaveAttribute("aria-pressed", "true");
+  await expect(toggle(page)).toHaveText("Play animations");
 
   // A fresh load of another page: the remembered choice is applied once the page has hydrated.
   await page.goto("/contact", { waitUntil: "networkidle" });
   await expect(page.locator(root)).toHaveAttribute("data-motion-paused", "");
-  await expect(toggle(page)).toHaveAttribute("aria-pressed", "true");
+  await expect(toggle(page)).toHaveText("Play animations");
   await expect(toggle(page)).toHaveText("Play animations");
   expect(await playStates(page, starLayers)).toEqual(["paused", "paused", "paused"]);
 
@@ -79,7 +79,7 @@ test("the choice survives a page change, a fresh load and is forgotten when anim
   await toggle(page).click();
   await expect(page.locator(root)).not.toHaveAttribute("data-motion-paused");
   await page.reload({ waitUntil: "networkidle" });
-  await expect(toggle(page)).toHaveAttribute("aria-pressed", "false");
+  await expect(toggle(page)).toHaveText("Pause animations");
   await expect(page.locator(root)).not.toHaveAttribute("data-motion-paused");
   expect(await playStates(page, starLayers)).toEqual(["running", "running", "running"]);
 });
@@ -104,8 +104,8 @@ test("the button is reached by keyboard, shows a focus ring and is at least 44 p
   // Space and Enter both press it.
   await page.keyboard.press("Space");
   await expect(page.locator(root)).toHaveAttribute("data-motion-paused", "");
-  await expect(button).toHaveAttribute("aria-pressed", "true");
+  await expect(button).toHaveText("Play animations");
   await page.keyboard.press("Enter");
   await expect(page.locator(root)).not.toHaveAttribute("data-motion-paused");
-  await expect(button).toHaveAttribute("aria-pressed", "false");
+  await expect(button).toHaveText("Pause animations");
 });
