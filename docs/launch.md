@@ -27,6 +27,10 @@ The `main` branch deploys to production on Vercel (docs/pipeline.md). Vercel run
 Without the Resend variables the site still works, but both forms answer "We cannot send email right
 now" (503), and the server logs say which settings are missing.
 
+The production deployment (`VERCEL_ENV=production`) checks the settings when its build starts and stops
+with a message naming each one that is wrong: `NEXT_PUBLIC_SITE_URL` must be set, to an `https` URL.
+Preview deployments, CI and local builds are not checked; there it defaults to `http://localhost:3000`.
+
 3. **Analytics:** Project → Analytics → enable **Web Analytics** and **Speed Insights**. They run only on
    the production deployment and use no cookies (see the privacy policy).
 

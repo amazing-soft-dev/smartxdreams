@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { assertProductionEnv } from "./src/lib/env";
 import imageConfig from "./src/lib/image-config.json";
 import { siteRedirects } from "./src/lib/redirects";
 import { securityHeaders } from "./src/lib/security-headers";
@@ -6,6 +7,10 @@ import { securityHeaders } from "./src/lib/security-headers";
 // NEXT_OUTPUT=export builds a static site into out/. There is no server, so /api routes are omitted
 // and forms cannot send email. The default build is the full server app that Vercel runs.
 const isStaticExport = process.env.NEXT_OUTPUT === "export";
+
+// On the production deployment (VERCEL_ENV=production), stop here when a setting is missing or wrong,
+// before anything is built with it (src/lib/env.ts). Every other build skips the check.
+assertProductionEnv();
 
 const nextConfig: NextConfig = {
   // No "X-Powered-By: Next.js" header.

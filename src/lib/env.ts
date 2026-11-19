@@ -49,6 +49,27 @@ if (!parsedPublic.success) {
 /** Validated public environment. */
 export const publicEnv: PublicEnv = parsedPublic.data;
 
+/**
+ * Build-time check for the production deployment, called from next.config.ts so a bad setting stops the
+ * build instead of shipping. Vercel sets VERCEL_ENV=production only there: local builds, CI, preview
+ * deployments and the static export are not checked. Throws one error that names every setting that is
+ * wrong, never its value.
+ */
+export function assertProductionEnv(): void {
+  if (process.env.VERCEL_ENV !== "production") return;
+  const problems: string[] = [];
+  // Unset, the origin falls back to http://localhost:3000, which would go into every canonical URL, the
+  // sitemap, the feed and the links in waitlist emails.
+  if (!process.env.NEXT_PUBLIC_SITE_URL) {
+    problems.push("NEXT_PUBLIC_SITE_URL: not set; set it to the site's https origin, for example https://www.example.com");
+  } else if (new URL(publicEnv.NEXT_PUBLIC_SITE_URL).protocol !== "https:") {
+    problems.push("NEXT_PUBLIC_SITE_URL: must be an https URL");
+  }
+  if (problems.length > 0) {
+    throw new Error(`Invalid environment variables for the production deployment: ${problems.join("; ")}. See docs/launch.md.`);
+  }
+}
+
 let cachedServerEnv: ServerEnv | undefined;
 
 /** Validated server environment. Throws if called in the browser. */
