@@ -1,5 +1,5 @@
 import { Resend } from "resend";
-import { serverEnv } from "@/lib/env";
+import { readServerEnv } from "@/lib/env";
 
 /**
  * Email through Resend. Server only.
@@ -13,9 +13,18 @@ let client: Resend | undefined;
 
 export type EmailTransport = { resend: Resend; from: string; teamInbox: string | undefined };
 
-/** The Resend client, the sender and the team inbox, or null when email is not configured. */
+/**
+ * The Resend client, the sender and the team inbox, or null when email is not configured. An invalid setting
+ * counts as not configured, so routes answer 503 instead of failing; the log names the setting and what is
+ * wrong with it, never its value.
+ */
 export function emailTransport(): EmailTransport | null {
-  const env = serverEnv();
+  const settings = readServerEnv();
+  if ("invalid" in settings) {
+    console.warn(`[email] not configured: invalid settings: ${settings.invalid}`);
+    return null;
+  }
+  const { env } = settings;
   if (!env.RESEND_API_KEY || !env.CONTACT_FROM_EMAIL) return null;
   client ??= new Resend(env.RESEND_API_KEY);
   return { resend: client, from: env.CONTACT_FROM_EMAIL, teamInbox: env.CONTACT_TO_EMAIL };
