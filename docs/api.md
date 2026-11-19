@@ -81,6 +81,8 @@ optional, `message`) plus the spam-guard fields.
    plain-text body with every field and the time received. If Resend rejects it: 503, so the sender retries.
 6. Acknowledgement to the sender. It is best effort and contains nothing the sender typed (only fixed
    wording, topic and product), so the form cannot be used to send someone else a message from our domain.
+   An address is acknowledged at most once in 24 hours (`src/lib/api/waitlist-dedupe.ts`, in memory per
+   server instance, keyed by a hash); later messages naming it still reach the team and get the same 200.
 7. `200 { ok: true }`.
 
 Logs never include names, addresses or message text. `GET` answers 405.

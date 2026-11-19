@@ -4,6 +4,7 @@ import { emailUnavailable, ok, rateLimited, readJson } from "@/lib/api/respond";
 import { clientIp, rateLimit } from "@/lib/api/rate-limit";
 import { contactRequestSchema } from "@/lib/api/schemas";
 import { spamVerdict } from "@/lib/api/spam";
+import { firstAcknowledgement, forgetAcknowledgement } from "@/lib/api/waitlist-dedupe";
 
 /** Server only: email needs secrets and network access. Never cached. */
 export const runtime = "nodejs";
@@ -14,8 +15,8 @@ const LIMIT = { limit: 5, windowMs: 10 * 60_000 };
 
 /**
  * POST /api/contact: the contact form. Validates the message, filters bots and emails it to the team inbox
- * (CONTACT_TO_EMAIL) with the sender as Reply-To, then sends the sender an acknowledgement with a copy.
- * Response format: docs/api.md.
+ * (CONTACT_TO_EMAIL) with the sender as Reply-To, then sends the sender an acknowledgement, at most one per
+ * address per day (waitlist-dedupe.ts). Response format: docs/api.md.
  */
 export async function POST(request: Request): Promise<Response> {
   const limit = rateLimit(`contact:${clientIp(request)}`, LIMIT);
@@ -43,7 +44,16 @@ export async function POST(request: Request): Promise<Response> {
   if (!notified.ok) return emailUnavailable();
 
   // Best effort: the team already has the message, so a failed acknowledgement does not fail the request.
-  await sendEmail({ to: parsed.data.email, purpose: "contact-acknowledgement", ...senderAcknowledgement(parsed.data) });
+  // The reply address is whatever was typed, so it is acknowledged once a day at most: counted before the
+  // send, so messages arriving together share one, and uncounted if the send fails.
+  if (firstAcknowledgement(parsed.data.email)) {
+    const acknowledged = await sendEmail({
+      to: parsed.data.email,
+      purpose: "contact-acknowledgement",
+      ...senderAcknowledgement(parsed.data),
+    });
+    if (!acknowledged.ok) forgetAcknowledgement(parsed.data.email);
+  }
 
   return ok();
 }
