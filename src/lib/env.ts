@@ -65,6 +65,10 @@ export function assertProductionEnv(): void {
   } else if (new URL(publicEnv.NEXT_PUBLIC_SITE_URL).protocol !== "https:") {
     problems.push("NEXT_PUBLIC_SITE_URL: must be an https URL");
   }
+  // The email and waitlist settings may be absent (the forms then answer 503), but not present and wrong:
+  // a secret that is too short or an inbox that is not a plain address would only show up as failing forms.
+  const server = readServerEnv();
+  if ("invalid" in server) problems.push(server.invalid);
   if (problems.length > 0) {
     throw new Error(`Invalid environment variables for the production deployment: ${problems.join("; ")}. See docs/launch.md.`);
   }
@@ -72,12 +76,16 @@ export function assertProductionEnv(): void {
 
 let cachedServerEnv: ServerEnv | undefined;
 
-/** Validated server environment. Throws if called in the browser. */
-export function serverEnv(): ServerEnv {
+/**
+ * The server environment without throwing on a bad value: the validated values, or what is wrong, as
+ * "NAME: reason" for each invalid variable. Names and reasons only, never values, so it is safe to log.
+ * Throws if called in the browser.
+ */
+export function readServerEnv(): { env: ServerEnv } | { invalid: string } {
   if (typeof window !== "undefined") {
     throw new Error("serverEnv() must only be called on the server.");
   }
-  if (cachedServerEnv) return cachedServerEnv;
+  if (cachedServerEnv) return { env: cachedServerEnv };
   const parsed = serverSchema.safeParse({
     RESEND_API_KEY: process.env.RESEND_API_KEY || undefined,
     CONTACT_FROM_EMAIL: process.env.CONTACT_FROM_EMAIL || undefined,
@@ -86,9 +94,14 @@ export function serverEnv(): ServerEnv {
     RESEND_WAITLIST_SEGMENT_ID: process.env.RESEND_WAITLIST_SEGMENT_ID || undefined,
     VERCEL_ENV: process.env.VERCEL_ENV || undefined,
   });
-  if (!parsed.success) {
-    throw new Error(`Invalid server environment variables: ${format(parsed.error)}`);
-  }
+  if (!parsed.success) return { invalid: format(parsed.error) };
   cachedServerEnv = parsed.data;
-  return cachedServerEnv;
+  return { env: cachedServerEnv };
+}
+
+/** Validated server environment. Throws if a value is invalid, or if called in the browser. */
+export function serverEnv(): ServerEnv {
+  const result = readServerEnv();
+  if ("invalid" in result) throw new Error(`Invalid server environment variables: ${result.invalid}`);
+  return result.env;
 }
