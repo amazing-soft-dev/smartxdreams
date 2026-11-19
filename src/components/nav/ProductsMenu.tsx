@@ -44,6 +44,17 @@ export function ProductsMenu({ theme }: ProductsMenuProps) {
 
   useEffect(() => cancelClose, []);
 
+  // Opened by hover, the menu has no focus inside it, so the key handler below never hears Escape. While
+  // the menu is open, Escape closes it from wherever focus is, and focus stays there (WCAG 1.4.13).
+  useEffect(() => {
+    if (!open) return;
+    const onEscape = (event: globalThis.KeyboardEvent) => {
+      if (event.key === "Escape") setOpenOn(null);
+    };
+    window.addEventListener("keydown", onEscape);
+    return () => window.removeEventListener("keydown", onEscape);
+  }, [open]);
+
   const rootRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const items = () => Array.from(rootRef.current?.querySelectorAll<HTMLAnchorElement>("[data-menu-item]") ?? []);
