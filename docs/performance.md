@@ -23,6 +23,14 @@ statically generated page (gzipped) and fails when any budget is exceeded:
 - **Fonts:** Inter Tight variable, self-hosted, Latin subset preloaded. `display: swap` with a
   metric-matched fallback, so the swap does not shift text.
 - **Lenis:** downloaded only on fine pointers without a reduced-motion preference.
+- **Motion:** every page gets the `m` components and the animation features only (`domAnimation`, given to
+  `LazyMotion` in `MotionProvider` directly, not loaded later, so entrances start when they always did).
+  Drag and layout animation are 18.6 KB gzipped in a chunk that only the pages with a filtered list load
+  (products, blog and its categories; `FilterList` wraps itself in a `LazyMotion` with `domMax`).
+  `next.config.ts` resolves `motion/react` straight to `framer-motion`: through the wrapper, Turbopack keeps
+  the full `motion` component, and with it every feature, in the shared chunk whatever is imported.
+  Measured on 2026-11-18 (#533): `/privacy` 266.6 → 252.3 KB of initial JavaScript, Home 331.8 → 318.0 KB,
+  `/products` 272.0 → 273.6 KB. Use `m`, never `motion`: one `motion` import undoes the saving for every page.
 - **Earth backdrop (three.js):** only on capable devices, when the hero is near the viewport and the browser
   is idle. Until then, and on other devices, a server-rendered still version: the SVG starfield, and the
   painted plate drawn on canvas (768 / 1200 / 1659 px WebP, picked like the scene's and shared with it; a
