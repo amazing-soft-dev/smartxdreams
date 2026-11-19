@@ -55,7 +55,7 @@ export function senderAcknowledgement(message: ContactRequest) {
       `Topic:   ${topicLabel(message.topic)}`,
       `Product: ${productName(message.product)}`,
       "",
-      "If you did not send a message through our contact form, you can ignore this email. Nothing else will be sent.",
+      "If you did not send a message through our contact form, you can ignore this email: there is nothing you need to do.",
       "",
       `The ${company.name} team`,
     ].join("\n"),
