@@ -1,8 +1,14 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+import { POST as postConfirm } from "@/app/api/waitlist/confirm/route.api";
 import { firstConfirmation, forgetConfirmation, mayEmailSignup, normalizeEmail, recordSignupEmail } from "./waitlist-dedupe";
+import { recordConfirmation } from "./waitlist-record";
 import { type WaitlistTokenPayload, createToken, verifyToken } from "./waitlist-token";
 
 const secret = "test-secret-that-is-at-least-32-characters";
+
+// The confirm route runs for real, except that it signs with the test secret and records nothing.
+vi.mock("./waitlist-config", () => ({ waitlistConfig: () => ({ secret: "test-secret-that-is-at-least-32-characters" }) }));
+vi.mock("./waitlist-record", () => ({ recordConfirmation: vi.fn() }));
 const payload: WaitlistTokenPayload = {
   e: "ann@example.com",
   p: "senioraiplans",
@@ -33,6 +39,32 @@ describe("waitlist tokens", () => {
     expect(verifyToken(secret, `${data}`, 1_000_000)).toEqual({ valid: false, reason: "malformed" });
     expect(verifyToken(secret, "a.b.c", 1_000_000)).toEqual({ valid: false, reason: "malformed" });
   });
+
+  it("accept a signature only as createToken() writes it", () => {
+    const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
+    // A signature that uses "-" or "_", so the "+/" alphabet spells it differently.
+    const tokens = [0, 1, 2, 3, 4, 5, 6, 7].map((n) => createToken(secret, { ...payload, exp: payload.exp + n }));
+    const [data = "", signature = ""] = tokens.map((token) => token.split(".")).find((parts) => /[-_]/.test(parts[1] ?? "")) ?? [];
+    expect(signature).toHaveLength(43);
+    // The last character carries four bits of the MAC and two spare ones, which createToken() leaves at zero.
+    const last = alphabet.indexOf(signature.slice(-1));
+    expect(last % 4).toBe(0);
+    const spellings = [
+      ...[1, 2, 3].map((spare) => signature.slice(0, -1) + alphabet[last + spare]),
+      `${signature}=`,
+      `${signature}\n`,
+      ` ${signature}`,
+      `${signature.slice(0, 20)} ${signature.slice(20)}`,
+      signature.replace(/-/g, "+").replace(/_/g, "/"),
+    ];
+    expect(new Set([signature, ...spellings]).size).toBe(9);
+    for (const spelling of spellings) {
+      // Each decodes to the right MAC, and is still not the token.
+      expect(Buffer.from(spelling, "base64url").equals(Buffer.from(signature, "base64url"))).toBe(true);
+      expect(verifyToken(secret, `${data}.${spelling}`, 1_000_000)).toEqual({ valid: false, reason: "bad-signature" });
+    }
+    expect(verifyToken(secret, `${data}.${signature}`, 1_000_000).valid).toBe(true);
+  });
 });
 
 describe("waitlist duplicate handling", () => {
@@ -56,5 +88,40 @@ describe("waitlist duplicate handling", () => {
     expect(firstConfirmation("token-a", exp)).toBe(false);
     forgetConfirmation("token-a");
     expect(firstConfirmation("token-a", exp)).toBe(true);
+  });
+
+  it("counts one signed payload once, however the rest of the token is spelled", () => {
+    const exp = Date.now() + 60_000;
+    const [data = "", signature = ""] = createToken(secret, { ...payload, e: "spelling@example.com" }).split(".");
+    expect(firstConfirmation(`${data}.${signature}`, exp)).toBe(true);
+    expect(firstConfirmation(`${data}.${signature}=`, exp)).toBe(false);
+    expect(firstConfirmation(`${data}.${signature}\n`, exp)).toBe(false);
+    // A failed record forgotten under one spelling is forgotten for the payload.
+    forgetConfirmation(`${data}.${signature}=`);
+    expect(firstConfirmation(`${data}.${signature}`, exp)).toBe(true);
+    expect(firstConfirmation(`${data}.${signature}`, exp)).toBe(false);
+    // Another payload is another confirmation.
+    expect(firstConfirmation(createToken(secret, { ...payload, e: "another@example.com" }), exp)).toBe(true);
+  });
+});
+
+describe("POST /api/waitlist/confirm", () => {
+  const confirm = (token: string) =>
+    postConfirm(
+      new Request("http://localhost/api/waitlist/confirm", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token }),
+      }),
+    );
+
+  it("records one consent email for a payload confirmed more than once", async () => {
+    const record = vi.mocked(recordConfirmation).mockResolvedValue({ ok: true });
+    const token = createToken(secret, { ...payload, e: "twice@example.com", exp: Date.now() + 60_000 });
+    expect((await confirm(token)).status).toBe(200);
+    expect((await confirm(token)).status).toBe(200);
+    // Another spelling of the same token is not a token, and records nothing either.
+    expect((await confirm(`${token}=`)).status).toBe(400);
+    expect(record).toHaveBeenCalledTimes(1);
   });
 });
