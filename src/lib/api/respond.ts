@@ -46,14 +46,17 @@ export const MAX_BODY_BYTES = 16_384;
  * 415 (not JSON), 413 (too large), 400 invalid_json, or 400 invalid_input with field errors.
  */
 export async function readJson<S extends z.ZodType>(request: Request, schema: S): Promise<{ data: z.infer<S> } | { response: Response }> {
-  if (!request.headers.get("content-type")?.toLowerCase().includes("application/json")) {
+  // The media type itself must be application/json; parameters after ";" (a charset) are allowed.
+  const mediaType = request.headers.get("content-type")?.split(";")[0]?.trim().toLowerCase();
+  if (mediaType !== "application/json") {
     return { response: fail(415, "unsupported_media_type", "Send the form as JSON.") };
   }
   if (Number(request.headers.get("content-length") ?? 0) > MAX_BODY_BYTES) {
     return { response: fail(413, "too_large", "That message is too long to send.") };
   }
   const raw = await request.text();
-  if (raw.length > MAX_BODY_BYTES) return { response: fail(413, "too_large", "That message is too long to send.") };
+  // Bytes, not string length: a character outside ASCII is one or two UTF-16 units but two to four bytes.
+  if (Buffer.byteLength(raw, "utf8") > MAX_BODY_BYTES) return { response: fail(413, "too_large", "That message is too long to send.") };
   let json: unknown;
   try {
     json = JSON.parse(raw);
