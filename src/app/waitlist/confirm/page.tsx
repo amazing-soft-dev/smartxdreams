@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 
 const productNames = products.map((p) => ({ slug: p.slug, name: p.name }));
 
-/** /waitlist/confirm?token=…: the second step of double opt-in. */
+/** /waitlist/confirm#token=…: the second step of double opt-in. */
 export default function ConfirmWaitlistPage() {
   return (
     <main id="main" tabIndex={-1} data-nav-theme="light" className="bg-canvas pt-40 pb-28 md:pt-48">
