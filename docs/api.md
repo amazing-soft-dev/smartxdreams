@@ -121,6 +121,10 @@ that opens the link cannot sign anyone up.
 | `WAITLIST_SECRET` | At least 32 random characters (`openssl rand -hex 32`); signs confirmation links |
 | `RESEND_WAITLIST_SEGMENT_ID` | Optional Resend segment for confirmed contacts |
 
+Both routes answer 503 unless `RESEND_API_KEY`, `CONTACT_FROM_EMAIL`, `CONTACT_TO_EMAIL` and
+`WAITLIST_SECRET` are all set. The team inbox is needed at sign-up too: without it a confirmation could
+never be recorded, so no confirmation email is sent.
+
 Changing the consent wording: edit `waitlistConsent.text` and bump `waitlistConsent.version`. Forms loaded
 before the change get "Reload the page" instead of agreeing to wording they did not see.
 
