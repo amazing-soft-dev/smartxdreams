@@ -110,7 +110,7 @@ for (const file of await list(path.join(staticDir, "chunks"), ".js")) {
 for (const name of Object.keys(LAZY)) {
   if (!seen.has(name)) problems.push(`no chunk contains ${name} (marker "${LAZY[name]}"); update the marker in check-bundle.mjs`);
 }
-if (threeChunks === 0) problems.push("no chunk contains three.js; is AstraField still lazy-loading its scene?");
+if (threeChunks === 0) problems.push("no chunk contains three.js; is the Earth scene (EarthField) still lazy-loading it?");
 if (kb(threeBytes) > THREE_BUDGET_KB) problems.push(`three.js chunks are ${kb(threeBytes).toFixed(1)} KB gzipped, over ${THREE_BUDGET_KB} KB`);
 
 // Analysis: heaviest pages and the largest chunks they share.

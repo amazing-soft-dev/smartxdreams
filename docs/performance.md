@@ -5,16 +5,24 @@ Targets for Home on a throttled mobile run (Lighthouse defaults: simulated slow 
 
 ## Budgets (enforced in CI)
 
-`npm run check:bundle` runs after the server build in the `Build (server)` job. It measures every
+`npm run check:bundle` runs after the server build in CI's one job, **CI passed**. It measures every
 statically generated page (gzipped) and fails when any budget is exceeded:
 
-| Budget | Limit | Now (2026-11-16) |
+| Budget | Limit | Now (2026-11-18) |
 |---|---|---|
-| Initial JavaScript per page | 340 KB | Home 331.6 KB, other pages about 308 KB (2026-11-18, with the motion work #380–#391) |
-| CSS per page | 30 KB | 13.4–13.8 KB |
+| Initial JavaScript per page | 290 KB | Home 275.0 KB, pages with a form about 250 KB, `/privacy` 208.7 KB |
+| HTML document per page | 50 KB | Home 47.4 KB, `/about` 35.9 KB, the others 20–31 KB |
+| CSS per page | 30 KB | 16.9 KB |
 | Preloaded fonts | 1 file, up to 60 KB | 1 Latin woff2, 44 KB |
-| three.js (lazy chunk) | 200 KB | 131.2 KB |
+| three.js (lazy chunk) | 200 KB | 136.1 KB |
 | Not in initial scripts | three.js, Lenis, aurora shader | all lazy |
+
+The JavaScript figure leaves out the polyfill chunk in the `<script nomodule>` tag (38.7 KB), which no
+browser with module support downloads. Until #542 it was counted, so older figures in this file and in
+issues are that much higher: Home's 275.0 KB is 313.7 KB by the old count, down from 331.8 KB. The budgets
+sit about 5% above the heaviest page, so they catch a regression instead of absorbing it. The HTML has a
+budget because, unlike scripts and styles, a document is not cached between pages: whatever the shared
+layout renders inline is paid for on every full page load.
 
 `npm run check:images` holds the photo budget: masters at most 2400 px, 800 KB each, 12 MB total.
 
