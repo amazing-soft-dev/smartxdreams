@@ -4,9 +4,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { type KeyboardEvent, useEffect, useId, useRef, useState } from "react";
 import { ProductLogo } from "@/components/product/ProductLogo";
-import { products } from "@/content/products";
-import { audienceLabel } from "@/content/selectors";
 import { cx } from "@/lib/cx";
+import { useNavProducts } from "./NavProducts";
 import type { NavTheme } from "./useNavTheme";
 
 /** Short delay before closing on pointer leave, so the pointer can travel from the button to the panel. */
@@ -24,6 +23,7 @@ type ProductsMenuProps = {
 export function ProductsMenu({ theme }: ProductsMenuProps) {
   const panelId = useId();
   const pathname = usePathname();
+  const products = useNavProducts();
   // The menu remembers the page it was opened on, so it closes by itself after navigating elsewhere.
   const [openOn, setOpenOn] = useState<string | null>(null);
   const open = openOn === pathname;
@@ -175,14 +175,14 @@ export function ProductsMenu({ theme }: ProductsMenuProps) {
 
 /** The right-hand preview: the highlighted product's audience, summary and a link. Fades in on change. */
 function ProductPreview({ slug }: { slug: string }) {
-  const product = products.find((p) => p.slug === slug);
+  const product = useNavProducts().find((p) => p.slug === slug);
   if (!product) return null;
   return (
     <div className="relative flex w-[290px] animate-[menu-preview_500ms_var(--ease-out-quint)] flex-col justify-between overflow-hidden rounded-[14px] bg-[linear-gradient(160deg,#6D4AFF_0%,#371D93_55%,#0F1226_100%)] p-5">
       <div>
         <ProductLogo product={product} size={52} decorative className="mb-4" />
         <span className="block text-micro font-semibold tracking-[0.06em] text-white/70 uppercase">
-          For {audienceLabel(product.audience).toLowerCase()}
+          For {product.audienceLabel.toLowerCase()}
         </span>
         <p className="mt-3 text-[14px] leading-relaxed text-white/85">{product.summary}</p>
       </div>

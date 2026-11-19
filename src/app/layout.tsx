@@ -7,9 +7,11 @@ import { MotionProvider } from "@/components/motion/MotionProvider";
 import { SmoothScroll } from "@/components/motion/SmoothScroll";
 import { Footer } from "@/components/footer/Footer";
 import { Header } from "@/components/nav/Header";
+import { NavProductsProvider } from "@/components/nav/NavProducts";
 import { VitalsReporter } from "@/components/perf/VitalsReporter";
 import { TransitionProvider } from "@/components/transition/TransitionProvider";
 import { JsonLd } from "@/components/seo/JsonLd";
+import { navProducts } from "@/content/selectors";
 import { defaultMetadata, organizationJsonLd, websiteJsonLd } from "@/lib/seo";
 import "./globals.css";
 
@@ -36,6 +38,12 @@ const isProduction = process.env.VERCEL_ENV === "production";
 
 export const metadata: Metadata = defaultMetadata;
 
+/**
+ * The products as the header menus show them: a few short fields each. Built here, on the server, and passed
+ * down, so those client components do not carry the products' full copy into every page's JavaScript.
+ */
+const products = navProducts();
+
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" className={interTight.variable}>
@@ -58,7 +66,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
               >
                 Skip to content
               </a>
-              <Header />
+              <NavProductsProvider products={products}>
+                <Header />
+              </NavProductsProvider>
               {children}
               <Footer />
             </TransitionProvider>
