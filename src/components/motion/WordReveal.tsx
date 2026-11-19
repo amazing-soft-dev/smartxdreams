@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, type Variants } from "motion/react";
+import { m, type Variants } from "motion/react";
 import { Fragment } from "react";
 
 /** Seconds between words. */
@@ -32,7 +32,7 @@ type WordRevealProps = {
  * JavaScript read it normally; under reduced motion the words are clear from the first paint (data-motion).
  */
 export function WordReveal({ text, as = "p", className, amount = 0.4 }: WordRevealProps) {
-  const Component = motion[as];
+  const Component = m[as];
   const words = text.split(/\s+/).filter(Boolean);
   return (
     <Component
@@ -44,9 +44,9 @@ export function WordReveal({ text, as = "p", className, amount = 0.4 }: WordReve
     >
       {words.map((word, i) => (
         <Fragment key={i}>
-          <motion.span data-reveal="" data-motion="word" className="inline-block" variants={wordVariants}>
+          <m.span data-reveal="" data-motion="word" className="inline-block" variants={wordVariants}>
             {word}
-          </motion.span>
+          </m.span>
           {i < words.length - 1 ? " " : null}
         </Fragment>
       ))}

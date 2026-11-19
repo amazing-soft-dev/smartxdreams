@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, type TargetAndTransition } from "motion/react";
+import { m, type TargetAndTransition } from "motion/react";
 import type { ReactNode } from "react";
 import { ease, spring } from "@/styles/motion";
 
@@ -63,7 +63,7 @@ export function Reveal({ children, preset = "up60", delay = 0, amount = 0.2, cla
   const visible = restingState(hidden);
   if (aboveFold) {
     return (
-      <motion.div
+      <m.div
         data-reveal=""
         className={className}
         initial={{ ...hidden, opacity: 0.001 }}
@@ -71,11 +71,11 @@ export function Reveal({ children, preset = "up60", delay = 0, amount = 0.2, cla
         transition={{ ...transition, delay }}
       >
         {children}
-      </motion.div>
+      </m.div>
     );
   }
   return (
-    <motion.div
+    <m.div
       data-reveal=""
       className={className}
       initial={hidden}
@@ -84,6 +84,6 @@ export function Reveal({ children, preset = "up60", delay = 0, amount = 0.2, cla
       transition={{ ...transition, delay }}
     >
       {children}
-    </motion.div>
+    </m.div>
   );
 }
