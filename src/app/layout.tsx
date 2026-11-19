@@ -1,8 +1,7 @@
-import { Analytics } from "@vercel/analytics/next";
-import { SpeedInsights } from "@vercel/speed-insights/next";
 import type { Metadata } from "next";
 import { Inter_Tight } from "next/font/google";
 import type { ReactNode } from "react";
+import { VercelInsights } from "@/components/perf/VercelInsights";
 import { MotionProvider } from "@/components/motion/MotionProvider";
 import { SmoothScroll } from "@/components/motion/SmoothScroll";
 import { Footer } from "@/components/footer/Footer";
@@ -74,12 +73,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             </TransitionProvider>
           </MotionProvider>
         </SmoothScroll>
-        {isProduction ? (
-          <>
-            <Analytics />
-            <SpeedInsights />
-          </>
-        ) : null}
+        {isProduction ? <VercelInsights /> : null}
       </body>
     </html>
   );
