@@ -69,8 +69,3 @@ export async function sendEmail({ to, subject, text, html, replyTo, purpose }: E
     return { ok: false, reason: "send-failed" };
   }
 }
-
-/** Escapes text for use inside HTML email bodies. */
-export function escapeHtml(value: string): string {
-  return value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
-}

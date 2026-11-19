@@ -4,8 +4,6 @@
  */
 import { seededRandom } from "@/components/astra/stars";
 
-/** The sky behind the stars: rgb(7, 1, 23). Also the `space` colour token. */
-export const SKY_BACKGROUND = "#070117";
 export const STAR_COUNT = 200;
 export const STAR_SEED = 20261117;
 /** Star radius in px. */

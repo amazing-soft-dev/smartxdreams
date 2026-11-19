@@ -49,4 +49,3 @@ export const waitlistRequestSchema = waitlistSchema
   .and(spamGuardSchema);
 
 export type ContactRequest = z.infer<typeof contactRequestSchema>;
-export type WaitlistRequest = z.infer<typeof waitlistRequestSchema>;
