@@ -14,7 +14,7 @@ import { readdir, readFile, stat } from "node:fs/promises";
 import path from "node:path";
 import { gzipSync } from "node:zlib";
 
-const JS_BUDGET_KB = 340;
+const JS_BUDGET_KB = 290;
 const CSS_BUDGET_KB = 30;
 const FONT_BUDGET_KB = 60;
 const THREE_BUDGET_KB = 200;
