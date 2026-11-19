@@ -1,5 +1,5 @@
 import { serverEnv } from "@/lib/env";
-import { emailTransport, sendEmail } from "./email";
+import { RESEND_TIMEOUT_MS, emailTransport, sendEmail } from "./email";
 import { consentRecordEmail } from "./waitlist-emails";
 import type { WaitlistTokenPayload } from "./waitlist-token";
 
@@ -27,7 +27,11 @@ export async function recordConfirmation(payload: WaitlistTokenPayload, confirme
   const segmentId = serverEnv().RESEND_WAITLIST_SEGMENT_ID;
   if (segmentId) {
     try {
-      const { error } = await transport.resend.contacts.create({ email: payload.e, unsubscribed: false, segments: [{ id: segmentId }] });
+      // Same time limit as a send: a stalled sync is given up on and logged below, not waited for.
+      const { error } = await transport.resend.contacts.create(
+        { email: payload.e, unsubscribed: false, segments: [{ id: segmentId }] },
+        { signal: AbortSignal.timeout(RESEND_TIMEOUT_MS) },
+      );
       if (error) console.warn(`[waitlist] contact sync skipped (${error.name})`);
     } catch (error) {
       console.warn(`[waitlist] contact sync failed (${error instanceof Error ? error.name : "unknown error"})`);

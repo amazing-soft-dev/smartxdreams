@@ -43,11 +43,22 @@ export type EmailMessage = {
 
 export type SendResult = { ok: true } | { ok: false; reason: "not-configured" | "send-failed" };
 
+/**
+ * How long one request to Resend may take. The Resend client sets no limit of its own, so a stalled request
+ * would keep the route, and the visitor's form, waiting until the platform ends the function. After this
+ * long the request is aborted and fails like any other: the route answers 503 and the form offers a retry.
+ */
+export const RESEND_TIMEOUT_MS = 8_000;
+
 export async function sendEmail({ to, subject, text, html, replyTo, purpose }: EmailMessage): Promise<SendResult> {
   const transport = emailTransport();
   if (!transport) return { ok: false, reason: "not-configured" };
   try {
-    const { error } = await transport.resend.emails.send({ from: transport.from, to, subject, text, html, replyTo });
+    // An aborted request comes back from the client as an error, like any failed request.
+    const { error } = await transport.resend.emails.send(
+      { from: transport.from, to, subject, text, html, replyTo },
+      { signal: AbortSignal.timeout(RESEND_TIMEOUT_MS) },
+    );
     if (error) {
       console.error(`[email] ${purpose}: Resend rejected the message (${error.name})`);
       return { ok: false, reason: "send-failed" };
