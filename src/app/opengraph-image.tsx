@@ -3,12 +3,13 @@ import path from "node:path";
 import { ImageResponse } from "next/og";
 import { company } from "@/content/site";
 import brandMarks from "@/lib/brand-marks.json";
+import { socialImage } from "@/lib/seo";
 
 // Static so the image is generated at build time and included in the static export.
 export const dynamic = "force-static";
-export const alt = `${company.name}: ${company.tagline}`;
-export const size = { width: 1200, height: 630 };
-export const contentType = "image/png";
+export const alt = socialImage.alt;
+export const size = { width: socialImage.width, height: socialImage.height };
+export const contentType = socialImage.type;
 
 /**
  * The white mark for dark surfaces, as scripts/build-brand.mjs builds it: cleaned of the master's stray

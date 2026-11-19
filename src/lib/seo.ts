@@ -13,7 +13,10 @@ export function absoluteUrl(path = "/"): string {
   return new URL(path, `${siteUrl}/`).toString();
 }
 
-/** Site-wide defaults, set once in the root layout. Pages override title, description and canonical. */
+/**
+ * Site-wide defaults, set once in the root layout. Pages override title and description and name their own
+ * canonical address; the defaults name none, so a page without metadata (the 404 page) never claims Home's.
+ */
 export const defaultMetadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
@@ -22,12 +25,10 @@ export const defaultMetadata: Metadata = {
   },
   description: company.description,
   applicationName: company.name,
-  alternates: { canonical: "/" },
   openGraph: {
     type: "website",
     siteName: company.name,
     locale: "en_US",
-    url: "/",
     title: `${company.name}: ${company.tagline}`,
     description: company.description,
   },
@@ -40,22 +41,47 @@ export const defaultMetadata: Metadata = {
   formatDetection: { telephone: false, email: false, address: false },
 };
 
+/**
+ * The social card drawn by src/app/opengraph-image.tsx, which takes its size and alt text from here. Next.js
+ * attaches that file's image only to metadata that sets no `openGraph` of its own, and a page's `openGraph`
+ * replaces the root layout's whole object, so pageMetadata names the image on every page.
+ */
+export const socialImage = {
+  url: "/opengraph-image",
+  type: "image/png",
+  width: 1200,
+  height: 630,
+  alt: `${company.name}: ${company.tagline}`,
+};
+
 type PageMetadataInput = {
   /** Page title; the layout template appends " | SmartxDreams". */
   title: string;
   description: string;
   /** Site path of the page, used as the canonical URL and the Open Graph URL. */
   path: string;
+  /** Title on link previews. Defaults to the title with the company name, as the layout template writes it. */
+  socialTitle?: string;
 };
 
 /** Metadata for one page: title, description, canonical URL, and matching Open Graph and Twitter fields. */
-export function pageMetadata({ title, description, path }: PageMetadataInput): Metadata {
+export function pageMetadata({ title, description, path, socialTitle }: PageMetadataInput): Metadata {
+  // The layout's title template reaches only <title>, so the card titles are branded here.
+  const cardTitle = socialTitle ?? `${title} | ${company.name}`;
   return {
     title,
     description,
     alternates: { canonical: path },
-    openGraph: { type: "website", siteName: company.name, locale: "en_US", url: path, title, description },
-    twitter: { card: "summary_large_image", title, description },
+    openGraph: {
+      type: "website",
+      siteName: company.name,
+      locale: "en_US",
+      url: path,
+      title: cardTitle,
+      description,
+      images: [socialImage],
+    },
+    twitter: { card: "summary_large_image", title: cardTitle, description, images: [socialImage] },
   };
 }
 

@@ -16,8 +16,11 @@ import type { Metadata } from "next";
 const description =
   "SmartxDreams builds six focused AI products: Joined, Acorn, SiteLog, ToothLedger, SeniorAIPlans and TrustDraft. Each does one job, shows its sources and leaves the final call to you.";
 
+const title = "AI products for everyday work and life";
+
 export const metadata: Metadata = {
-  ...pageMetadata({ title: "AI products for everyday work and life", description, path: "/" }),
+  // Link previews keep this line as it is: the card already shows the site name beside it.
+  ...pageMetadata({ title, description, path: "/", socialTitle: title }),
   // Home keeps the brand first in the tab and in search results.
   title: { absolute: "SmartxDreams: AI products for everyday work and life" },
 };
