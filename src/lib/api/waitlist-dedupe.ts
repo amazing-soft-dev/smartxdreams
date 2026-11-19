@@ -9,8 +9,10 @@ import { createHash } from "node:crypto";
  * - Contact: an address gets at most 1 acknowledgement a day, however many messages name it as the reply
  *   address, so that form cannot flood an inbox either. The team still gets every message.
  *
- * Only a successful send is counted, so a failed attempt never blocks a retry. Keys are SHA-256 hashes, so memory never holds a readable address. Memory is per server instance (see
- * rate-limit.ts): a cold start forgets, which at worst means one more confirmation email or record.
+ * An email is counted before it is sent, so requests that arrive together are limited too, and uncounted if
+ * the send fails, so a failed attempt never blocks a retry. Keys are SHA-256 hashes, so memory never holds a
+ * readable address. Memory is per server instance (see rate-limit.ts): a cold start forgets, which at worst
+ * means one more email or record.
  */
 
 const hash = (value: string) => createHash("sha256").update(value).digest("base64url");
@@ -37,10 +39,24 @@ export function mayEmailSignup(email: string, product: string, now = Date.now())
   return recentSignups(signupKey(email, product), now).length < SIGNUP_LIMIT;
 }
 
-/** Counts a confirmation email once Resend has accepted it, so a failed send never blocks a retry. */
+/**
+ * Counts a confirmation email. Call it before sending, straight after mayEmailSignup(), so sign-ups that
+ * arrive together cannot all pass that check; forgetSignupEmail() undoes it if the send fails.
+ */
 export function recordSignupEmail(email: string, product: string, now = Date.now()): void {
   const key = signupKey(email, product);
   signups.set(key, [...recentSignups(key, now), now]);
+}
+
+/** Undoes recordSignupEmail() for the email counted at `at`, so a failed send never blocks a retry. */
+export function forgetSignupEmail(email: string, product: string, at: number): void {
+  const key = signupKey(email, product);
+  const counted = signups.get(key) ?? [];
+  const index = counted.indexOf(at);
+  if (index === -1) return;
+  const rest = counted.filter((_, i) => i !== index);
+  if (rest.length === 0) signups.delete(key);
+  else signups.set(key, rest);
 }
 
 const ACKNOWLEDGEMENT_WINDOW_MS = 24 * 60 * 60_000;
