@@ -43,10 +43,16 @@ export function recordSignupEmail(email: string, product: string, now = Date.now
 
 const recorded = new Map<string, number>();
 
+/**
+ * A confirmation is identified by the signed payload, the part of the token before the dot: who agreed to
+ * what, and when. The signature after it is left out, so however a token is written it is one confirmation.
+ */
+const confirmationKey = (token: string) => hash(token.split(".", 1)[0] ?? token);
+
 /** True the first time a token is confirmed on this instance; false for repeats within its lifetime. */
 export function firstConfirmation(token: string, expiresAt: number, now = Date.now()): boolean {
   for (const [key, exp] of recorded) if (exp < now) recorded.delete(key);
-  const key = hash(token);
+  const key = confirmationKey(token);
   if (recorded.has(key)) return false;
   recorded.set(key, expiresAt);
   return true;
@@ -54,5 +60,5 @@ export function firstConfirmation(token: string, expiresAt: number, now = Date.n
 
 /** Undoes firstConfirmation() when recording failed, so the person can press Confirm again. */
 export function forgetConfirmation(token: string): void {
-  recorded.delete(hash(token));
+  recorded.delete(confirmationKey(token));
 }
