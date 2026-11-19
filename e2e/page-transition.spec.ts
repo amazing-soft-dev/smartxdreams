@@ -97,9 +97,15 @@ async function recordPhases(page: Page) {
  * change as soon as the cover closes instead of waiting on the network (the transition reveals anyway after
  * 1.5 s). Hydrated, because a click before that is a plain document navigation with no transition: the App
  * Router writes its history entry when its first render commits, and history.state is null until then.
+ *
+ * Without Home's Earth scene: headless Chromium draws WebGL on the CPU, and with five copies of the page
+ * open the scene kept the main thread busy enough that the new route rendered 0.5 to 1.4 s after the cover
+ * closed, near the 1.5 s at which the transition stops waiting for it; without the scene, 0.14 to 0.25 s.
+ * Two cores make useSceneSupport keep the still plate, as in earth.spec.ts.
  */
 async function openHome(page: Page) {
   await recordPhases(page);
+  await page.addInitScript(() => Object.defineProperty(navigator, "hardwareConcurrency", { get: () => 2 }));
   await page.goto("/", { waitUntil: "networkidle" });
   await page.waitForFunction(() => history.state !== null);
 }
