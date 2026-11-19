@@ -2,7 +2,7 @@ import { readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import type { MDXContent } from "mdx/types";
 import { parse as parseYaml } from "yaml";
-import { type BlogCategory, type BlogCategoryId, blogCategoryById } from "@/content/blog/categories";
+import { type BlogCategory, blogCategoryById } from "@/content/blog/categories";
 import { compileMdx } from "./mdx";
 import { type Frontmatter, frontmatterSchema } from "./schema";
 
@@ -130,11 +130,6 @@ export function listedPosts(): Post[] {
 /** The newest featured post among these posts, or the newest post when none is featured. */
 export function featuredPost(posts: Post[]): Post | undefined {
   return posts.find((p) => p.featured) ?? posts[0];
-}
-
-/** Posts in one category, drafts included, newest first. */
-export function postsInCategory(id: BlogCategoryId): Post[] {
-  return allPosts().filter((p) => p.category === id);
 }
 
 /** The category record for a post. Always defined: the schema only accepts known categories. */

@@ -8,11 +8,6 @@ export function productBySlug(slug: string): Product | undefined {
   return products.find((p) => p.slug === slug);
 }
 
-/** Products for one audience, in display order. */
-export function productsByAudience(audience: Audience): Product[] {
-  return products.filter((p) => p.audience === audience);
-}
-
 /** The display label for an audience id. */
 export function audienceLabel(audience: Audience): string {
   return audiences.find((a) => a.id === audience)?.label ?? audience;
