@@ -23,7 +23,11 @@ function peek(token: string | null): { email: string; product: string } | null {
   if (!data) return null;
   try {
     const json = JSON.parse(atob(data.replace(/-/g, "+").replace(/_/g, "/"))) as { e?: unknown; p?: unknown };
-    return typeof json.e === "string" && typeof json.p === "string" ? { email: json.e, product: json.p } : null;
+    if (typeof json.e !== "string" || typeof json.p !== "string") return null;
+    // The page shows this address before the server has verified anything, so anything that is not plainly an
+    // email address (other text, markup, a very long string) is treated as an incomplete link.
+    if (json.e.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(json.e)) return null;
+    return { email: json.e, product: json.p };
   } catch {
     return null;
   }
