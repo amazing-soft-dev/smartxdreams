@@ -62,6 +62,18 @@ describe("pageMetadata", () => {
     expect(socialImage).toMatchObject({ url: "/opengraph-image", type: "image/png", width: 1200, height: 630 });
     expect(socialImage.alt).toContain(company.name);
   });
+
+  it("adds the company name to the card titles, as the layout template does to <title>", () => {
+    expect(meta.title).toBe("About");
+    expect(meta.openGraph?.title).toBe(`About | ${company.name}`);
+    expect(meta.twitter?.title).toBe(`About | ${company.name}`);
+  });
+
+  it("uses socialTitle for the cards when a page gives one", () => {
+    const home = pageMetadata({ title: "Home", description: "Start here.", path: "/", socialTitle: "Start here" });
+    expect(home.openGraph?.title).toBe("Start here");
+    expect(home.twitter?.title).toBe("Start here");
+  });
 });
 
 describe("teamJsonLd", () => {

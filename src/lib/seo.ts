@@ -59,10 +59,14 @@ type PageMetadataInput = {
   description: string;
   /** Site path of the page, used as the canonical URL and the Open Graph URL. */
   path: string;
+  /** Title on link previews. Defaults to the title with the company name, as the layout template writes it. */
+  socialTitle?: string;
 };
 
 /** Metadata for one page: title, description, canonical URL, and matching Open Graph and Twitter fields. */
-export function pageMetadata({ title, description, path }: PageMetadataInput): Metadata {
+export function pageMetadata({ title, description, path, socialTitle }: PageMetadataInput): Metadata {
+  // The layout's title template reaches only <title>, so the card titles are branded here.
+  const cardTitle = socialTitle ?? `${title} | ${company.name}`;
   return {
     title,
     description,
@@ -72,11 +76,11 @@ export function pageMetadata({ title, description, path }: PageMetadataInput): M
       siteName: company.name,
       locale: "en_US",
       url: path,
-      title,
+      title: cardTitle,
       description,
       images: [socialImage],
     },
-    twitter: { card: "summary_large_image", title, description, images: [socialImage] },
+    twitter: { card: "summary_large_image", title: cardTitle, description, images: [socialImage] },
   };
 }
 
