@@ -65,7 +65,9 @@ test("pressing the button holds every loop, and pressing it again lets them run"
 });
 
 test("the choice survives a page change, a fresh load and is forgotten when animations play again", async ({ page }) => {
-  await page.goto("/", { waitUntil: "networkidle" });
+  // Four page loads and a page transition: more than the default 30 s when the whole suite runs in parallel.
+  test.slow();
+  await page.goto("/privacy", { waitUntil: "networkidle" });
   await toggle(page).click();
   await expect(page.locator(root)).toHaveAttribute("data-motion-paused", "");
 
