@@ -20,6 +20,15 @@ const nextConfig: NextConfig = {
     // Rust port of the compiler (Turbopack only). Requires `reactCompiler`.
     turbopackRustReactCompiler: true,
   },
+  turbopack: {
+    // "motion/react" is a thin wrapper around framer-motion (motion's own dependency) that reads the full
+    // `motion` component into a top-level constant. Turbopack drops unused exports but keeps a module's
+    // top-level statements, so any import through the wrapper, even of a hook, pulled every Motion feature
+    // (drag, layout projection) into the shared chunk, and LazyMotion with the `m` component saved nothing.
+    // Resolving the wrapper straight to the package it re-exports loads the same modules without that
+    // constant: 14 KB gzipped less on every page without a filtered list (docs/performance.md).
+    resolveAlias: { "motion/react": "framer-motion" },
+  },
 };
 
 if (!isStaticExport) {
