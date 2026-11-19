@@ -4,7 +4,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { createContext, type ReactNode, useCallback, useContext, useEffect, useMemo, useRef } from "react";
 import { Logo } from "@/components/ui/Logo";
 import { cssEase } from "@/styles/motion";
-import { routeLabel } from "./route-label";
+import { type LabelProduct, routeLabel } from "./route-label";
 
 /**
  * Panel timing, measured frame by frame on the reference transition (docs/motion-audit.md#page-transition):
@@ -64,9 +64,10 @@ const offscreen = (i: number, phase: "in" | "out") => {
 
 /**
  * Page transition: five ink panels close in alternately from the top and the bottom, the route changes
- * underneath, and the panels carry on through to reveal the new page. Mounted once in the root layout.
+ * underneath, and the panels carry on through to reveal the new page. Mounted once in the root layout,
+ * which passes in the products: a product page's name is the word shown on the cover.
  */
-export function TransitionProvider({ children }: { children: ReactNode }) {
+export function TransitionProvider({ products, children }: { products: readonly LabelProduct[]; children: ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const overlay = useRef<HTMLDivElement>(null);
@@ -78,6 +79,8 @@ export function TransitionProvider({ children }: { children: ReactNode }) {
   const busy = useRef(false);
   // Resolves when the pathname changes, so the reveal waits for the new page.
   const routeWaiter = useRef<(() => void) | null>(null);
+  // The path whose page is on screen, so the effect below can tell a route change from the first render.
+  const shownPath = useRef(pathname);
 
   // The overlay is invisible until the first navigation, and an image is only decoded when it is first
   // painted, so the mark could pop in a frame late. Decode it while the browser is idle instead.
@@ -93,10 +96,29 @@ export function TransitionProvider({ children }: { children: ReactNode }) {
     return () => window.clearTimeout(id);
   }, []);
 
+  /**
+   * After a client-side navigation, move keyboard and screen-reader focus to the new page's h1 (instead of
+   * leaving it on a link that no longer exists) and announce the page through a polite live region.
+   */
+  const arrive = (destination: string) => {
+    const heading = document.querySelector<HTMLElement>("main h1, h1");
+    if (heading) {
+      if (!heading.hasAttribute("tabindex")) heading.setAttribute("tabindex", "-1");
+      heading.focus({ preventScroll: true });
+    }
+    if (announcer.current) announcer.current.textContent = `${destination} page`;
+  };
+
   useEffect(() => {
     routeWaiter.current?.();
     routeWaiter.current = null;
-  }, [pathname]);
+    // Every route change arrives the same way: plain links, the menus and the back and forward buttons never
+    // go through navigate(). Not on the first render, and not under the panels, where navigate() arrives
+    // itself once they have left.
+    if (shownPath.current === pathname) return;
+    shownPath.current = pathname;
+    if (!busy.current) arrive(routeLabel(pathname, products));
+  }, [pathname, products]);
 
   // Back and forward buttons skip the panels (the visitor already knows where they are going) and use a
   // short View Transitions cross-fade instead, where the browser supports it. The old page is captured when
@@ -159,19 +181,6 @@ export function TransitionProvider({ children }: { children: ReactNode }) {
     );
   }, []);
 
-  /**
-   * After a client-side navigation, move keyboard and screen-reader focus to the new page's h1 (instead of
-   * leaving it on a link that no longer exists) and announce the page through a polite live region.
-   */
-  const arrive = (pathname: string) => {
-    const heading = document.querySelector<HTMLElement>("main h1, h1");
-    if (heading) {
-      if (!heading.hasAttribute("tabindex")) heading.setAttribute("tabindex", "-1");
-      heading.focus({ preventScroll: true });
-    }
-    if (announcer.current) announcer.current.textContent = `${routeLabel(pathname)} page`;
-  };
-
   const navigate = useCallback(
     async (href: string) => {
       const url = new URL(href, window.location.href);
@@ -180,24 +189,20 @@ export function TransitionProvider({ children }: { children: ReactNode }) {
         router.push(href);
         return;
       }
-      // Reduced motion: no overlay at all, but keep the focus move and the announcement.
+      // Reduced motion: no overlay at all. The pathname effect still moves focus and announces the page.
       if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-        const changed = new Promise<void>((resolve) => {
-          routeWaiter.current = resolve;
-          window.setTimeout(resolve, ROUTE_TIMEOUT_MS);
-        });
         router.push(href);
-        await changed;
-        arrive(url.pathname);
         return;
       }
+      // The destination's name: the word on the cover, and what is announced on arrival.
+      const destination = routeLabel(url.pathname, products);
       busy.current = true;
       router.prefetch(href);
       el.dataset.state = "active";
       document.documentElement.dataset.pageCovered = "";
       const word = label.current;
       const layer = content.current;
-      if (word) word.textContent = routeLabel(url.pathname);
+      if (word) word.textContent = destination;
       const logo = mark.current;
       const halo = glow.current;
 
@@ -240,9 +245,9 @@ export function TransitionProvider({ children }: { children: ReactNode }) {
       for (const node of [...panels(), word, layer, logo, halo]) node?.getAnimations().forEach((a) => a.cancel());
       delete el.dataset.state;
       busy.current = false;
-      arrive(url.pathname);
+      arrive(destination);
     },
-    [animatePanels, router],
+    [animatePanels, router, products],
   );
 
   const api = useMemo(() => ({ navigate }), [navigate]);
