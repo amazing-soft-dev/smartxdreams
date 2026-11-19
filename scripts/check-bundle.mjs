@@ -1,22 +1,26 @@
 // Bundle analysis and budget, run after `next build` (the server build) in CI.
 //
 // For every statically generated page (.next/server/app/**/*.html) it measures what the page loads up front:
-// the JavaScript and CSS chunks referenced by the HTML (gzipped) and the preloaded fonts. It prints the
-// heaviest pages and chunks, then fails if:
+// the JavaScript and CSS chunks referenced by the HTML (gzipped) and the preloaded fonts. Scripts marked
+// `nomodule` are left out: they are the polyfills for browsers without module support, and no browser that
+// can run the site downloads them. It prints the heaviest pages and chunks, then fails if:
 // 1. any page's initial JavaScript is over JS_BUDGET_KB (gzipped);
 // 2. any page's CSS is over CSS_BUDGET_KB (gzipped);
 // 3. a page preloads more than one font, or the preloaded font is over FONT_BUDGET_KB;
 // 4. three.js, Lenis or the footer aurora shader appears in a page's initial scripts (they must stay lazy chunks);
-// 5. the lazy three.js chunk(s) are over THREE_BUDGET_KB (gzipped).
+// 5. the lazy three.js chunk(s) are over THREE_BUDGET_KB (gzipped);
+// 6. any page's HTML document is over HTML_BUDGET_KB (gzipped). Unlike scripts and styles, the document is
+//    not cached between pages, so what a shared layout puts inline is paid for on every full page load.
 
 import { readdir, readFile, stat } from "node:fs/promises";
 import path from "node:path";
 import { gzipSync } from "node:zlib";
 
-const JS_BUDGET_KB = 340;
+const JS_BUDGET_KB = 290;
 const CSS_BUDGET_KB = 30;
 const FONT_BUDGET_KB = 60;
 const THREE_BUDGET_KB = 200;
+const HTML_BUDGET_KB = 50;
 
 /** Strings that only appear in code that must never be in the initial scripts. */
 const LAZY = {
@@ -52,12 +56,19 @@ async function chunk(relative) {
 const kb = (bytes) => bytes / 1024;
 const problems = [];
 const rows = [];
+let legacyScripts = 0;
 
 for (const page of await list(pagesDir, ".html")) {
   const html = await readFile(path.join(pagesDir, page), "utf8");
   const refs = (ext) => [...new Set([...html.matchAll(new RegExp(`/_next/static/(chunks/[^"?]+\\${ext})`, "g"))].map((m) => m[1]))];
+  // <script nomodule src="…">: skipped by every browser that supports modules, so not part of the page's load.
+  const legacy = new Set(
+    [...html.matchAll(/<script\b[^>]*\bnomodule\b[^>]*>/gi)].flatMap((m) => m[0].match(/\/_next\/static\/(chunks\/[^"?]+\.js)/)?.[1] ?? []),
+  );
+  legacyScripts += legacy.size;
   let js = 0;
   for (const file of refs(".js")) {
+    if (legacy.has(file)) continue;
     const { gz, text } = await chunk(file);
     js += gz;
     for (const [name, marker] of Object.entries(LAZY)) {
@@ -71,10 +82,12 @@ for (const page of await list(pagesDir, ".html")) {
   );
   let fontBytes = 0;
   for (const font of fonts) fontBytes += (await stat(path.join(staticDir, font)).catch(() => ({ size: 0 }))).size;
-  rows.push({ page, js, css, fonts: fonts.length, fontBytes });
+  const document = gzipSync(html).length;
+  rows.push({ page, js, css, fonts: fonts.length, fontBytes, document });
 
   if (kb(js) > JS_BUDGET_KB) problems.push(`${page}: initial JS is ${kb(js).toFixed(1)} KB gzipped, over the ${JS_BUDGET_KB} KB budget`);
   if (kb(css) > CSS_BUDGET_KB) problems.push(`${page}: CSS is ${kb(css).toFixed(1)} KB gzipped, over the ${CSS_BUDGET_KB} KB budget`);
+  if (kb(document) > HTML_BUDGET_KB) problems.push(`${page}: the HTML is ${kb(document).toFixed(1)} KB gzipped, over the ${HTML_BUDGET_KB} KB budget`);
   if (fonts.length > 1) problems.push(`${page}: preloads ${fonts.length} fonts; preload only the Latin subset`);
   if (kb(fontBytes) > FONT_BUDGET_KB) problems.push(`${page}: preloaded font is ${kb(fontBytes).toFixed(1)} KB, over ${FONT_BUDGET_KB} KB`);
 }
@@ -97,15 +110,17 @@ for (const file of await list(path.join(staticDir, "chunks"), ".js")) {
 for (const name of Object.keys(LAZY)) {
   if (!seen.has(name)) problems.push(`no chunk contains ${name} (marker "${LAZY[name]}"); update the marker in check-bundle.mjs`);
 }
-if (threeChunks === 0) problems.push("no chunk contains three.js; is AstraField still lazy-loading its scene?");
+if (threeChunks === 0) problems.push("no chunk contains three.js; is the Earth scene (EarthField) still lazy-loading it?");
 if (kb(threeBytes) > THREE_BUDGET_KB) problems.push(`three.js chunks are ${kb(threeBytes).toFixed(1)} KB gzipped, over ${THREE_BUDGET_KB} KB`);
 
 // Analysis: heaviest pages and the largest chunks they share.
 rows.sort((a, b) => b.js - a.js);
 console.log(`check:bundle: ${rows.length} pages. Heaviest initial loads (gzipped):`);
 for (const r of rows.slice(0, 5)) {
-  console.log(`  ${r.page.padEnd(44)} JS ${kb(r.js).toFixed(1).padStart(6)} KB  CSS ${kb(r.css).toFixed(1).padStart(5)} KB  fonts ${r.fonts} (${kb(r.fontBytes).toFixed(0)} KB)`);
+  console.log(`  ${r.page.padEnd(44)} JS ${kb(r.js).toFixed(1).padStart(6)} KB  CSS ${kb(r.css).toFixed(1).padStart(5)} KB  HTML ${kb(r.document).toFixed(1).padStart(5)} KB  fonts ${r.fonts} (${kb(r.fontBytes).toFixed(0)} KB)`);
 }
+const heaviestDocument = rows.reduce((a, b) => (b.document > a.document ? b : a), rows[0] ?? { page: "", document: 0 });
+console.log(`  Heaviest HTML: ${heaviestDocument.page} ${kb(heaviestDocument.document).toFixed(1)} KB gzipped`);
 const largest = [...gzCache.entries()]
   .filter(([f]) => f.endsWith(".js"))
   .sort((a, b) => b[1] - a[1])
@@ -113,6 +128,7 @@ const largest = [...gzCache.entries()]
   .map(([f, gz]) => `${f.split("/").pop()} ${kb(gz).toFixed(1)} KB`);
 console.log(`  Largest chunks: ${largest.join(", ")}`);
 console.log(`  three.js: lazy, ${threeChunks} chunk(s), ${kb(threeBytes).toFixed(1)} KB gzipped`);
+console.log(`  Not counted: ${legacyScripts} nomodule script tag(s) across the pages (polyfills modern browsers skip)`);
 
 if (problems.length > 0) {
   console.error("check:bundle failed:");
@@ -120,5 +136,5 @@ if (problems.length > 0) {
   process.exit(1);
 }
 console.log(
-  `check:bundle: within budget (JS ${JS_BUDGET_KB} KB, CSS ${CSS_BUDGET_KB} KB, one font up to ${FONT_BUDGET_KB} KB, three.js ${THREE_BUDGET_KB} KB; Lenis, the aurora and three.js lazy).`,
+  `check:bundle: within budget (JS ${JS_BUDGET_KB} KB, CSS ${CSS_BUDGET_KB} KB, HTML ${HTML_BUDGET_KB} KB, one font up to ${FONT_BUDGET_KB} KB, three.js ${THREE_BUDGET_KB} KB; Lenis, the aurora and three.js lazy).`,
 );
