@@ -7,10 +7,10 @@ import { useLenis } from "@/components/motion/SmoothScroll";
 import { ProductLogo } from "@/components/product/ProductLogo";
 import { Button } from "@/components/ui/Button";
 import { Logo } from "@/components/ui/Logo";
-import { products } from "@/content/products";
 import { headerCta, mainNav } from "@/content/site";
 import { cx } from "@/lib/cx";
 import { NAV_LOGO_HEIGHT } from "./logo-size";
+import { useNavProducts } from "./NavProducts";
 
 type MobileMenuProps = {
   id: string;
@@ -26,6 +26,7 @@ type MobileMenuProps = {
 export function MobileMenu({ id, open, onOpenChange }: MobileMenuProps) {
   const dialog = useRef<HTMLDialogElement>(null);
   const pathname = usePathname();
+  const products = useNavProducts();
   const productsId = useId();
   // Start expanded on product pages, so the current product is visible right away.
   const [productsOpen, setProductsOpen] = useState(() => pathname.startsWith("/products"));

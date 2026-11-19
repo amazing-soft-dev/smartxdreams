@@ -2,11 +2,12 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { type ReactNode, type Ref, useEffect, useRef, useState } from "react";
+import { type ReactNode, type Ref, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { Button } from "@/components/ui/Button";
 import { currentProductSlug } from "@/content/products/retired";
 import { formsCanSend } from "@/lib/forms/availability";
 import type { FormResponse } from "@/lib/forms/response";
+import { tokenFromLocation } from "@/lib/forms/waitlist-link";
 
 type ProductName = { slug: string; name: string };
 
@@ -17,13 +18,32 @@ type State =
   | { kind: "expired"; message: string }
   | { kind: "failed"; message: string };
 
+/**
+ * The address's fragment (#token=…), which only the browser has: it is never sent to the server. Null means
+ * "not known yet" (a server render, and the first pass of hydration), so the two never disagree.
+ */
+function useLocationHash(): string | null {
+  return useSyncExternalStore(
+    (onChange) => {
+      window.addEventListener("hashchange", onChange);
+      return () => window.removeEventListener("hashchange", onChange);
+    },
+    () => window.location.hash,
+    () => null,
+  );
+}
+
 /** Reads the product and address from the token so the page can say what is being confirmed. Not trusted: the API verifies the signature. */
 function peek(token: string | null): { email: string; product: string } | null {
   const data = token?.split(".")[0];
   if (!data) return null;
   try {
     const json = JSON.parse(atob(data.replace(/-/g, "+").replace(/_/g, "/"))) as { e?: unknown; p?: unknown };
-    return typeof json.e === "string" && typeof json.p === "string" ? { email: json.e, product: json.p } : null;
+    if (typeof json.e !== "string" || typeof json.p !== "string") return null;
+    // The page shows this address before the server has verified anything, so anything that is not plainly an
+    // email address (other text, markup, a very long string) is treated as an incomplete link.
+    if (json.e.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(json.e)) return null;
+    return { email: json.e, product: json.p };
   } catch {
     return null;
   }
@@ -34,7 +54,10 @@ function peek(token: string | null): { email: string; product: string } | null {
  * opening the link cannot sign anyone up. Every outcome is announced in a live region and focused.
  */
 export function ConfirmWaitlist({ products }: { products: ProductName[] }) {
-  const token = useSearchParams().get("token");
+  // The link carries the token in the fragment; links emailed before that have it in the query string.
+  const search = useSearchParams();
+  const hash = useLocationHash();
+  const token = hash === null ? null : tokenFromLocation(hash, search.toString());
   const info = peek(token);
   // Links emailed before a product was renamed carry its old slug.
   const product = info && products.find((p) => p.slug === currentProductSlug(info.product));
@@ -44,6 +67,9 @@ export function ConfirmWaitlist({ products }: { products: ProductName[] }) {
   useEffect(() => {
     if (state.kind !== "ready" && state.kind !== "sending") resultRef.current?.focus();
   }, [state.kind]);
+
+  // Not known yet is not "incomplete": say nothing until the browser has read the address.
+  if (hash === null) return null;
 
   if (!info || !product) {
     return (

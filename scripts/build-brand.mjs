@@ -8,7 +8,8 @@
 //   public/products/logos/<slug>-<48|96|192|384>.webp                  each product's logo on a square (below)
 //
 //   npm run brand            write the files
-//   npm run check:brand      fail if a file is missing or its size or format differs from what the masters give
+//   npm run check:brand      fail if a file is missing, its size or format differs from what the masters give,
+//                            or the committed file is over its byte budget
 //
 // Each master is cleaned before it is sized: the generator that drew the marks left faint specks around and
 // inside the ribbon (60 on the charcoal mark, over 100 on the white one). cleanAlpha() keeps the artwork's
@@ -20,7 +21,11 @@ import path from "node:path";
 import sharp from "sharp";
 
 const root = path.resolve(import.meta.dirname, "..");
-const check = process.argv.includes("--check");
+// `--check` compares with the built files in the repository, `--check=<dir>` with a copy of them under <dir>
+// (the unit test alters a copy to see the check fail).
+const checkArg = process.argv.find((arg) => arg === "--check" || arg.startsWith("--check="));
+const check = checkArg !== undefined;
+const builtRoot = checkArg?.startsWith("--check=") ? path.resolve(checkArg.slice("--check=".length)) : root;
 
 /** Alpha at or above which a pixel is part of the artwork's solid body. */
 const SOLID = 128;
@@ -32,8 +37,12 @@ const EDGE = 3;
 const MAX_BYTES = 80 * 1024;
 
 export const LOGO_WIDTHS = [32, 64, 128, 256, 512];
+// Check mode compares each image's width, height and format with the committed file, never its bytes, so it
+// encodes with the cheapest settings: one 384 px WebP takes seconds at effort 6 and under 50 ms at effort 0.
+// The PNGs inside icon.svg, which is compared byte for byte, use sharp's defaults in both modes.
 /** Palette PNG: 256 colours with alpha keeps the ribbon's shading at a fraction of the size. */
-const PNG = { palette: true, quality: 95, effort: 10, compressionLevel: 9 };
+const PNG = check ? {} : { palette: true, quality: 95, effort: 10, compressionLevel: 9 };
+const webp = (quality) => (check ? { effort: 0 } : { quality, alphaQuality: 100, effort: 6 });
 
 /**
  * Clears every pixel that is not artwork: labels the 4-connected parts at alpha >= SOLID, keeps the parts at
@@ -136,7 +145,7 @@ export async function loadArtwork(file) {
 const outputs = [];
 /** Queues a file: written in build mode, compared in check mode. `maxBytes` overrides the default budget. */
 function emit(file, buffer, maxBytes = MAX_BYTES) {
-  outputs.push({ file: path.join(root, file), buffer, maxBytes });
+  outputs.push({ file: path.join(builtRoot, file), buffer, maxBytes });
 }
 
 const MARKS = [
@@ -179,7 +188,7 @@ for (const { name } of MARKS) {
     const w = Math.min(width, a.width);
     emit(
       `public/brand/logo/${name}-${width}.webp`,
-      await a.image().resize({ width: w }).webp({ quality: 90, alphaQuality: 100, effort: 6 }).toBuffer(),
+      await a.image().resize({ width: w }).webp(webp(90)).toBuffer(),
     );
   }
   // PNG for consumers that cannot read WebP (the social card renderer): quantised, the shading survives.
@@ -259,7 +268,7 @@ for (const file of productMasters) {
   const artwork = await loadArtwork(path.join(root, "assets/products", file));
   console.log(`assets/products/${file}  artwork ${artwork.width} x ${artwork.height}`);
   for (const size of PRODUCT_LOGO_SIZES) {
-    const image = await (await square(artwork, size, 1)).webp({ quality: 88, alphaQuality: 100, effort: 6 }).toBuffer();
+    const image = await (await square(artwork, size, 1)).webp(webp(88)).toBuffer();
     emit(`public/products/logos/${slug}-${size}.webp`, image, PRODUCT_MAX_BYTES);
   }
 }
@@ -288,13 +297,16 @@ function ico(images) {
 
 let failed = false;
 for (const { file, buffer, maxBytes } of outputs) {
-  const rel = path.relative(root, file).replaceAll("\\", "/");
-  const over = buffer.length > maxBytes;
+  const rel = path.relative(builtRoot, file).replaceAll("\\", "/");
+  // The budget is on the file that ships: the committed one in check mode, the one about to be written here.
+  const current = check ? await fs.readFile(file).catch(() => null) : null;
+  const bytes = check ? (current?.length ?? 0) : buffer.length;
+  const over = bytes > maxBytes;
   failed ||= over;
   if (check) {
+    if (over) console.error(`${rel}  ${Math.round(bytes / 1024)} KB, over its budget of ${maxBytes / 1024} KB`);
     // Compare sizes, not bytes: sharp's encoders may differ by a few bytes between platforms. An ICO is
     // compared by its directory (image count and sizes), which sharp cannot read.
-    const current = await fs.readFile(file).catch(() => null);
     if (rel.endsWith(".json") || rel.endsWith(".svg")) {
       if (current?.toString().replace(/\r\n/g, "\n") !== buffer.toString()) {
         console.error(`${rel}  missing or out of date: run npm run brand`);

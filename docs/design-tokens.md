@@ -30,6 +30,8 @@ Computed from the token values. "AA" means 4.5:1 for normal text; "UI / large" m
 | ink at 65% on canvas | 5.54:1 | AA | **Muted text: use ink/65 or darker** |
 | ink at 60% on canvas | 4.69:1 | AA (barely) | Avoid for small text |
 | white at 60% on ink | 7.12:1 | AAA | Muted text on dark |
+| ink at 50% on white | 3.50:1 | UI / large only | **Field outlines on light: ink/50 or darker** |
+| white at 40% on ink | 3.81:1 | UI / large only | **Field outlines on dark: white/40 or brighter** |
 | violet-500 on canvas | 4.62:1 | AA | Links and accent words on light |
 | violet-500 on white | 5.15:1 | AA | |
 | white on violet-500 | 5.15:1 | AA | Violet buttons |

@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "motion/react";
+import { m } from "motion/react";
 import type { ReactNode } from "react";
 import { ease } from "@/styles/motion";
 
@@ -17,7 +17,7 @@ import { ease } from "@/styles/motion";
 export function PortraitReveal({ children, index }: { children: ReactNode; index: number }) {
   const tilt = index % 2 === 0 ? -8 : 8;
   return (
-    <motion.div
+    <m.div
       data-motion="portrait"
       className="absolute inset-0"
       initial={{ filter: "saturate(0)", rotate: tilt, scale: 1.22 }}
@@ -26,6 +26,6 @@ export function PortraitReveal({ children, index }: { children: ReactNode; index
       transition={{ duration: 1.1, ease: ease.outQuint }}
     >
       {children}
-    </motion.div>
+    </m.div>
   );
 }

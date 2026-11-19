@@ -44,6 +44,17 @@ export const STAR_LAYERS: readonly StarLayer[] = [
 /** Rounds to a few decimals, so the markup stays short and identical on the server and the client. */
 const round = (value: number, digits: number) => Number(value.toFixed(digits));
 
+/** Two hex digits for a value from 0 to 255. */
+const hex = (value: number) => value.toString(16).padStart(2, "0");
+
+/**
+ * A colour as #rrggbbaa, the shortest way CSS has to write one with an alpha: 9 characters where
+ * rgb(r g b / a) takes up to 24, and every page's markup carries one per star. Hex has 255 steps of alpha,
+ * so the alpha is rounded to the nearest: at most 0.002 away, which cannot be seen.
+ */
+const hexColor = (r: number, g: number, b: number, alpha: number) =>
+  `#${hex(r)}${hex(g)}${hex(b)}${hex(Math.round(alpha * 255))}`;
+
 /**
  * The `box-shadow` value for one layer: one shadow per star at a seeded spot in the tile. The layer element
  * has `border-radius: 50%`, and a box-shadow takes its element's shape, so every star is a circle. The 2 and
@@ -51,17 +62,18 @@ const round = (value: number, digits: number) => Number(value.toFixed(digits));
  */
 export function buildStarShadows({ size, count, seed }: Pick<StarLayer, "size" | "count" | "seed">): string {
   const random = seededRandom(seed);
-  const blur = size > 1 ? round(size * 0.2, 2) : 0;
+  // No blur is written as nothing, not "0px", and a blur under 1 px without its leading zero: ".4px".
+  const blur = size > 1 ? `${String(round(size * 0.2, 2)).replace(/^0\./, ".")}px ` : "";
   const shadows: string[] = [];
   for (let i = 0; i < count; i++) {
     const x = Math.floor(random() * STAR_TILE.width);
     const y = Math.floor(random() * STAR_TILE.height);
     const [r, g, b] = FOOTER_STAR_COLORS[Math.floor(random() * FOOTER_STAR_COLORS.length)]!;
     const alpha = round(STAR_ALPHA.min + random() * (STAR_ALPHA.max - STAR_ALPHA.min), 2);
-    shadows.push(`${x}px ${y}px ${blur}px rgb(${r} ${g} ${b} / ${alpha})`);
+    shadows.push(`${x}px ${y}px ${blur}${hexColor(r, g, b, alpha)}`);
     if (random() < HALO_CHANCE) {
-      shadows.push(`${x}px ${y}px ${size * 3}px ${size}px rgb(${r} ${g} ${b} / ${round(alpha * 0.25, 2)})`);
+      shadows.push(`${x}px ${y}px ${size * 3}px ${size}px ${hexColor(r, g, b, round(alpha * 0.25, 2))}`);
     }
   }
-  return shadows.join(", ");
+  return shadows.join(",");
 }

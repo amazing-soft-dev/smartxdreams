@@ -6,6 +6,7 @@ import { auroraPalette } from "./aurora-palette";
 import { auroraFragmentShader, auroraVertexShader } from "./aurora-shader";
 import { createPointerTracker, pointerFollowAllowed } from "./pointer-tracker";
 import { isTopScene, SCENE_PRIORITY, setSceneVisible } from "./scene-budget";
+import { isMotionPaused, subscribeMotionPaused } from "@/components/motion/motion-pause";
 
 type AuroraBackgroundProps = {
   className?: string;
@@ -170,6 +171,9 @@ export function AuroraBackground({
         canvas.width = width;
         canvas.height = height;
         gl.viewport(0, 0, width, height);
+        // Sizing the canvas clears it. While the visitor has paused animations no frame follows to fill it
+        // again, so the still aurora takes over until they resume.
+        if (isMotionPaused()) delete root.dataset.live;
       }
       if (scene) gl.uniform2f(scene.uniforms.resolution, width, height);
     };
@@ -232,7 +236,7 @@ export function AuroraBackground({
       frame = requestAnimationFrame(render);
     };
     const play = () => {
-      if (frame || !onScreen || document.hidden || !scene) return;
+      if (frame || !onScreen || document.hidden || !scene || isMotionPaused()) return;
       last = 0;
       frame = requestAnimationFrame(render);
     };
@@ -254,6 +258,9 @@ export function AuroraBackground({
     intersection.observe(canvas);
     const onVisibility = () => (document.hidden ? pause() : play());
     document.addEventListener("visibilitychange", onVisibility);
+    // "Pause animations" (the footer's switch) stops the loop the same way: the canvas keeps its last frame,
+    // or the still aurora stays if none was drawn yet, and the curtains carry on from there afterwards.
+    const unsubscribePaused = subscribeMotionPaused(() => (isMotionPaused() ? pause() : play()));
 
     // The browser can drop the context at any time (GPU reset, too many live contexts, a backgrounded mobile
     // tab); the canvas goes blank and the still CSS aurora comes back. preventDefault() asks for the context
@@ -286,6 +293,7 @@ export function AuroraBackground({
       setSceneVisible("aurora", SCENE_PRIORITY.aurora, false);
       intersection.disconnect();
       document.removeEventListener("visibilitychange", onVisibility);
+      unsubscribePaused();
       resizeObserver.disconnect();
       scene?.dispose();
       delete root.dataset.live;

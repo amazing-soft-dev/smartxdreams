@@ -1,15 +1,16 @@
-import { Analytics } from "@vercel/analytics/next";
-import { SpeedInsights } from "@vercel/speed-insights/next";
 import type { Metadata } from "next";
 import { Inter_Tight } from "next/font/google";
 import type { ReactNode } from "react";
+import { VercelInsights } from "@/components/perf/VercelInsights";
 import { MotionProvider } from "@/components/motion/MotionProvider";
 import { SmoothScroll } from "@/components/motion/SmoothScroll";
 import { Footer } from "@/components/footer/Footer";
 import { Header } from "@/components/nav/Header";
+import { NavProductsProvider } from "@/components/nav/NavProducts";
 import { VitalsReporter } from "@/components/perf/VitalsReporter";
 import { TransitionProvider } from "@/components/transition/TransitionProvider";
 import { JsonLd } from "@/components/seo/JsonLd";
+import { navProducts } from "@/content/selectors";
 import { defaultMetadata, organizationJsonLd, websiteJsonLd } from "@/lib/seo";
 import "./globals.css";
 
@@ -36,13 +37,19 @@ const isProduction = process.env.VERCEL_ENV === "production";
 
 export const metadata: Metadata = defaultMetadata;
 
+/**
+ * The products as the header menus show them: a few short fields each. Built here, on the server, and passed
+ * down, so those client components do not carry the products' full copy into every page's JavaScript.
+ */
+const products = navProducts();
+
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" className={interTight.variable}>
       <head>
         {/* Without JavaScript, reveal animations never run: show their content instead. */}
         <noscript>
-          <style>{"[data-reveal]{opacity:1!important;transform:none!important;filter:none!important}"}</style>
+          <style>{"[data-reveal],[data-motion]{opacity:1!important;transform:none!important;filter:none!important}"}</style>
         </noscript>
       </head>
       <body>
@@ -50,7 +57,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <VitalsReporter />
         <SmoothScroll>
           <MotionProvider>
-            <TransitionProvider>
+            <TransitionProvider products={products}>
               {/* First stop for keyboard and screen-reader users: jump past the header to the page content. */}
               <a
                 href="#main"
@@ -58,18 +65,15 @@ export default function RootLayout({ children }: { children: ReactNode }) {
               >
                 Skip to content
               </a>
-              <Header />
+              <NavProductsProvider products={products}>
+                <Header />
+              </NavProductsProvider>
               {children}
               <Footer />
             </TransitionProvider>
           </MotionProvider>
         </SmoothScroll>
-        {isProduction ? (
-          <>
-            <Analytics />
-            <SpeedInsights />
-          </>
-        ) : null}
+        {isProduction ? <VercelInsights /> : null}
       </body>
     </html>
   );

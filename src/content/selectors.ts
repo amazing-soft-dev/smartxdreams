@@ -1,21 +1,28 @@
 import { products } from "./products";
 import { audiences } from "./site";
 import { team } from "./team";
-import type { Audience, Product } from "./types";
+import type { Audience, NavProduct, Product } from "./types";
 
 /** The product with this slug, or undefined. */
 export function productBySlug(slug: string): Product | undefined {
   return products.find((p) => p.slug === slug);
 }
 
-/** Products for one audience, in display order. */
-export function productsByAudience(audience: Audience): Product[] {
-  return products.filter((p) => p.audience === audience);
-}
-
 /** The display label for an audience id. */
 export function audienceLabel(audience: Audience): string {
   return audiences.find((a) => a.id === audience)?.label ?? audience;
+}
+
+/** Every product as the header menus show it, in display order. Built on the server: see NavProduct. */
+export function navProducts(): NavProduct[] {
+  return products.map(({ slug, name, tagline, summary, logo, audience }) => ({
+    slug,
+    name,
+    tagline,
+    summary,
+    logo,
+    audienceLabel: audienceLabel(audience),
+  }));
 }
 
 /** Products listed in a product's `related` field, skipping unknown slugs. */

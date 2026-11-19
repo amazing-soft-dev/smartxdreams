@@ -1,9 +1,9 @@
 "use client";
 
-import { motion, useMotionValueEvent, useScroll, useSpring } from "motion/react";
+import { m, useMotionValueEvent, useScroll, useSpring } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 import { Container } from "@/components/ui/Container";
-import { Photo } from "@/components/ui/Photo";
+import { PhotoImage, type PhotoImageData } from "@/components/ui/PhotoImage";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { processSteps } from "@/content/process";
 import { cx } from "@/lib/cx";
@@ -19,10 +19,16 @@ const WAVE_SIGMA = 3 / 39;
 const TICKS_BEFORE_MEASURE = 40;
 
 /**
+ * Each step's photo, by registry slot. The page looks them up on the server and passes them in: this is a
+ * client component, and importing the registry here would send every photo's entry to the browser.
+ */
+export type ProcessPhotos = Record<(typeof processSteps)[number]["slot"], PhotoImageData>;
+
+/**
  * "How we build": four steps. On desktop the section is three viewports tall and its content sticks under
  * the header while the visitor scrolls, so scrolling moves through the steps.
  */
-export function ProcessStepper() {
+export function ProcessStepper({ photos }: { photos: ProcessPhotos }) {
   const section = useRef<HTMLElement>(null);
   // Scroll scrubbing is a desktop enhancement. With reduced motion the section is a plain stacked list at
   // every width: all steps open, each with its photo, nothing sticky. That switch is made in CSS (the
@@ -110,7 +116,7 @@ export function ProcessStepper() {
             <ol className="relative flex flex-col gap-1 motion-safe:lg:pl-8">
               {/* Coral progress rail (desktop): a faint track with a fill that grows from the top. */}
               <span aria-hidden="true" className="absolute top-0 bottom-0 left-0 hidden w-[1.5px] rounded-full bg-ink/10 motion-safe:lg:block">
-                <motion.span className="block h-full w-full origin-top rounded-full bg-coral-500" style={{ scaleY: rail }} />
+                <m.span className="block h-full w-full origin-top rounded-full bg-coral-500" style={{ scaleY: rail }} />
               </span>
               {processSteps.map((step, i) => (
                 <li
@@ -135,7 +141,7 @@ export function ProcessStepper() {
                   </p>
                   {/* Stacked layout (phones, tablets, and reduced motion): each step shows its own photo. */}
                   <div className="relative mt-5 aspect-[16/10] overflow-hidden rounded-[22px] motion-safe:lg:hidden">
-                    <Photo slot={step.slot} fill sizes="(min-width: 810px) 80vw, 100vw" />
+                    <PhotoImage photo={photos[step.slot]} fill sizes="(min-width: 810px) 80vw, 100vw" />
                   </div>
                 </li>
               ))}
@@ -153,7 +159,7 @@ export function ProcessStepper() {
                     filter: i <= active ? "blur(0px)" : "blur(6px)",
                   }}
                 >
-                  <Photo slot={step.slot} fill sizes="(min-width: 1024px) 50vw, 100vw" />
+                  <PhotoImage photo={photos[step.slot]} fill sizes="(min-width: 1024px) 50vw, 100vw" />
                 </div>
               ))}
             </div>

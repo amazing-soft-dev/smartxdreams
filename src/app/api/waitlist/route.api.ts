@@ -4,7 +4,7 @@ import { clientIp, rateLimit } from "@/lib/api/rate-limit";
 import { waitlistRequestSchema } from "@/lib/api/schemas";
 import { spamVerdict } from "@/lib/api/spam";
 import { waitlistConfig } from "@/lib/api/waitlist-config";
-import { mayEmailSignup, normalizeEmail, recordSignupEmail } from "@/lib/api/waitlist-dedupe";
+import { forgetSignupEmail, mayEmailSignup, normalizeEmail, recordSignupEmail } from "@/lib/api/waitlist-dedupe";
 import { confirmationEmail } from "@/lib/api/waitlist-emails";
 import { TOKEN_TTL_MS, createToken } from "@/lib/api/waitlist-token";
 
@@ -37,9 +37,12 @@ export async function POST(request: Request): Promise<Response> {
 
   // Already emailed twice today for this product: answer exactly as if we sent another, so the response
   // never reveals a previous sign-up, but do not send it.
-  if (!mayEmailSignup(email, product)) return ok();
-
   const now = Date.now();
+  if (!mayEmailSignup(email, product, now)) return ok();
+  // Counted before the send, with nothing awaited since the check, so sign-ups that arrive together cannot
+  // all pass it.
+  recordSignupEmail(email, product, now);
+
   const token = createToken(config.secret, {
     e: email,
     p: product,
@@ -48,8 +51,11 @@ export async function POST(request: Request): Promise<Response> {
     exp: now + TOKEN_TTL_MS,
   });
   const sent = await sendEmail({ to: email, purpose: "waitlist-confirmation", ...confirmationEmail({ product, token }) });
-  if (!sent.ok) return emailUnavailable();
-  recordSignupEmail(email, product);
+  if (!sent.ok) {
+    // Nothing was sent, so nothing counts: a failed send never blocks a retry.
+    forgetSignupEmail(email, product, now);
+    return emailUnavailable();
+  }
 
   return ok();
 }

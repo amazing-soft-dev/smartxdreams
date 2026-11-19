@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "motion/react";
+import { m } from "motion/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useId, useState } from "react";
@@ -37,7 +37,7 @@ export function Header() {
   const theme = useNavTheme();
   const onDark = theme === "dark";
   return (
-    <motion.header
+    <m.header
       data-motion="appear"
       // Beemas' header appear (docs/motion-audit.md): from 10 px above on a long, soft spring.
       initial={{ y: -10, opacity: 0.001 }}
@@ -95,6 +95,6 @@ export function Header() {
         </div>
       </Container>
       <MobileMenu id={menuId} open={menuOpen} onOpenChange={setMenuOpen} />
-    </motion.header>
+    </m.header>
   );
 }

@@ -9,10 +9,21 @@ import { waitlistConsent, waitlistSchema } from "@/lib/forms/waitlist";
  * the same field messages) with the spam-guard fields every form sends and server-only checks.
  */
 
-/** Sent by every form: a honeypot people never see, and how long the form was open before sending. */
+/** The longest time-on-form the API records: 24 hours. */
+const MAX_ELAPSED_MS = 86_400_000;
+
+/**
+ * Sent by every form: a honeypot people never see, and how long the form was open before sending. A tab can
+ * stay open for days and a device clock can move backwards, so the time is clamped into 0 to 24 hours rather
+ * than refused: the form has no field to show that error on.
+ */
 export const spamGuardSchema = z.object({
   website: z.string().max(500).optional().default(""),
-  elapsedMs: z.number().int().nonnegative().max(86_400_000).optional(),
+  elapsedMs: z
+    .number()
+    .int()
+    .transform((ms) => Math.min(Math.max(ms, 0), MAX_ELAPSED_MS))
+    .optional(),
 });
 
 /**
@@ -38,4 +49,3 @@ export const waitlistRequestSchema = waitlistSchema
   .and(spamGuardSchema);
 
 export type ContactRequest = z.infer<typeof contactRequestSchema>;
-export type WaitlistRequest = z.infer<typeof waitlistRequestSchema>;

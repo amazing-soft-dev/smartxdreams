@@ -122,7 +122,8 @@ export function ContactForm({ products, defaultProduct }: ContactFormProps) {
         <button
           type="button"
           onClick={() => setStatus({ kind: "idle" })}
-          className="mt-6 text-label font-medium text-ink underline underline-offset-4"
+          // A 44 px target around a 20 px line: half the top margin moved inside, so the words stay put.
+          className="mt-3 inline-flex min-h-11 items-center text-label font-medium text-ink underline underline-offset-4"
         >
           Send another message
         </button>

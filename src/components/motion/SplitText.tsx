@@ -6,7 +6,7 @@ import { PAGE_REVEALED } from "@/components/transition/TransitionProvider";
 import { spring, stagger } from "@/styles/motion";
 
 type SplitTextProps = {
-  /** Heading text; *starred words* are the accent, as for Accent. */
+  /** Heading text; *starred words* are the accent, e.g. "Every job, *one search*." */
   text: string;
   /** Surface the text sits on, for the accent colour. */
   tone?: "light" | "dark";

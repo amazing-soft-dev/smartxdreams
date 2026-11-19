@@ -67,6 +67,11 @@ addresses or message text.
 | `CONTACT_FROM_EMAIL` | Sender on the verified Resend domain, e.g. `SmartxDreams <hello@example.com>` |
 | `CONTACT_TO_EMAIL` | Team inbox for contact-form messages |
 
+A value that is set but invalid, such as `CONTACT_TO_EMAIL` written as `Team <team@example.com>` or a
+`WAITLIST_SECRET` under 32 characters, counts as missing: every form route answers 503, and the log names
+the setting and what is wrong with it, never its value. The production build refuses such values
+(docs/launch.md).
+
 ## `POST /api/contact`
 
 `src/app/api/contact/route.api.ts`. Body: the contact form fields (`name`, `email`, `topic`, `product`
@@ -81,6 +86,8 @@ optional, `message`) plus the spam-guard fields.
    plain-text body with every field and the time received. If Resend rejects it: 503, so the sender retries.
 6. Acknowledgement to the sender. It is best effort and contains nothing the sender typed (only fixed
    wording, topic and product), so the form cannot be used to send someone else a message from our domain.
+   An address is acknowledged at most once in 24 hours (`src/lib/api/waitlist-dedupe.ts`, in memory per
+   server instance, keyed by a hash); later messages naming it still reach the team and get the same 200.
 7. `200 { ok: true }`.
 
 Logs never include names, addresses or message text. `GET` answers 405.
@@ -96,13 +103,20 @@ and the spam-guard fields.
 1. Rate limit (5 per IP per 10 minutes), validation (400), spam (silent 200), configuration (503).
 2. The address is lowercased. The same address and product get at most 2 confirmation emails a day.
    Further attempts get the same 200 without an email, so the response never reveals a previous sign-up.
-3. A confirmation email with a link to `/waitlist/confirm?token=…`. The token is signed with
+3. A confirmation email with a link to `/waitlist/confirm#token=…`. The token is signed with
    `WAITLIST_SECRET` (HMAC-SHA256), is valid for 7 days, and carries the address, product, consent version
    and consent time.
 
-**Confirm** (`src/app/api/waitlist/confirm/route.api.ts`). The `/waitlist/confirm` page (noindex) shows what
-is being confirmed and posts `{ token }` only when the person presses Confirm. That way a mail scanner
-that opens the link cannot sign anyone up.
+The token is in the URL fragment, not the query string, because it holds the address and works as a
+credential for 7 days, and browsers never send the fragment with a request: the server and its request logs
+do not see the token when the link is opened, and no Referer header carries it. Vercel Web Analytics and
+Speed Insights report the page address from the browser, fragment included, so the confirm page is reported
+by its path alone (`src/lib/analytics-url.ts`).
+
+**Confirm** (`src/app/api/waitlist/confirm/route.api.ts`). The `/waitlist/confirm` page (noindex) reads the
+token in the browser (`src/lib/forms/waitlist-link.ts`: the fragment first, then `?token=…`, the shape of
+links emailed before the token moved), shows what is being confirmed and posts `{ token }` in the request
+body only when the person presses Confirm. That way a mail scanner that opens the link cannot sign anyone up.
 
 - 400 `invalid_token`, or 410 `expired_token` with a link back to the product.
 - The first confirmation of a token sends the **consent record** to `CONTACT_TO_EMAIL`: address, product,
@@ -115,6 +129,10 @@ that opens the link cannot sign anyone up.
 |---|---|
 | `WAITLIST_SECRET` | At least 32 random characters (`openssl rand -hex 32`); signs confirmation links |
 | `RESEND_WAITLIST_SEGMENT_ID` | Optional Resend segment for confirmed contacts |
+
+Both routes answer 503 unless `RESEND_API_KEY`, `CONTACT_FROM_EMAIL`, `CONTACT_TO_EMAIL` and
+`WAITLIST_SECRET` are all set. The team inbox is needed at sign-up too: without it a confirmation could
+never be recorded, so no confirmation email is sent.
 
 Changing the consent wording: edit `waitlistConsent.text` and bump `waitlistConsent.version`. Forms loaded
 before the change get "Reload the page" instead of agreeing to wording they did not see.

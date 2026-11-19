@@ -1,5 +1,5 @@
 import { Resend } from "resend";
-import { serverEnv } from "@/lib/env";
+import { readServerEnv } from "@/lib/env";
 
 /**
  * Email through Resend. Server only.
@@ -13,9 +13,18 @@ let client: Resend | undefined;
 
 export type EmailTransport = { resend: Resend; from: string; teamInbox: string | undefined };
 
-/** The Resend client, the sender and the team inbox, or null when email is not configured. */
+/**
+ * The Resend client, the sender and the team inbox, or null when email is not configured. An invalid setting
+ * counts as not configured, so routes answer 503 instead of failing; the log names the setting and what is
+ * wrong with it, never its value.
+ */
 export function emailTransport(): EmailTransport | null {
-  const env = serverEnv();
+  const settings = readServerEnv();
+  if ("invalid" in settings) {
+    console.warn(`[email] not configured: invalid settings: ${settings.invalid}`);
+    return null;
+  }
+  const { env } = settings;
   if (!env.RESEND_API_KEY || !env.CONTACT_FROM_EMAIL) return null;
   client ??= new Resend(env.RESEND_API_KEY);
   return { resend: client, from: env.CONTACT_FROM_EMAIL, teamInbox: env.CONTACT_TO_EMAIL };
@@ -34,11 +43,22 @@ export type EmailMessage = {
 
 export type SendResult = { ok: true } | { ok: false; reason: "not-configured" | "send-failed" };
 
+/**
+ * How long one request to Resend may take. The Resend client sets no limit of its own, so a stalled request
+ * would keep the route, and the visitor's form, waiting until the platform ends the function. After this
+ * long the request is aborted and fails like any other: the route answers 503 and the form offers a retry.
+ */
+export const RESEND_TIMEOUT_MS = 8_000;
+
 export async function sendEmail({ to, subject, text, html, replyTo, purpose }: EmailMessage): Promise<SendResult> {
   const transport = emailTransport();
   if (!transport) return { ok: false, reason: "not-configured" };
   try {
-    const { error } = await transport.resend.emails.send({ from: transport.from, to, subject, text, html, replyTo });
+    // An aborted request comes back from the client as an error, like any failed request.
+    const { error } = await transport.resend.emails.send(
+      { from: transport.from, to, subject, text, html, replyTo },
+      { signal: AbortSignal.timeout(RESEND_TIMEOUT_MS) },
+    );
     if (error) {
       console.error(`[email] ${purpose}: Resend rejected the message (${error.name})`);
       return { ok: false, reason: "send-failed" };
@@ -48,9 +68,4 @@ export async function sendEmail({ to, subject, text, html, replyTo, purpose }: E
     console.error(`[email] ${purpose}: request to Resend failed (${error instanceof Error ? error.name : "unknown error"})`);
     return { ok: false, reason: "send-failed" };
   }
-}
-
-/** Escapes text for use inside HTML email bodies. */
-export function escapeHtml(value: string): string {
-  return value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
 }

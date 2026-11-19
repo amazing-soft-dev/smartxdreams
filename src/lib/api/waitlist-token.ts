@@ -40,6 +40,10 @@ export function verifyToken(secret: string, token: string, now = Date.now()): To
   const expected = sign(secret, data);
   const given = Buffer.from(signature, "base64url");
   if (given.length !== expected.length || !timingSafeEqual(given, expected)) return { valid: false, reason: "bad-signature" };
+  // Buffer's decoder is forgiving (padding, whitespace, the "+/" alphabet, spare bits in the last character),
+  // so several strings decode to the same bytes. Only the spelling createToken() writes is a token. The bytes
+  // have already matched in constant time, so this comparison reveals nothing about the signature.
+  if (encode(given) !== signature) return { valid: false, reason: "bad-signature" };
   let payload: WaitlistTokenPayload;
   try {
     payload = JSON.parse(Buffer.from(data, "base64url").toString("utf8")) as WaitlistTokenPayload;

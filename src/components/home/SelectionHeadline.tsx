@@ -2,6 +2,7 @@
 
 import { useReducedMotion } from "motion/react";
 import { Fragment, useEffect, useRef, useState } from "react";
+import { useMotionPaused } from "@/components/motion/motion-pause";
 
 export type SelectionTarget = {
   /** Index of the word in the headline (split on spaces). */
@@ -44,12 +45,14 @@ export function SelectionHeadline({ text, targets, id, className }: SelectionHea
     return () => window.clearTimeout(timer);
   }, [target, reduced]);
 
-  // Advance to the next word on a fixed rhythm.
+  // Advance to the next word on a fixed rhythm. While the visitor has paused animations (the footer's
+  // switch) the box rests on the word it is on, and carries on from there afterwards.
+  const paused = useMotionPaused();
   useEffect(() => {
-    if (reduced || targets.length < 2) return;
+    if (reduced || paused || targets.length < 2) return;
     const timer = window.setInterval(() => setStep((s) => s + 1), SELECTION_CYCLE_MS);
     return () => window.clearInterval(timer);
-  }, [reduced, targets.length]);
+  }, [reduced, paused, targets.length]);
 
   // Measure the selected word relative to the heading, and again when the layout changes size.
   useEffect(() => {

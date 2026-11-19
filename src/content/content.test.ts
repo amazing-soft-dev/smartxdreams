@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { blogCategories } from "./blog/categories";
 import { photos } from "./photos";
 import { products } from "./products";
-import { productSlugs, relatedProducts } from "./selectors";
+import { navProducts, productSlugs, relatedProducts } from "./selectors";
 import { audiences, companyFaq, mainNav } from "./site";
 import { team, teamGroups } from "./team";
 import { readyRoutes } from "@/lib/routes";
@@ -65,6 +65,19 @@ describe("products", () => {
   it("use registered photo slots", () => {
     const slots = new Set(photos.map((photo) => photo.slot));
     for (const p of products) if (p.photo) expect(slots.has(p.photo.slot), p.slug).toBe(true);
+  });
+
+  it("give the header menus a summary of each: a few short fields, none of the page copy", () => {
+    const summaries = navProducts();
+    expect(summaries.map((s) => s.slug)).toEqual(products.map((p) => p.slug));
+    for (const [i, summary] of summaries.entries()) {
+      const product = products[i]!;
+      expect(Object.keys(summary).sort()).toEqual(["audienceLabel", "logo", "name", "slug", "summary", "tagline"]);
+      expect(summary).toMatchObject({ name: product.name, tagline: product.tagline, summary: product.summary, logo: product.logo });
+      expect(audiences.find((a) => a.id === product.audience)?.label, product.slug).toBe(summary.audienceLabel);
+    }
+    // The whole list is sent with every page: keep it a fraction of the products' full copy.
+    expect(JSON.stringify(summaries).length).toBeLessThan(JSON.stringify(products).length / 5);
   });
 });
 

@@ -42,6 +42,54 @@ describe("readJson", () => {
     expect(await status(post(JSON.stringify({ email: "x".repeat(MAX_BODY_BYTES) })))).toBe(413);
   });
 
+  it("accepts application/json with parameters, in any letter case", async () => {
+    for (const type of ["application/json; charset=utf-8", "application/json;charset=UTF-8", "Application/JSON", "application/json ; charset=utf-8"]) {
+      expect(await status(post('{"email":"ann@example.com"}', type))).toBe(200);
+    }
+  });
+
+  it("answers 415 for any other media type, even one that mentions application/json", async () => {
+    const types = [
+      "text/plain;application/json",
+      "text/plain; charset=application/json",
+      "application/jsonp",
+      "application/json-seq",
+      "x-application/json",
+      "application/x-www-form-urlencoded",
+      "",
+    ];
+    for (const type of types) {
+      expect(await status(post('{"email":"ann@example.com"}', type))).toBe(415);
+    }
+    const untyped = new Request("http://localhost/api/x", { method: "POST", body: new Blob(['{"email":"ann@example.com"}']) });
+    expect(untyped.headers.get("Content-Type")).toBeNull();
+    expect(await status(untyped)).toBe(415);
+  });
+
+  it("measures the body limit in bytes, not characters", async () => {
+    // "é" is one character and two bytes in UTF-8, so this body is over the limit in bytes but under it in
+    // characters. These requests carry no Content-Length header, so the body itself is measured.
+    const body = JSON.stringify({ email: "ann@example.com", note: "é".repeat(MAX_BODY_BYTES / 2) });
+    expect(body.length).toBeLessThan(MAX_BODY_BYTES);
+    expect(Buffer.byteLength(body)).toBeGreaterThan(MAX_BODY_BYTES);
+    expect(post(body).headers.get("Content-Length")).toBeNull();
+    expect(await status(post(body))).toBe(413);
+
+    // The same number of ASCII characters fits.
+    const ascii = JSON.stringify({ email: "ann@example.com", note: "e".repeat(MAX_BODY_BYTES / 2) });
+    expect(ascii.length).toBe(body.length);
+    expect(await status(post(ascii))).toBe(200);
+  });
+
+  it("accepts a body of exactly the limit and refuses one byte more", async () => {
+    const sized = (bytes: number) => {
+      const empty = JSON.stringify({ email: "ann@example.com", note: "" });
+      return JSON.stringify({ email: "ann@example.com", note: "x".repeat(bytes - empty.length) });
+    };
+    expect(await status(post(sized(MAX_BODY_BYTES)))).toBe(200);
+    expect(await status(post(sized(MAX_BODY_BYTES + 1)))).toBe(413);
+  });
+
   it("returns field errors for invalid input", async () => {
     const result = await readJson(post('{"email":"nope"}'), schema);
     expect("response" in result && (await result.response.json())).toEqual({
