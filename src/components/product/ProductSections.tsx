@@ -147,6 +147,11 @@ export function ProductFeatures({ product }: ProductProps) {
 export function ProductLimits({ product }: ProductProps) {
   return (
     <Section labelledBy="limits-title" surface="white">
+      {/* The section's name comes first, for screen readers only; the two tags are its sub-headings. A
+          heading around a tag changes nothing on screen: size comes from the tag, not from the level. */}
+      <h2 id="limits-title" className="sr-only">
+        Limits of {product.name}
+      </h2>
       <div className="grid gap-12 lg:grid-cols-2">
         <div>
           {product.photo ? (
@@ -156,7 +161,9 @@ export function ProductLimits({ product }: ProductProps) {
               </PhotoReveal>
             </div>
           ) : null}
-          <Tag>Who it is for</Tag>
+          <h3>
+            <Tag>Who it is for</Tag>
+          </h3>
           <ul className="mt-6 flex flex-col gap-3">
             {product.whoFor.map((who) => (
               <li key={who} className="flex gap-3 text-body-l">
@@ -167,10 +174,9 @@ export function ProductLimits({ product }: ProductProps) {
           </ul>
         </div>
         <div>
-          <Tag>What it does not do</Tag>
-          <h2 id="limits-title" className="sr-only">
-            Limits of {product.name}
-          </h2>
+          <h3>
+            <Tag>What it does not do</Tag>
+          </h3>
           <ul className="mt-6 flex flex-col gap-3">
             {product.limits.map((limit) => (
               <li key={limit} className="flex gap-3 text-body text-ink/75">
@@ -276,7 +282,7 @@ export function ProductRelated({ product }: ProductProps) {
       <ul className="mt-10 grid gap-3 md:grid-cols-2">
         {related.map((p) => (
           <li key={p.slug}>
-            <ProductCard product={p} />
+            <ProductCard product={p} headingLevel="h3" />
           </li>
         ))}
       </ul>

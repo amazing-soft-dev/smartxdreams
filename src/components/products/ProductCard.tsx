@@ -3,8 +3,11 @@ import { TransitionLink } from "@/components/transition/TransitionLink";
 import { audienceLabel } from "@/content/selectors";
 import type { Product } from "@/content/types";
 
-/** A product as a card: logo, audience and status pills, name (the link), tagline and summary. One link per card. */
-export function ProductCard({ product }: { product: Product }) {
+/**
+ * A product as a card: logo, audience and status pills, name (the link), tagline and summary. One link per card.
+ * `headingLevel` keeps the outline right: h2 straight under a page title, h3 under a section's own h2.
+ */
+export function ProductCard({ product, headingLevel: Heading = "h2" }: { product: Product; headingLevel?: "h2" | "h3" }) {
   return (
     <article
       data-product={product.slug}
@@ -19,11 +22,11 @@ export function ProductCard({ product }: { product: Product }) {
           </span>
         </div>
       </div>
-      <h2 className="mt-6 text-h4">
+      <Heading className="mt-6 text-h4">
         <TransitionLink href={`/products/${product.slug}`} className="outline-none after:absolute after:inset-0 after:rounded-[30px]">
           {product.name}
         </TransitionLink>
-      </h2>
+      </Heading>
       <p className="mt-2 text-body-l text-violet-600">{product.tagline}</p>
       <p className="mt-4 text-body text-ink/70">{product.summary}</p>
     </article>
