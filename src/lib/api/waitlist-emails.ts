@@ -12,7 +12,8 @@ const productName = (slug: string) => productBySlug(slug)?.name ?? slug;
  */
 export function confirmationEmail({ product, token }: { product: string; token: string }) {
   const name = productName(product);
-  const link = absoluteUrl(`/waitlist/confirm?token=${encodeURIComponent(token)}`);
+  // The token is in the fragment, which browsers never send: it holds the address, and must not reach logs.
+  const link = absoluteUrl(`/waitlist/confirm#token=${encodeURIComponent(token)}`);
   return {
     subject: `Confirm your place on the ${name} waitlist`,
     text: [
