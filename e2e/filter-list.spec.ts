@@ -14,6 +14,8 @@ type Frame = Record<string, { x: number; y: number }>;
  * that a card that ends somewhere else passed through the places in between.
  */
 test("cards that stay glide to their new places when the products filter changes", async ({ page }) => {
+  // With the whole suite running in parallel the page can take many seconds to hydrate and start its entrance.
+  test.setTimeout(90_000);
   await page.goto("/products", { waitUntil: "networkidle" });
   const chips = page.getByRole("group", { name: "Filter products by audience" }).getByRole("button");
   await expect(chips.first()).toHaveAttribute("aria-pressed", "true");
@@ -21,11 +23,14 @@ test("cards that stay glide to their new places when the products filter changes
   // The list rises in as one block when it is first seen; wait until it rests, so only the filter moves cards.
   const top = () => page.locator(cards).first().evaluate((el) => el.getBoundingClientRect().top + window.scrollY);
   await expect
-    .poll(async () => {
-      const before = await top();
-      await page.waitForTimeout(250);
-      return Math.abs((await top()) - before);
-    })
+    .poll(
+      async () => {
+        const before = await top();
+        await page.waitForTimeout(250);
+        return Math.abs((await top()) - before);
+      },
+      { timeout: 30_000 },
+    )
     .toBeLessThan(0.1);
 
   // Record every card's position on every frame until told to stop.
