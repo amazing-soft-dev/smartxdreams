@@ -23,6 +23,13 @@ function describedBy({ id, hint, error }: Pick<ShellProps, "id" | "hint" | "erro
   return [error && `${id}-error`, hint && `${id}-hint`].filter(Boolean).join(" ") || undefined;
 }
 
+/**
+ * A field is required unless it is marked optional, and says so to assistive technology. aria-required, not
+ * the native attribute: the forms check with their own schema (noValidate), and `required` would bring the
+ * browser's validation into it.
+ */
+const required = (optional?: boolean) => (optional ? undefined : true);
+
 /** A visible label, the control, an optional hint and the field's error message. */
 function Shell({ id, label, hint, error, optional, className, children }: ShellProps & { children: ReactNode }) {
   return (
@@ -57,6 +64,7 @@ export function TextField({ id, label, hint, error, optional, className, ...rest
     <Shell id={id} label={label} hint={hint} error={error} optional={optional} className={className}>
       <input
         id={id}
+        aria-required={required(optional)}
         aria-invalid={error ? true : undefined}
         aria-describedby={describedBy({ id, hint, error })}
         className={cx(control, "h-12")}
@@ -73,6 +81,7 @@ export function TextAreaField({ id, label, hint, error, optional, className, ...
     <Shell id={id} label={label} hint={hint} error={error} optional={optional} className={className}>
       <textarea
         id={id}
+        aria-required={required(optional)}
         aria-invalid={error ? true : undefined}
         aria-describedby={describedBy({ id, hint, error })}
         className={cx(control, "min-h-40 resize-y py-3")}
@@ -90,6 +99,7 @@ export function SelectField({ id, label, hint, error, optional, className, child
       <div className="relative">
         <select
           id={id}
+          aria-required={required(optional)}
           aria-invalid={error ? true : undefined}
           aria-describedby={describedBy({ id, hint, error })}
           className={cx(control, "h-12 appearance-none pr-10")}
