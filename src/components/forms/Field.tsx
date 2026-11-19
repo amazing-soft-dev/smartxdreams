@@ -10,15 +10,25 @@ type ShellProps = {
   className?: string;
 };
 
-/** Shared control styles: a 2 px coral-700 ring marks an invalid field, so colour is not the only signal. */
+/**
+ * Shared control styles. The resting outline is ink at 50%, 3.5:1 on white (WCAG 1.4.11 asks 3:1 of a
+ * field's boundary). A 2 px coral-700 ring marks an invalid field, so colour is not the only signal.
+ */
 const control =
-  "w-full rounded-[14px] bg-white px-4 text-body text-ink ring-1 ring-ink/20 transition-shadow placeholder:text-ink/45 " +
+  "w-full rounded-[14px] bg-white px-4 text-body text-ink ring-1 ring-ink/50 transition-shadow placeholder:text-ink/45 " +
   "focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 aria-invalid:ring-2 aria-invalid:ring-coral-700";
 
 /** Ids of the hint and error, for aria-describedby. The error is listed first so it is read first. */
 function describedBy({ id, hint, error }: Pick<ShellProps, "id" | "hint" | "error">): string | undefined {
   return [error && `${id}-error`, hint && `${id}-hint`].filter(Boolean).join(" ") || undefined;
 }
+
+/**
+ * A field is required unless it is marked optional, and says so to assistive technology. aria-required, not
+ * the native attribute: the forms check with their own schema (noValidate), and `required` would bring the
+ * browser's validation into it.
+ */
+const required = (optional?: boolean) => (optional ? undefined : true);
 
 /** A visible label, the control, an optional hint and the field's error message. */
 function Shell({ id, label, hint, error, optional, className, children }: ShellProps & { children: ReactNode }) {
@@ -54,6 +64,7 @@ export function TextField({ id, label, hint, error, optional, className, ...rest
     <Shell id={id} label={label} hint={hint} error={error} optional={optional} className={className}>
       <input
         id={id}
+        aria-required={required(optional)}
         aria-invalid={error ? true : undefined}
         aria-describedby={describedBy({ id, hint, error })}
         className={cx(control, "h-12")}
@@ -70,6 +81,7 @@ export function TextAreaField({ id, label, hint, error, optional, className, ...
     <Shell id={id} label={label} hint={hint} error={error} optional={optional} className={className}>
       <textarea
         id={id}
+        aria-required={required(optional)}
         aria-invalid={error ? true : undefined}
         aria-describedby={describedBy({ id, hint, error })}
         className={cx(control, "min-h-40 resize-y py-3")}
@@ -87,6 +99,7 @@ export function SelectField({ id, label, hint, error, optional, className, child
       <div className="relative">
         <select
           id={id}
+          aria-required={required(optional)}
           aria-invalid={error ? true : undefined}
           aria-describedby={describedBy({ id, hint, error })}
           className={cx(control, "h-12 appearance-none pr-10")}
