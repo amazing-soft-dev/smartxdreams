@@ -13,7 +13,10 @@ export function absoluteUrl(path = "/"): string {
   return new URL(path, `${siteUrl}/`).toString();
 }
 
-/** Site-wide defaults, set once in the root layout. Pages override title, description and canonical. */
+/**
+ * Site-wide defaults, set once in the root layout. Pages override title and description and name their own
+ * canonical address; the defaults name none, so a page without metadata (the 404 page) never claims Home's.
+ */
 export const defaultMetadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
@@ -22,12 +25,10 @@ export const defaultMetadata: Metadata = {
   },
   description: company.description,
   applicationName: company.name,
-  alternates: { canonical: "/" },
   openGraph: {
     type: "website",
     siteName: company.name,
     locale: "en_US",
-    url: "/",
     title: `${company.name}: ${company.tagline}`,
     description: company.description,
   },

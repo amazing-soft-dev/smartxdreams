@@ -4,7 +4,7 @@ import sharp from "sharp";
 import { describe, expect, it } from "vitest";
 import { company } from "@/content/site";
 import { team } from "@/content/team";
-import { absoluteUrl, organizationJsonLd, organizationLogoPath, pageMetadata, socialImage, teamJsonLd } from "./seo";
+import { absoluteUrl, defaultMetadata, organizationJsonLd, organizationLogoPath, pageMetadata, socialImage, teamJsonLd } from "./seo";
 
 const publicDir = path.resolve(import.meta.dirname, "..", "..", "public");
 const logoFile = path.join(publicDir, organizationLogoPath);
@@ -53,8 +53,20 @@ describe("organizationJsonLd", () => {
   });
 });
 
+describe("defaultMetadata", () => {
+  it("names no canonical address or Open Graph URL for pages without metadata to inherit", () => {
+    expect(defaultMetadata.alternates).toBeUndefined();
+    expect(defaultMetadata.openGraph).not.toHaveProperty("url");
+  });
+});
+
 describe("pageMetadata", () => {
   const meta = pageMetadata({ title: "About", description: "Who we are.", path: "/about" });
+
+  it("names the page's own address as its canonical and Open Graph URL", () => {
+    expect(meta.alternates?.canonical).toBe("/about");
+    expect(meta.openGraph?.url).toBe("/about");
+  });
 
   it("names the social image for Open Graph and Twitter, with its size and alt text", () => {
     expect(meta.openGraph?.images).toEqual([socialImage]);
