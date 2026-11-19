@@ -233,7 +233,8 @@ export function WaitlistForm({ product, products = [] }: WaitlistFormProps) {
             placeholder="you@example.com"
             aria-invalid={errors.email ? true : undefined}
             aria-describedby={describedBy("email")}
-            className="min-w-0 flex-1 bg-transparent px-3 text-body text-white placeholder:text-white/45 focus:outline-none"
+            // Placeholder: white at 50% is 4.73:1 over the field's fill (white at 10% on ink).
+            className="min-w-0 flex-1 bg-transparent px-3 text-body text-white placeholder:text-white/50 focus:outline-none"
           />
           <button
             type="submit"
