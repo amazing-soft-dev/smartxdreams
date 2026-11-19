@@ -21,7 +21,11 @@ import path from "node:path";
 import sharp from "sharp";
 
 const root = path.resolve(import.meta.dirname, "..");
-const check = process.argv.includes("--check");
+// `--check` compares with the built files in the repository, `--check=<dir>` with a copy of them under <dir>
+// (the unit test alters a copy to see the check fail).
+const checkArg = process.argv.find((arg) => arg === "--check" || arg.startsWith("--check="));
+const check = checkArg !== undefined;
+const builtRoot = checkArg?.startsWith("--check=") ? path.resolve(checkArg.slice("--check=".length)) : root;
 
 /** Alpha at or above which a pixel is part of the artwork's solid body. */
 const SOLID = 128;
@@ -141,7 +145,7 @@ export async function loadArtwork(file) {
 const outputs = [];
 /** Queues a file: written in build mode, compared in check mode. `maxBytes` overrides the default budget. */
 function emit(file, buffer, maxBytes = MAX_BYTES) {
-  outputs.push({ file: path.join(root, file), buffer, maxBytes });
+  outputs.push({ file: path.join(builtRoot, file), buffer, maxBytes });
 }
 
 const MARKS = [
@@ -293,7 +297,7 @@ function ico(images) {
 
 let failed = false;
 for (const { file, buffer, maxBytes } of outputs) {
-  const rel = path.relative(root, file).replaceAll("\\", "/");
+  const rel = path.relative(builtRoot, file).replaceAll("\\", "/");
   // The budget is on the file that ships: the committed one in check mode, the one about to be written here.
   const current = check ? await fs.readFile(file).catch(() => null) : null;
   const bytes = check ? (current?.length ?? 0) : buffer.length;
