@@ -4,7 +4,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { createContext, type ReactNode, useCallback, useContext, useEffect, useMemo, useRef } from "react";
 import { Logo } from "@/components/ui/Logo";
 import { cssEase } from "@/styles/motion";
-import { routeLabel } from "./route-label";
+import { type LabelProduct, routeLabel } from "./route-label";
 
 /**
  * Panel timing, measured frame by frame on the reference transition (docs/motion-audit.md#page-transition):
@@ -64,9 +64,10 @@ const offscreen = (i: number, phase: "in" | "out") => {
 
 /**
  * Page transition: five ink panels close in alternately from the top and the bottom, the route changes
- * underneath, and the panels carry on through to reveal the new page. Mounted once in the root layout.
+ * underneath, and the panels carry on through to reveal the new page. Mounted once in the root layout,
+ * which passes in the products: a product page's name is the word shown on the cover.
  */
-export function TransitionProvider({ children }: { children: ReactNode }) {
+export function TransitionProvider({ products, children }: { products: readonly LabelProduct[]; children: ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const overlay = useRef<HTMLDivElement>(null);
@@ -163,13 +164,13 @@ export function TransitionProvider({ children }: { children: ReactNode }) {
    * After a client-side navigation, move keyboard and screen-reader focus to the new page's h1 (instead of
    * leaving it on a link that no longer exists) and announce the page through a polite live region.
    */
-  const arrive = (pathname: string) => {
+  const arrive = (destination: string) => {
     const heading = document.querySelector<HTMLElement>("main h1, h1");
     if (heading) {
       if (!heading.hasAttribute("tabindex")) heading.setAttribute("tabindex", "-1");
       heading.focus({ preventScroll: true });
     }
-    if (announcer.current) announcer.current.textContent = `${routeLabel(pathname)} page`;
+    if (announcer.current) announcer.current.textContent = `${destination} page`;
   };
 
   const navigate = useCallback(
@@ -180,6 +181,8 @@ export function TransitionProvider({ children }: { children: ReactNode }) {
         router.push(href);
         return;
       }
+      // The destination's name: the word on the cover, and what is announced on arrival.
+      const destination = routeLabel(url.pathname, products);
       // Reduced motion: no overlay at all, but keep the focus move and the announcement.
       if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
         const changed = new Promise<void>((resolve) => {
@@ -188,7 +191,7 @@ export function TransitionProvider({ children }: { children: ReactNode }) {
         });
         router.push(href);
         await changed;
-        arrive(url.pathname);
+        arrive(destination);
         return;
       }
       busy.current = true;
@@ -197,7 +200,7 @@ export function TransitionProvider({ children }: { children: ReactNode }) {
       document.documentElement.dataset.pageCovered = "";
       const word = label.current;
       const layer = content.current;
-      if (word) word.textContent = routeLabel(url.pathname);
+      if (word) word.textContent = destination;
       const logo = mark.current;
       const halo = glow.current;
 
@@ -240,9 +243,9 @@ export function TransitionProvider({ children }: { children: ReactNode }) {
       for (const node of [...panels(), word, layer, logo, halo]) node?.getAnimations().forEach((a) => a.cancel());
       delete el.dataset.state;
       busy.current = false;
-      arrive(url.pathname);
+      arrive(destination);
     },
-    [animatePanels, router],
+    [animatePanels, router, products],
   );
 
   const api = useMemo(() => ({ navigate }), [navigate]);

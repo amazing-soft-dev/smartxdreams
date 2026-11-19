@@ -58,7 +58,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <VitalsReporter />
         <SmoothScroll>
           <MotionProvider>
-            <TransitionProvider>
+            <TransitionProvider products={products}>
               {/* First stop for keyboard and screen-reader users: jump past the header to the page content. */}
               <a
                 href="#main"
