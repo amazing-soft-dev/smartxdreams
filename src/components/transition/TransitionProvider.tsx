@@ -79,6 +79,8 @@ export function TransitionProvider({ products, children }: { products: readonly 
   const busy = useRef(false);
   // Resolves when the pathname changes, so the reveal waits for the new page.
   const routeWaiter = useRef<(() => void) | null>(null);
+  // The path whose page is on screen, so the effect below can tell a route change from the first render.
+  const shownPath = useRef(pathname);
 
   // The overlay is invisible until the first navigation, and an image is only decoded when it is first
   // painted, so the mark could pop in a frame late. Decode it while the browser is idle instead.
@@ -94,10 +96,29 @@ export function TransitionProvider({ products, children }: { products: readonly 
     return () => window.clearTimeout(id);
   }, []);
 
+  /**
+   * After a client-side navigation, move keyboard and screen-reader focus to the new page's h1 (instead of
+   * leaving it on a link that no longer exists) and announce the page through a polite live region.
+   */
+  const arrive = (destination: string) => {
+    const heading = document.querySelector<HTMLElement>("main h1, h1");
+    if (heading) {
+      if (!heading.hasAttribute("tabindex")) heading.setAttribute("tabindex", "-1");
+      heading.focus({ preventScroll: true });
+    }
+    if (announcer.current) announcer.current.textContent = `${destination} page`;
+  };
+
   useEffect(() => {
     routeWaiter.current?.();
     routeWaiter.current = null;
-  }, [pathname]);
+    // Every route change arrives the same way: plain links, the menus and the back and forward buttons never
+    // go through navigate(). Not on the first render, and not under the panels, where navigate() arrives
+    // itself once they have left.
+    if (shownPath.current === pathname) return;
+    shownPath.current = pathname;
+    if (!busy.current) arrive(routeLabel(pathname, products));
+  }, [pathname, products]);
 
   // Back and forward buttons skip the panels (the visitor already knows where they are going) and use a
   // short View Transitions cross-fade instead, where the browser supports it. The old page is captured when
@@ -160,19 +181,6 @@ export function TransitionProvider({ products, children }: { products: readonly 
     );
   }, []);
 
-  /**
-   * After a client-side navigation, move keyboard and screen-reader focus to the new page's h1 (instead of
-   * leaving it on a link that no longer exists) and announce the page through a polite live region.
-   */
-  const arrive = (destination: string) => {
-    const heading = document.querySelector<HTMLElement>("main h1, h1");
-    if (heading) {
-      if (!heading.hasAttribute("tabindex")) heading.setAttribute("tabindex", "-1");
-      heading.focus({ preventScroll: true });
-    }
-    if (announcer.current) announcer.current.textContent = `${destination} page`;
-  };
-
   const navigate = useCallback(
     async (href: string) => {
       const url = new URL(href, window.location.href);
@@ -181,19 +189,13 @@ export function TransitionProvider({ products, children }: { products: readonly 
         router.push(href);
         return;
       }
-      // The destination's name: the word on the cover, and what is announced on arrival.
-      const destination = routeLabel(url.pathname, products);
-      // Reduced motion: no overlay at all, but keep the focus move and the announcement.
+      // Reduced motion: no overlay at all. The pathname effect still moves focus and announces the page.
       if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-        const changed = new Promise<void>((resolve) => {
-          routeWaiter.current = resolve;
-          window.setTimeout(resolve, ROUTE_TIMEOUT_MS);
-        });
         router.push(href);
-        await changed;
-        arrive(destination);
         return;
       }
+      // The destination's name: the word on the cover, and what is announced on arrival.
+      const destination = routeLabel(url.pathname, products);
       busy.current = true;
       router.prefetch(href);
       el.dataset.state = "active";
