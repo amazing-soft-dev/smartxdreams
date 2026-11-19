@@ -200,7 +200,7 @@ export function WaitlistForm({ product, products = [] }: WaitlistFormProps) {
             defaultValue=""
             aria-invalid={errors.product ? true : undefined}
             aria-describedby={describedBy("product")}
-            className="mt-2 h-12 rounded-[14px] bg-white/10 px-4 text-body text-white ring-1 ring-white/15 focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-300 aria-invalid:ring-2 aria-invalid:ring-coral-300"
+            className="mt-2 h-12 rounded-[14px] bg-white/10 px-4 text-body text-white ring-1 ring-white/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-300 aria-invalid:ring-2 aria-invalid:ring-coral-300"
           >
             <option value="" disabled className="text-ink">
               Choose a product
@@ -219,8 +219,10 @@ export function WaitlistForm({ product, products = [] }: WaitlistFormProps) {
         <label htmlFor={fieldId("email")} className="text-label font-medium text-white">
           Email address
         </label>
+        {/* The resting outline is white at 40%, 3.8:1 on ink. It is set only while the field is valid: beside
+            ring-coral-300 it would win the cascade and hide the invalid colour. */}
         <div
-          className={`mt-2 flex gap-2 rounded-[18px] bg-white/10 p-1.5 ring-white/15 focus-within:ring-2 focus-within:ring-violet-300 ${errors.email ? "ring-2 ring-coral-300" : "ring-1"}`}
+          className={`mt-2 flex gap-2 rounded-[18px] bg-white/10 p-1.5 focus-within:ring-2 focus-within:ring-violet-300 ${errors.email ? "ring-2 ring-coral-300" : "ring-1 ring-white/40"}`}
         >
           <input
             id={fieldId("email")}

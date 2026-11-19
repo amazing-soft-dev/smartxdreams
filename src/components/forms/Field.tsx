@@ -10,9 +10,12 @@ type ShellProps = {
   className?: string;
 };
 
-/** Shared control styles: a 2 px coral-700 ring marks an invalid field, so colour is not the only signal. */
+/**
+ * Shared control styles. The resting outline is ink at 50%, 3.5:1 on white (WCAG 1.4.11 asks 3:1 of a
+ * field's boundary). A 2 px coral-700 ring marks an invalid field, so colour is not the only signal.
+ */
 const control =
-  "w-full rounded-[14px] bg-white px-4 text-body text-ink ring-1 ring-ink/20 transition-shadow placeholder:text-ink/45 " +
+  "w-full rounded-[14px] bg-white px-4 text-body text-ink ring-1 ring-ink/50 transition-shadow placeholder:text-ink/45 " +
   "focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 aria-invalid:ring-2 aria-invalid:ring-coral-700";
 
 /** Ids of the hint and error, for aria-describedby. The error is listed first so it is read first. */
