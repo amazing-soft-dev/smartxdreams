@@ -24,7 +24,7 @@ export function confirmationEmail({ product, token }: { product: string; token: 
       "To confirm, open this link and press the Confirm button:",
       link,
       "",
-      "The link works for 7 days. If you did not ask to join, ignore this email: you will not be added, and we will not email you again about it.",
+      "The link works for 7 days. If you did not ask to join, ignore this email: you will not be added to the list.",
       "",
       `The ${company.name} team`,
     ].join("\n"),
