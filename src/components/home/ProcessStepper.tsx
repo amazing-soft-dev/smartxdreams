@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, useMotionValueEvent, useScroll, useSpring } from "motion/react";
+import { m, useMotionValueEvent, useScroll, useSpring } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 import { Container } from "@/components/ui/Container";
 import { Photo } from "@/components/ui/Photo";
@@ -110,7 +110,7 @@ export function ProcessStepper() {
             <ol className="relative flex flex-col gap-1 motion-safe:lg:pl-8">
               {/* Coral progress rail (desktop): a faint track with a fill that grows from the top. */}
               <span aria-hidden="true" className="absolute top-0 bottom-0 left-0 hidden w-[1.5px] rounded-full bg-ink/10 motion-safe:lg:block">
-                <motion.span className="block h-full w-full origin-top rounded-full bg-coral-500" style={{ scaleY: rail }} />
+                <m.span className="block h-full w-full origin-top rounded-full bg-coral-500" style={{ scaleY: rail }} />
               </span>
               {processSteps.map((step, i) => (
                 <li

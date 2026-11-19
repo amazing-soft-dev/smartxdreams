@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, type Variants } from "motion/react";
+import { m, type Variants } from "motion/react";
 import type { ReactNode } from "react";
 import { restingState, revealPresets, type RevealPreset } from "./Reveal";
 
@@ -29,7 +29,7 @@ const groupVariants = (stagger: number, delay: number): Variants => ({
  * after the one before (cards in a grid, list rows).
  */
 export function RevealGroup({ children, stagger = 0.08, delay = 0, amount = 0.15, className, as = "div", ...rest }: RevealGroupProps) {
-  const Component = motion[as];
+  const Component = m[as];
   return (
     <Component
       {...rest}
@@ -55,7 +55,7 @@ type RevealItemProps = PassThrough & {
 export function RevealItem({ children, preset = "up60", className, as = "div", ...rest }: RevealItemProps) {
   const { hidden, transition } = revealPresets[preset];
   const variants: Variants = { hidden, visible: { ...restingState(hidden), transition } };
-  const Component = motion[as];
+  const Component = m[as];
   return (
     <Component {...rest} data-reveal="" className={className} variants={variants}>
       {children}

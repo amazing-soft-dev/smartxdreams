@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "motion/react";
+import { m } from "motion/react";
 import type { ReactNode } from "react";
 import { spring } from "@/styles/motion";
 
@@ -14,7 +14,7 @@ import { spring } from "@/styles/motion";
  */
 export function PhotoReveal({ children }: { children: ReactNode }) {
   return (
-    <motion.div
+    <m.div
       data-motion="photo"
       data-reveal=""
       className="absolute inset-0"
@@ -24,6 +24,6 @@ export function PhotoReveal({ children }: { children: ReactNode }) {
       transition={spring.rise}
     >
       {children}
-    </motion.div>
+    </m.div>
   );
 }

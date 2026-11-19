@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, useReducedMotion } from "motion/react";
+import { m, useReducedMotion } from "motion/react";
 import { Fragment } from "react";
 import { WORD_STAGGER, wordVariants } from "@/components/motion/WordReveal";
 import { Section } from "@/components/ui/Section";
@@ -34,7 +34,7 @@ export function Statement() {
       <h2 id="statement-title" className="sr-only">
         What we build
       </h2>
-      <motion.p
+      <m.p
         className="mx-auto max-w-4xl text-center text-h3"
         initial={reduced ? "visible" : "hidden"}
         whileInView="visible"
@@ -49,7 +49,7 @@ export function Statement() {
                 return product ? (
                   <Fragment key={ti}>
                     {/* Product chip: pops in with a small overshoot when its turn comes. */}
-                    <motion.span
+                    <m.span
                       data-reveal=""
                       className="mx-0.5 inline-flex translate-y-[-0.12em] items-center gap-1.5 rounded-full bg-white px-3 py-1 align-middle text-label font-medium text-ink shadow-tag"
                       variants={{
@@ -60,19 +60,19 @@ export function Statement() {
                       {/* The chip is white, so the bare logo reads without its tile. */}
                       <ProductLogo product={product} size={20} tile={false} decorative />
                       {product.name}
-                    </motion.span>{" "}
+                    </m.span>{" "}
                   </Fragment>
                 ) : null;
               }
               return (
                 <Fragment key={`${li}-${ti}`}>
-                  <motion.span
+                  <m.span
                     data-reveal=""
                     className="inline-block"
                     variants={wordVariants}
                   >
                     {token.text}
-                  </motion.span>{" "}
+                  </m.span>{" "}
                 </Fragment>
               );
             })}
@@ -80,7 +80,7 @@ export function Statement() {
           </Fragment>
         ))}
         {/* Caret after the last word: appears with it, then blinks. Decorative. */}
-        <motion.span
+        <m.span
           aria-hidden="true"
           className={
             reduced
@@ -89,7 +89,7 @@ export function Statement() {
           }
           variants={{ hidden: { opacity: 0 }, visible: { opacity: 1 } }}
         />
-      </motion.p>
+      </m.p>
     </Section>
   );
 }
