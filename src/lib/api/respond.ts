@@ -55,7 +55,8 @@ export async function readJson<S extends z.ZodType>(request: Request, schema: S)
     return { response: fail(413, "too_large", "That message is too long to send.") };
   }
   const raw = await request.text();
-  if (raw.length > MAX_BODY_BYTES) return { response: fail(413, "too_large", "That message is too long to send.") };
+  // Bytes, not string length: a character outside ASCII is one or two UTF-16 units but two to four bytes.
+  if (Buffer.byteLength(raw, "utf8") > MAX_BODY_BYTES) return { response: fail(413, "too_large", "That message is too long to send.") };
   let json: unknown;
   try {
     json = JSON.parse(raw);
