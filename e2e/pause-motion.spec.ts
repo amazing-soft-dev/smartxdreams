@@ -20,6 +20,10 @@ const playStates = (page: Page, selector: string) =>
 
 const typedText = (page: Page) => page.locator(typed).evaluate((el) => el.textContent);
 
+// Every test loads whole pages, waits for the network to settle and then watches loops for seconds: about
+// 25 s each with the whole suite running in parallel, too close to the default 30 s limit.
+test.describe.configure({ timeout: 90_000 });
+
 // Two cores: Home keeps its still planet instead of starting the WebGL scene (useSceneSupport), as in
 // earth.spec.ts. Nothing here reads the scene, and drawing it on the CPU in several workers at once slowed
 // the whole suite enough to time other tests out. The still planet's drift is a CSS loop, held like the rest.
@@ -65,8 +69,6 @@ test("pressing the button holds every loop, and pressing it again lets them run"
 });
 
 test("the choice survives a page change, a fresh load and is forgotten when animations play again", async ({ page }) => {
-  // Four page loads and a page transition: more than the default 30 s when the whole suite runs in parallel.
-  test.slow();
   await page.goto("/privacy", { waitUntil: "networkidle" });
   await toggle(page).click();
   await expect(page.locator(root)).toHaveAttribute("data-motion-paused", "");
