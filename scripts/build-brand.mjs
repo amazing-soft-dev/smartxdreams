@@ -33,8 +33,12 @@ const EDGE = 3;
 const MAX_BYTES = 80 * 1024;
 
 export const LOGO_WIDTHS = [32, 64, 128, 256, 512];
+// Check mode compares each image's width, height and format with the committed file, never its bytes, so it
+// encodes with the cheapest settings: one 384 px WebP takes seconds at effort 6 and under 50 ms at effort 0.
+// The PNGs inside icon.svg, which is compared byte for byte, use sharp's defaults in both modes.
 /** Palette PNG: 256 colours with alpha keeps the ribbon's shading at a fraction of the size. */
-const PNG = { palette: true, quality: 95, effort: 10, compressionLevel: 9 };
+const PNG = check ? {} : { palette: true, quality: 95, effort: 10, compressionLevel: 9 };
+const webp = (quality) => (check ? { effort: 0 } : { quality, alphaQuality: 100, effort: 6 });
 
 /**
  * Clears every pixel that is not artwork: labels the 4-connected parts at alpha >= SOLID, keeps the parts at
@@ -180,7 +184,7 @@ for (const { name } of MARKS) {
     const w = Math.min(width, a.width);
     emit(
       `public/brand/logo/${name}-${width}.webp`,
-      await a.image().resize({ width: w }).webp({ quality: 90, alphaQuality: 100, effort: 6 }).toBuffer(),
+      await a.image().resize({ width: w }).webp(webp(90)).toBuffer(),
     );
   }
   // PNG for consumers that cannot read WebP (the social card renderer): quantised, the shading survives.
@@ -260,7 +264,7 @@ for (const file of productMasters) {
   const artwork = await loadArtwork(path.join(root, "assets/products", file));
   console.log(`assets/products/${file}  artwork ${artwork.width} x ${artwork.height}`);
   for (const size of PRODUCT_LOGO_SIZES) {
-    const image = await (await square(artwork, size, 1)).webp({ quality: 88, alphaQuality: 100, effort: 6 }).toBuffer();
+    const image = await (await square(artwork, size, 1)).webp(webp(88)).toBuffer();
     emit(`public/products/logos/${slug}-${size}.webp`, image, PRODUCT_MAX_BYTES);
   }
 }
