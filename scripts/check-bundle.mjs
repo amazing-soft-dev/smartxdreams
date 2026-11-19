@@ -1,8 +1,9 @@
 // Bundle analysis and budget, run after `next build` (the server build) in CI.
 //
 // For every statically generated page (.next/server/app/**/*.html) it measures what the page loads up front:
-// the JavaScript and CSS chunks referenced by the HTML (gzipped) and the preloaded fonts. It prints the
-// heaviest pages and chunks, then fails if:
+// the JavaScript and CSS chunks referenced by the HTML (gzipped) and the preloaded fonts. Scripts marked
+// `nomodule` are left out: they are the polyfills for browsers without module support, and no browser that
+// can run the site downloads them. It prints the heaviest pages and chunks, then fails if:
 // 1. any page's initial JavaScript is over JS_BUDGET_KB (gzipped);
 // 2. any page's CSS is over CSS_BUDGET_KB (gzipped);
 // 3. a page preloads more than one font, or the preloaded font is over FONT_BUDGET_KB;
@@ -52,12 +53,19 @@ async function chunk(relative) {
 const kb = (bytes) => bytes / 1024;
 const problems = [];
 const rows = [];
+let legacyScripts = 0;
 
 for (const page of await list(pagesDir, ".html")) {
   const html = await readFile(path.join(pagesDir, page), "utf8");
   const refs = (ext) => [...new Set([...html.matchAll(new RegExp(`/_next/static/(chunks/[^"?]+\\${ext})`, "g"))].map((m) => m[1]))];
+  // <script nomodule src="…">: skipped by every browser that supports modules, so not part of the page's load.
+  const legacy = new Set(
+    [...html.matchAll(/<script\b[^>]*\bnomodule\b[^>]*>/gi)].flatMap((m) => m[0].match(/\/_next\/static\/(chunks\/[^"?]+\.js)/)?.[1] ?? []),
+  );
+  legacyScripts += legacy.size;
   let js = 0;
   for (const file of refs(".js")) {
+    if (legacy.has(file)) continue;
     const { gz, text } = await chunk(file);
     js += gz;
     for (const [name, marker] of Object.entries(LAZY)) {
@@ -113,6 +121,7 @@ const largest = [...gzCache.entries()]
   .map(([f, gz]) => `${f.split("/").pop()} ${kb(gz).toFixed(1)} KB`);
 console.log(`  Largest chunks: ${largest.join(", ")}`);
 console.log(`  three.js: lazy, ${threeChunks} chunk(s), ${kb(threeBytes).toFixed(1)} KB gzipped`);
+console.log(`  Not counted: ${legacyScripts} nomodule script tag(s) across the pages (polyfills modern browsers skip)`);
 
 if (problems.length > 0) {
   console.error("check:bundle failed:");
