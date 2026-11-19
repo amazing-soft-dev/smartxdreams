@@ -102,7 +102,9 @@ and the spam-guard fields.
 
 The token is in the URL fragment, not the query string, because it holds the address and works as a
 credential for 7 days, and browsers never send the fragment with a request: the server and its request logs
-do not see the token when the link is opened, and no Referer header carries it.
+do not see the token when the link is opened, and no Referer header carries it. Vercel Web Analytics and
+Speed Insights report the page address from the browser, fragment included, so the confirm page is reported
+by its path alone (`src/lib/analytics-url.ts`).
 
 **Confirm** (`src/app/api/waitlist/confirm/route.api.ts`). The `/waitlist/confirm` page (noindex) reads the
 token in the browser (`src/lib/forms/waitlist-link.ts`: the fragment first, then `?token=…`, the shape of
