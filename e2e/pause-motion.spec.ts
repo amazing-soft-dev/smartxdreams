@@ -20,6 +20,13 @@ const playStates = (page: Page, selector: string) =>
 
 const typedText = (page: Page) => page.locator(typed).evaluate((el) => el.textContent);
 
+// Two cores: Home keeps its still planet instead of starting the WebGL scene (useSceneSupport), as in
+// earth.spec.ts. Nothing here reads the scene, and drawing it on the CPU in several workers at once slowed
+// the whole suite enough to time other tests out. The still planet's drift is a CSS loop, held like the rest.
+test.beforeEach(async ({ page }) => {
+  await page.addInitScript(() => Object.defineProperty(navigator, "hardwareConcurrency", { get: () => 2 }));
+});
+
 test("pressing the button holds every loop, and pressing it again lets them run", async ({ page }) => {
   await page.goto("/", { waitUntil: "networkidle" });
   const button = toggle(page);
