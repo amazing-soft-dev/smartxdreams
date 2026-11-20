@@ -15,6 +15,12 @@ test("the team section shows nine profiles, each with a portrait, a role and foc
   await expect(cards.first().getByRole("heading", { level: 3 })).toHaveText("Isabela Moreno");
 });
 
+test("says that the profiles are illustrative, above the cards and on each one", async ({ page }) => {
+  await page.goto("/about");
+  await expect(page.getByRole("note").filter({ hasText: "names and portraits on this page are illustrative" })).toBeVisible();
+  await expect(page.locator("[data-person] [data-illustrative]")).toHaveCount(9);
+});
+
 test("the hiring card's button leads to the contact page", async ({ page }) => {
   await page.goto("/about");
   const card = page.getByRole("heading", { name: "Building with us" }).locator("xpath=ancestor::div[2]");
