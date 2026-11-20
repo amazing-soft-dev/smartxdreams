@@ -19,7 +19,7 @@ export function TeamProfiles() {
   return (
     <>
       {team.some((person) => person.illustrative) ? (
-        <p role="note" data-team-note="" className="mt-3 flex items-start gap-2.5 rounded-[22px] bg-canvas px-5 py-4 text-body text-ink/75">
+        <p role="note" data-team-note="" className="mt-3 flex items-start gap-2.5 rounded-panel bg-canvas px-5 py-4 text-body text-ink/75">
           <svg aria-hidden="true" viewBox="0 0 16 16" width="18" height="18" className="mt-[3px] shrink-0 text-violet-600" fill="none">
             <circle cx="8" cy="8" r="6.5" stroke="currentColor" strokeWidth="1.4" />
             <path d="M8 7.25v4M8 4.75v.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
@@ -31,8 +31,8 @@ export function TeamProfiles() {
       {team.map((person, i) => (
         <li key={person.slug} data-person={person.slug}>
           <Reveal preset="up75" delay={(i % 3) * stagger.group} className="h-full">
-          <article className="flex h-full flex-col rounded-[30px] bg-canvas p-4 pb-6 md:p-5 md:pb-7">
-            <div className="relative aspect-[4/5] overflow-hidden rounded-[22px]">
+          <article className="flex h-full flex-col rounded-card bg-canvas p-4 pb-6 md:p-5 md:pb-7">
+            <div className="relative aspect-[4/5] overflow-hidden rounded-panel">
               <PortraitReveal index={i}>
                 <Photo slot={person.photo.slot} fill sizes="(min-width: 1024px) 30vw, (min-width: 640px) 45vw, 100vw" />
               </PortraitReveal>

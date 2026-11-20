@@ -11,7 +11,7 @@ export function ProductCard({ product, headingLevel: Heading = "h2" }: { product
   return (
     <article
       data-product={product.slug}
-      className="group relative flex h-full flex-col rounded-[30px] bg-white p-7 outline-offset-4 transition-[translate,box-shadow] duration-500 ease-[var(--ease-out-quint)] hover:-translate-y-1.5 motion-reduce:hover:translate-y-0 hover:shadow-card-hover has-[a:focus-visible]:-translate-y-1.5 has-[a:focus-visible]:shadow-card-hover motion-reduce:has-[a:focus-visible]:translate-y-0 has-[a:focus-visible]:outline-2 has-[a:focus-visible]:outline-violet-500"
+      className="group relative flex h-full flex-col rounded-card bg-white p-7 outline-offset-4 transition-[translate,box-shadow] duration-500 ease-[var(--ease-out-quint)] hover:-translate-y-1.5 motion-reduce:hover:translate-y-0 hover:shadow-card-hover has-[a:focus-visible]:-translate-y-1.5 has-[a:focus-visible]:shadow-card-hover motion-reduce:has-[a:focus-visible]:translate-y-0 has-[a:focus-visible]:outline-2 has-[a:focus-visible]:outline-violet-500"
     >
       <div className="flex items-start justify-between gap-4">
         <ProductLogo product={product} size={52} decorative />
@@ -23,7 +23,7 @@ export function ProductCard({ product, headingLevel: Heading = "h2" }: { product
         </div>
       </div>
       <Heading className="mt-6 text-h4">
-        <TransitionLink href={`/products/${product.slug}`} className="outline-none after:absolute after:inset-0 after:rounded-[30px]">
+        <TransitionLink href={`/products/${product.slug}`} className="outline-none after:absolute after:inset-0 after:rounded-card">
           {product.name}
         </TransitionLink>
       </Heading>

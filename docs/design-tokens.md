@@ -69,7 +69,21 @@ Every page has exactly one `<h1>` at every width. Visual size comes from these c
 ## Layout, shape, elevation
 
 - Breakpoints: `md` 810 px (tablet), `lg` 1024 px (desktop navigation), `xl` 1440 px. Content width 1280 px.
-- Radius: field 12, tag 12, button 16, menu 20, card 30.
+- Radius, one step per kind of surface:
+
+  | Token | Value | Use |
+  |---|---|---|
+  | `rounded-tag` | 12 px | Tags and filter chips |
+  | `rounded-field` | 14 px | Form fields, the buttons inside them, menu rows |
+  | `rounded-btn` | 16 px | Buttons |
+  | `rounded-bar` | 18 px | The header bar, the waitlist field's bar, notes |
+  | `rounded-menu` | 20 px | Menus and accordion rows |
+  | `rounded-panel` | 22 px | Panels inside a card: status messages, portraits, mockup frames |
+  | `rounded-card` | 30 px | Cards |
+
+  Use the token, never the pixel value (`rounded-[30px]`). The few values outside the scale are tied to
+  one component: the 10 px icon tile inside a button, the 24 px cover inside a post card (the card's 30 px
+  less its 8 px padding, rounded up), and the 404 page's 26 and 34 px digit tiles.
 - Shadows: `shadow-tag` (five soft layers), `shadow-card-hover`, `shadow-menu`.
 
 ## Motion

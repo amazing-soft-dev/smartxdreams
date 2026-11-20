@@ -114,7 +114,7 @@ export function ContactForm({ products, defaultProduct }: ContactFormProps) {
 
   if (status.kind === "sent") {
     return (
-      <div ref={sentRef} tabIndex={-1} role="status" className="rounded-[22px] bg-canvas p-6 focus:outline-none md:p-8">
+      <div ref={sentRef} tabIndex={-1} role="status" className="rounded-panel bg-canvas p-6 focus:outline-none md:p-8">
         <h3 className="text-h5">Thanks, your message is on its way.</h3>
         <p className="mt-3 text-body text-ink/75">
           A person will read it and reply to <span className="font-medium text-ink">{status.email}</span>.
@@ -145,7 +145,7 @@ export function ContactForm({ products, defaultProduct }: ContactFormProps) {
   return (
     <form noValidate onSubmit={onSubmit} onChange={onChange} aria-describedby={`${id}-status`} className="relative flex flex-col gap-6">
       {formsCanSend ? null : (
-        <p className="rounded-[14px] bg-canvas px-4 py-3 text-label text-ink">
+        <p className="rounded-field bg-canvas px-4 py-3 text-label text-ink">
           This is a static copy of the site, so this form cannot send messages. You can still fill it in, but nothing will leave your
           browser.
         </p>

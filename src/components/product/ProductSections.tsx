@@ -155,7 +155,7 @@ export function ProductLimits({ product }: ProductProps) {
       <div className="grid gap-12 lg:grid-cols-2">
         <div>
           {product.photo ? (
-            <div className="relative mb-8 aspect-[16/10] overflow-hidden rounded-[30px]">
+            <div className="relative mb-8 aspect-[16/10] overflow-hidden rounded-card">
               <PhotoReveal>
                 <Photo slot={product.photo.slot} fill sizes="(min-width: 1024px) 45vw, 100vw" />
               </PhotoReveal>
@@ -186,13 +186,13 @@ export function ProductLimits({ product }: ProductProps) {
             ))}
           </ul>
           {product.disclaimer ? (
-            <p className="mt-8 rounded-[18px] bg-coral-50 px-5 py-4 text-label text-coral-900">
+            <p className="mt-8 rounded-bar bg-coral-50 px-5 py-4 text-label text-coral-900">
               <strong className="font-medium">Please note: </strong>
               {product.disclaimer}
             </p>
           ) : null}
           {product.dataHandling && product.dataHandling.length > 0 ? (
-            <div className="mt-8 rounded-[22px] bg-canvas p-6">
+            <div className="mt-8 rounded-panel bg-canvas p-6">
               <h3 className="text-h6">Your data</h3>
               <ul className="mt-4 flex flex-col gap-2.5">
                 {product.dataHandling.map((line) => (

@@ -63,7 +63,7 @@ export function PostCard({
       onPointerMove={onPointerMove}
       className={cx(
         styles.card,
-        "group relative h-full rounded-[30px] bg-white p-2",
+        "group relative h-full rounded-card bg-white p-2",
         featured ? "grid gap-2 md:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]" : "flex flex-col",
       )}
     >
@@ -89,7 +89,7 @@ export function PostCard({
           {draft ? <span className="rounded-full bg-ink/[0.07] px-2 py-0.5 text-micro text-ink/75">Draft</span> : null}
         </p>
         <Heading className={cx("mt-3", featured ? "text-h3" : "text-h6")}>
-          <TransitionLink href={href} className="outline-none after:absolute after:inset-0 after:z-10 after:rounded-[30px]">
+          <TransitionLink href={href} className="outline-none after:absolute after:inset-0 after:z-10 after:rounded-card">
             <span className={cx(styles.lift, "inline-block")}>{title}</span>
           </TransitionLink>
         </Heading>

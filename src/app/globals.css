@@ -91,12 +91,15 @@
   --breakpoint-xl: 90rem; /* 1440 */
   --container-content: 80rem; /* 1280 content width */
 
-  /* Shape */
-  --radius-field: 12px;
-  --radius-tag: 12px;
-  --radius-btn: 16px;
-  --radius-menu: 20px;
-  --radius-card: 30px;
+  /* Shape: one step per kind of surface, smallest to largest. Components use these (rounded-card,
+     rounded-panel, ...) and never write the pixel value. */
+  --radius-tag: 12px; /* tags and filter chips */
+  --radius-field: 14px; /* form fields, the buttons inside them, menu rows */
+  --radius-btn: 16px; /* buttons */
+  --radius-bar: 18px; /* the header bar, the waitlist field's bar, notes */
+  --radius-menu: 20px; /* menus and accordion rows */
+  --radius-panel: 22px; /* panels inside a card: status messages, portraits, mockup frames */
+  --radius-card: 30px; /* cards */
 
   /* Elevation */
   --shadow-tag: 0 1px 3px rgb(0 0 0 / 0.12), 0 5px 5px rgb(0 0 0 / 0.08), 0 11px 7px rgb(0 0 0 / 0.08),
