@@ -164,7 +164,7 @@ export function ProductsMenu({ theme }: ProductsMenuProps) {
                   onPointerEnter={() => setActive(index)}
                   onFocus={() => setActive(index)}
                   className={cx(
-                    "flex items-start gap-3 rounded-[14px] px-3.5 py-3 transition-colors duration-250",
+                    "flex items-start gap-3 rounded-field px-3.5 py-3 transition-colors duration-250",
                     index === active ? "bg-white/[0.08]" : "hover:bg-white/[0.06]",
                   )}
                 >
@@ -189,7 +189,7 @@ function ProductPreview({ slug }: { slug: string }) {
   const product = useNavProducts().find((p) => p.slug === slug);
   if (!product) return null;
   return (
-    <div className="relative flex w-[290px] animate-[menu-preview_500ms_var(--ease-out-quint)] flex-col justify-between overflow-hidden rounded-[14px] bg-[linear-gradient(160deg,#6D4AFF_0%,#371D93_55%,#0F1226_100%)] p-5">
+    <div className="relative flex w-[290px] animate-[menu-preview_500ms_var(--ease-out-quint)] flex-col justify-between overflow-hidden rounded-field bg-[linear-gradient(160deg,#6D4AFF_0%,#371D93_55%,#0F1226_100%)] p-5">
       <div>
         <ProductLogo product={product} size={52} decorative className="mb-4" />
         <span className="block text-micro font-semibold tracking-[0.06em] text-white/70 uppercase">

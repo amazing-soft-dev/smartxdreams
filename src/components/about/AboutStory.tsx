@@ -21,7 +21,7 @@ export function AboutStory() {
           </div>
         </div>
         <Reveal preset="right60">
-          <div className="relative aspect-[4/3] overflow-hidden rounded-[30px]">
+          <div className="relative aspect-[4/3] overflow-hidden rounded-card">
             <PhotoReveal>
               <Photo slot="about-story" fill sizes="(min-width: 1024px) 45vw, 100vw" />
             </PhotoReveal>

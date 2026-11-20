@@ -144,7 +144,7 @@ export function WaitlistForm({ product, products = [] }: WaitlistFormProps) {
   // The static export has no server, so there is nothing to send to: say so plainly instead of a form that fails.
   if (!formsCanSend) {
     return (
-      <div role="note" className="mt-8 w-full max-w-md rounded-[22px] bg-white/10 px-6 py-5 text-left ring-1 ring-white/15">
+      <div role="note" className="mt-8 w-full max-w-md rounded-panel bg-white/10 px-6 py-5 text-left ring-1 ring-white/15">
         <p className="text-body-l font-medium text-white">Sign-up is off on this copy of the site</p>
         <p className="mt-2 text-body text-white/75">
           This is a static copy without a server, so it cannot add anyone to a waitlist. Join{" "}
@@ -160,7 +160,7 @@ export function WaitlistForm({ product, products = [] }: WaitlistFormProps) {
         ref={sentRef}
         tabIndex={-1}
         role="status"
-        className="mt-8 w-full max-w-md rounded-[22px] bg-white/10 px-6 py-5 text-left ring-1 ring-white/15 focus:outline-none"
+        className="mt-8 w-full max-w-md rounded-panel bg-white/10 px-6 py-5 text-left ring-1 ring-white/15 focus:outline-none"
       >
         <p className="text-body-l font-medium text-white">Check your inbox</p>
         <p className="mt-2 text-body text-white/75">
@@ -201,7 +201,7 @@ export function WaitlistForm({ product, products = [] }: WaitlistFormProps) {
             aria-required="true"
             aria-invalid={errors.product ? true : undefined}
             aria-describedby={describedBy("product")}
-            className="mt-2 h-12 rounded-[14px] bg-white/10 px-4 text-body text-white ring-1 ring-white/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-300 aria-invalid:ring-2 aria-invalid:ring-coral-300"
+            className="mt-2 h-12 rounded-field bg-white/10 px-4 text-body text-white ring-1 ring-white/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-300 aria-invalid:ring-2 aria-invalid:ring-coral-300"
           >
             <option value="" disabled className="text-ink">
               Choose a product
@@ -225,7 +225,7 @@ export function WaitlistForm({ product, products = [] }: WaitlistFormProps) {
             Below 640 px the field has a row to itself and the button sits under it: side by side, a 360 px
             phone left 117 px to type an address in (96 px on the large-text SeniorAIPlans page). */}
         <div
-          className={`mt-2 flex flex-col gap-1.5 rounded-[18px] bg-white/10 p-1.5 focus-within:ring-2 focus-within:ring-violet-300 sm:flex-row sm:gap-2 ${errors.email ? "ring-2 ring-coral-300" : "ring-1 ring-white/40"}`}
+          className={`mt-2 flex flex-col gap-1.5 rounded-bar bg-white/10 p-1.5 focus-within:ring-2 focus-within:ring-violet-300 sm:flex-row sm:gap-2 ${errors.email ? "ring-2 ring-coral-300" : "ring-1 ring-white/40"}`}
         >
           <input
             id={fieldId("email")}
@@ -243,7 +243,7 @@ export function WaitlistForm({ product, products = [] }: WaitlistFormProps) {
           <button
             type="submit"
             aria-disabled={submitting ? true : undefined}
-            className="h-11 shrink-0 rounded-[14px] bg-coral-500 px-5 text-label font-medium text-ink transition-colors hover:bg-coral-400 aria-disabled:opacity-70"
+            className="h-11 shrink-0 rounded-field bg-coral-500 px-5 text-label font-medium text-ink transition-colors hover:bg-coral-400 aria-disabled:opacity-70"
           >
             {submitting ? "Joining…" : "Join the waitlist"}
           </button>

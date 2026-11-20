@@ -20,7 +20,7 @@ export function WhichIsRight() {
             <li key={slug}>
               <TransitionLink
                 href={`/products/${slug}`}
-                className="group flex items-center justify-between gap-4 rounded-[20px] bg-canvas px-6 py-5 transition-[background-color,translate,box-shadow] duration-500 ease-[var(--ease-out-quint)] hover:-translate-y-1 hover:bg-canvas-200 hover:shadow-tag focus-visible:-translate-y-1 motion-reduce:hover:translate-y-0 motion-reduce:focus-visible:translate-y-0"
+                className="group flex items-center justify-between gap-4 rounded-menu bg-canvas px-6 py-5 transition-[background-color,translate,box-shadow] duration-500 ease-[var(--ease-out-quint)] hover:-translate-y-1 hover:bg-canvas-200 hover:shadow-tag focus-visible:-translate-y-1 motion-reduce:hover:translate-y-0 motion-reduce:focus-visible:translate-y-0"
               >
                 <span className="text-body-l">“{need}”</span>
                 <span className="shrink-0 text-label font-medium text-violet-600">

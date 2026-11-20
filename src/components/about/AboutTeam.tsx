@@ -18,7 +18,7 @@ export function AboutTeam() {
     <Section labelledBy="team-title" surface="white">
       <SectionHeader id="team-title" tag="Team" title={about.team.title} description={about.team.body} />
 
-      <div className="mt-14 grid overflow-hidden rounded-[30px] bg-ink text-white lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)]" data-surface="dark">
+      <div className="mt-14 grid overflow-hidden rounded-card bg-ink text-white lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)]" data-surface="dark">
         <div className="flex flex-col justify-between gap-10 p-8 md:p-10">
           <div>
             <h3 className="text-h3">{join.title}</h3>

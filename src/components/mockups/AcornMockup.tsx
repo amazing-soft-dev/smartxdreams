@@ -17,7 +17,7 @@ export function AcornMockup({ className }: { className?: string }) {
   return (
     <div
       aria-hidden="true"
-      className={cx("overflow-hidden rounded-[22px] bg-white text-left text-ink shadow-[0_24px_60px_rgb(0_0_0/0.35)] ring-1 ring-ink/5", className)}
+      className={cx("overflow-hidden rounded-panel bg-white text-left text-ink shadow-[0_24px_60px_rgb(0_0_0/0.35)] ring-1 ring-ink/5", className)}
     >
       {/* Browser chrome */}
       <div className="flex items-center gap-2 border-b border-ink/5 bg-canvas px-4 py-2.5">

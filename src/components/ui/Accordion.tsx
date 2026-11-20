@@ -69,7 +69,7 @@ export function Accordion({ items, defaultOpen = 0, multiple = false, tone = "li
             preset="up50"
             delay={index * (stagger.group / 2)}
             className={cx(
-              "rounded-[20px] transition-colors duration-300",
+              "rounded-menu transition-colors duration-300",
               tone === "light" ? (isOpen ? "bg-white shadow-tag" : "bg-ink/[0.05]") : isOpen ? "bg-white/12" : "bg-white/[0.06]",
             )}
           >
