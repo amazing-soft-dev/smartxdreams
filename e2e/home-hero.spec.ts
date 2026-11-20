@@ -2,6 +2,31 @@ import { expect, test } from "@playwright/test";
 
 const hero = 'section[aria-labelledby="home-hero-title"]';
 
+test("the headline's widest selection chip stays inside a 360 px screen", async ({ browser }, info) => {
+  test.skip(info.project.name !== "desktop", "The test sets its own 360 px window; one project is enough.");
+  test.setTimeout(90_000);
+  const context = await browser.newContext({ viewport: { width: 360, height: 800 } });
+  const page = await context.newPage();
+  await page.goto("/");
+  const chip = page.locator("[data-selection-chip]");
+  // The chip that starts furthest right: it hangs from "AI", the last word of the headline's first line.
+  const widest = "Review / a person decides";
+  // The box rests 2.35 s on each word and comes back to this one every 9.4 s. Each attempt waits for the
+  // chip, lets it finish sliding (two readings that agree), and checks it there; an attempt that catches
+  // the chip moving or already gone is tried again on the next round.
+  await expect(async () => {
+    await expect(chip).toHaveText(widest, { timeout: 20_000 });
+    const first = await chip.boundingBox();
+    await page.waitForTimeout(250);
+    const second = await chip.boundingBox();
+    expect(await chip.textContent()).toBe(widest);
+    expect(first && second && Math.abs(first.x - second.x) < 0.5, "the chip is at rest").toBe(true);
+    expect(second!.x).toBeGreaterThanOrEqual(0);
+    expect(second!.x + second!.width).toBeLessThanOrEqual(360);
+  }).toPass({ timeout: 75_000 });
+  await context.close();
+});
+
 /**
  * The cloud emblem's box in the painted plate, as fractions of the plate (src/components/earth/plate.ts:
  * x 1005–1540 and y 355–650 px of 1659 × 948).

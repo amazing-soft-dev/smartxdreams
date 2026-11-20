@@ -55,7 +55,7 @@ export default async function BlogCategoryPage({ params }: CategoryPageProps) {
         aria-labelledby="category-title"
         data-surface="dark"
         data-nav-theme="dark"
-        className="relative isolate overflow-hidden bg-ink pt-36 pb-16 text-white md:pt-44 md:pb-20"
+        className="relative isolate overflow-hidden bg-ink pt-28 pb-12 text-white md:pt-44 md:pb-20"
       >
         <Glow color="violet" size={820} opacity={0.35} className="-top-1/2 left-1/2 -translate-x-1/2" />
         <Container className="text-center">
@@ -102,7 +102,7 @@ export default async function BlogCategoryPage({ params }: CategoryPageProps) {
           {posts.length === 0 ? "No articles yet" : posts.length === 1 ? "1 article" : `${posts.length} articles`}
         </h2>
         {posts.length > 0 ? (
-          <ul className="mt-8 grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+          <ul className="mt-8 grid gap-3 min-[700px]:grid-cols-2 min-[1200px]:grid-cols-3">
             {posts.map((post) => (
               <li key={post.slug}>
                 <PostTeaser post={post} />
@@ -122,7 +122,7 @@ export default async function BlogCategoryPage({ params }: CategoryPageProps) {
         {products.length > 0 ? (
           <div className="mt-20">
             <h2 className="text-h4">{products.length === 1 ? "The product for this" : "The products for this"}</h2>
-            <ul className="mt-8 grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+            <ul className="mt-8 grid gap-3 min-[700px]:grid-cols-2 min-[1200px]:grid-cols-3">
               {products.map((product) => (
                 <li key={product.slug}>
                   <ProductMiniCard product={product} />

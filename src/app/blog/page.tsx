@@ -27,7 +27,7 @@ export const metadata: Metadata = {
 /** Server-rendered grid shown until the browser reads ?category=, and in the static HTML: every post but the featured one. */
 function ArticleGrid({ posts }: { posts: Post[] }) {
   return (
-    <ul className="mt-30 grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+    <ul className="mt-30 grid gap-3 min-[700px]:grid-cols-2 min-[1200px]:grid-cols-3">
       {posts.map((post) => (
         <li key={post.slug}>
           <PostTeaser post={post} />
@@ -54,7 +54,8 @@ export default function BlogPage() {
         aria-labelledby="blog-title"
         data-surface="dark"
         data-nav-theme="dark"
-        className="relative isolate overflow-hidden bg-ink pt-36 pb-20 text-white md:pt-44 md:pb-24"
+        // Phones: the same shorter hero as /products, so the featured article's title is on the first screen.
+        className="relative isolate overflow-hidden bg-ink pt-28 pb-12 text-white md:pt-44 md:pb-24"
       >
         <Glow color="violet" size={880} opacity={0.4} className="-top-1/2 left-1/2 -translate-x-1/2" />
         <Container className="text-center">
@@ -69,7 +70,7 @@ export default function BlogPage() {
       </section>
 
       {featured ? (
-        <Section labelledBy="featured-title" surface="canvas" className="pb-0 md:pb-0 xl:pb-0">
+        <Section labelledBy="featured-title" surface="canvas" className="pb-0 max-md:pt-10 md:pb-0 xl:pb-0">
           <h2 id="featured-title" className="sr-only">
             Featured post
           </h2>

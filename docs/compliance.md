@@ -130,8 +130,11 @@ changes). Each line was checked in `src/content`, `src/components` and the blog 
 - [x] **No logos of other companies.** Third-party names (LinkedIn, Indeed, Jobright, Dice, Vercel, Resend,
   Unsplash, Pexels) appear as plain text only. The trademark note is in the footer of every page and in the
   Joined footnote. Photos were checked for visible logos (docs/images.md).
-- [x] **No invented people.** The About page names no team members; team profiles appear when real people
-  are introduced. The blog is signed "the SmartxDreams team".
+- [ ] **No invented people.** Open until launch: the About page shows nine team profiles whose names and
+  portraits are stand-ins (`illustrative: true` in `src/content/team.ts`). While they are, the page says so
+  (a note above the cards and an "Illustrative" badge on each portrait) and `teamJsonLd()` leaves them out
+  of the structured data. Before launch, replace each stand-in with the real person (`illustrative: false`)
+  or remove the profile; tick this box when none is left. The blog is signed "the SmartxDreams team".
 - [x] **No implied endorsements.** No "as seen in", "trusted by", partner badges or awards. Photos show no
   identifiable faces on the sensitive pages, so nobody appears to use or endorse a product.
 - [x] **Product screens are illustrations.** Every product hero mockup is captioned "Illustrative screen.

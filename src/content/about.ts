@@ -36,6 +36,11 @@ export const about = {
   team: {
     title: "The *people* behind the products",
     body: "Engineers, designers and data people who build each product, test it, and check every claim before it ships.",
+    /** Shown with the profiles while any of them is a stand-in (Person.illustrative in team.ts). */
+    illustrative: {
+      note: "The names and portraits on this page are illustrative. They stand in until each person is ready to be introduced.",
+      badge: "Illustrative",
+    },
     join: {
       title: "Building with us",
       body: "We are a small studio with one rule for every product: it prepares the work, and a person decides. If that is how you want to build, talk to us.",

@@ -3,6 +3,7 @@ import { company } from "@/content/site";
 import { publicEnv } from "./env";
 import { photoBySlot } from "@/content/photos";
 import { team } from "@/content/team";
+import type { Person } from "@/content/types";
 import imageLoader from "./image-loader";
 
 /** Canonical origin without a trailing slash, from NEXT_PUBLIC_SITE_URL. */
@@ -109,9 +110,12 @@ export function organizationJsonLd(): Record<string, unknown> {
  * The team as schema.org Person entries, each an employee of the Organization. The image is the portrait as
  * the deployed site serves it: the 1024 px WebP variant in the static export (which ships no originals),
  * the original photo on the server build.
+ *
+ * Illustrative profiles are left out: a stand-in name and portrait must not reach search engines as a
+ * statement about a real employee. The list is empty until the first real person is introduced.
  */
-export function teamJsonLd(): Record<string, unknown>[] {
-  return team.map((person) => {
+export function teamJsonLd(people: readonly Person[] = team): Record<string, unknown>[] {
+  return people.filter((person) => !person.illustrative).map((person) => {
     const src = photoBySlot(person.photo.slot).src;
     return {
       "@type": "Person",

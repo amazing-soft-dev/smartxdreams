@@ -19,14 +19,31 @@ type SplitTextProps = {
 /** Offset each word starts from, in px (Beemas: 75). */
 const RISE = 75;
 
-/** Words, each tagged with whether it is part of an accent. */
-function words(text: string): { word: string; accent: boolean }[] {
-  return text.split(/\*([^*]+)\*/g).flatMap((part, i) =>
-    part
-      .split(/\s+/)
-      .filter(Boolean)
-      .map((word) => ({ word, accent: i % 2 === 1 })),
-  );
+type Piece = { text: string; accent: boolean };
+
+/**
+ * The heading as words, each a list of pieces tagged with whether they are part of an accent. Most words are
+ * one piece. Text that touches an accent without a space stays in the same word as a piece of its own: the
+ * full stop in "Send us a *message*." and the comma in "the *paperwork*, so" belong to the word before them,
+ * in the plain colour. As separate words they would be set a space apart ("message .").
+ */
+function words(text: string): Piece[][] {
+  const list: Piece[][] = [];
+  // True while the text so far ends without a space, so the next piece continues the last word.
+  let open = false;
+  text.split(/\*([^*]+)\*/g).forEach((part, i) => {
+    if (part === "") return;
+    // An empty first or last entry marks a space at that end of the part.
+    const pieces = part.split(/\s+/);
+    pieces.forEach((piece, j) => {
+      if (piece === "") return;
+      const last = list[list.length - 1];
+      if (j === 0 && open && last) last.push({ text: piece, accent: i % 2 === 1 });
+      else list.push([{ text: piece, accent: i % 2 === 1 }]);
+    });
+    open = pieces[pieces.length - 1] !== "";
+  });
+  return list;
 }
 
 /**
@@ -87,20 +104,28 @@ export function SplitText({ text, tone = "light", aboveFold = false, delay = 0 }
   return (
     <>
       <span ref={root}>
-        {list.map(({ word, accent: isAccent }, i) => (
-          <Fragment key={i}>
-            <span
-              data-word=""
-              data-reveal=""
-              data-motion="rise"
-              className={isAccent ? `inline-block ${accent}` : "inline-block"}
-              style={{ opacity: 0.001, transform: `translateY(${RISE}px)` }}
-            >
-              {word}
-            </span>
-            {i < list.length - 1 ? " " : null}
-          </Fragment>
-        ))}
+        {list.map((pieces, i) => {
+          // One piece: the word itself carries the colour. Several: each accent piece is coloured inside it.
+          const only = pieces.length === 1 ? pieces[0] : undefined;
+          return (
+            <Fragment key={i}>
+              <span
+                data-word=""
+                data-reveal=""
+                data-motion="rise"
+                className={only?.accent ? `inline-block ${accent}` : "inline-block"}
+                style={{ opacity: 0.001, transform: `translateY(${RISE}px)` }}
+              >
+                {only
+                  ? only.text
+                  : pieces.map((piece, j) => (
+                      <Fragment key={j}>{piece.accent ? <span className={accent}>{piece.text}</span> : piece.text}</Fragment>
+                    ))}
+              </span>
+              {i < list.length - 1 ? " " : null}
+            </Fragment>
+          );
+        })}
       </span>
     </>
   );
