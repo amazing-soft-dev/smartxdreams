@@ -44,7 +44,9 @@ export function ProductsBrowser() {
           items={[...shown]}
           getKey={(p) => p.slug}
           renderItem={(p) => <ProductCard product={p} />}
-          className="mt-10 gap-3 md:grid-cols-2 lg:grid-cols-3"
+          // Two columns from 700 px (324 px cards), three from 1200 px (357 px). The site's md and lg steps
+          // left one 728 px card per row on an upright tablet and three 301 px cards at 1024 px.
+          className="mt-10 gap-3 min-[700px]:grid-cols-2 min-[1200px]:grid-cols-3"
           empty={
             <div className="mt-10 rounded-[30px] bg-white px-7 py-12 text-center">
               <p className="text-h5">No products for {label} yet.</p>
@@ -70,7 +72,7 @@ export function ProductsBrowser() {
  */
 export function ProductsListFallback() {
   return (
-    <ul className="mt-[4.5rem] grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+    <ul className="mt-[4.5rem] grid gap-3 min-[700px]:grid-cols-2 min-[1200px]:grid-cols-3">
       {products.map((p) => (
         <li key={p.slug}>
           <ProductCard product={p} />

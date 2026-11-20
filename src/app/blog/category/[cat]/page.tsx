@@ -102,7 +102,7 @@ export default async function BlogCategoryPage({ params }: CategoryPageProps) {
           {posts.length === 0 ? "No articles yet" : posts.length === 1 ? "1 article" : `${posts.length} articles`}
         </h2>
         {posts.length > 0 ? (
-          <ul className="mt-8 grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+          <ul className="mt-8 grid gap-3 min-[700px]:grid-cols-2 min-[1200px]:grid-cols-3">
             {posts.map((post) => (
               <li key={post.slug}>
                 <PostTeaser post={post} />
@@ -122,7 +122,7 @@ export default async function BlogCategoryPage({ params }: CategoryPageProps) {
         {products.length > 0 ? (
           <div className="mt-20">
             <h2 className="text-h4">{products.length === 1 ? "The product for this" : "The products for this"}</h2>
-            <ul className="mt-8 grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+            <ul className="mt-8 grid gap-3 min-[700px]:grid-cols-2 min-[1200px]:grid-cols-3">
               {products.map((product) => (
                 <li key={product.slug}>
                   <ProductMiniCard product={product} />

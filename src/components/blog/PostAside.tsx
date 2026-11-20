@@ -12,7 +12,7 @@ function PostProducts({ products }: { products: Product[] }) {
       <h2 id="post-products-title" className="text-h4">
         Products in this post
       </h2>
-      <ul className="mt-8 grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+      <ul className="mt-8 grid gap-3 min-[700px]:grid-cols-2 min-[1200px]:grid-cols-3">
         {products.map((product) => (
           <li key={product.slug}>
             <ProductMiniCard product={product} />
@@ -37,7 +37,7 @@ export function PostAside({ post }: { post: Post }) {
             <h2 id="related-title" className="text-h4">
               Keep reading
             </h2>
-            <ul className="mt-8 grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+            <ul className="mt-8 grid gap-3 min-[700px]:grid-cols-2 min-[1200px]:grid-cols-3">
               {related.map((other) => (
                 <li key={other.slug}>
                   <PostTeaser post={other} />
