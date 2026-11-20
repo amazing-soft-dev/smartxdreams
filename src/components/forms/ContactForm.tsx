@@ -228,7 +228,7 @@ export function ContactForm({ products, defaultProduct }: ContactFormProps) {
         id={`${id}-status`}
         role="status"
         className={
-          status.kind === "failed" || status.kind === "invalid" ? "text-label font-medium text-coral-800" : "text-label text-ink/75"
+          status.kind === "failed" || status.kind === "invalid" ? "text-body font-medium text-coral-800" : "text-body text-ink/75"
         }
       >
         {live}

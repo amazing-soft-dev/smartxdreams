@@ -32,8 +32,8 @@ const isField = (name: string): name is WaitlistField => (order as string[]).inc
 /** An error under a field, on the dark surface: coral-300 text (8:1 on ink) and an icon, not colour alone. */
 function FieldError({ id, children }: { id: string; children: ReactNode }) {
   return (
-    <p id={id} className="mt-2 flex items-start gap-1.5 text-label font-medium text-coral-300">
-      <svg aria-hidden="true" viewBox="0 0 16 16" width="16" height="16" className="mt-0.5 shrink-0" fill="none">
+    <p id={id} className="mt-2 flex items-start gap-1.5 text-body font-medium text-coral-300">
+      <svg aria-hidden="true" viewBox="0 0 16 16" width="16" height="16" className="mt-1 shrink-0" fill="none">
         <circle cx="8" cy="8" r="6.5" stroke="currentColor" strokeWidth="1.4" />
         <path d="M8 4.5v4.25M8 11v.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
       </svg>
@@ -284,7 +284,7 @@ export function WaitlistForm({ product, products = [] }: WaitlistFormProps) {
         id={`${id}-status`}
         role="status"
         className={
-          status.kind === "failed" || status.kind === "invalid" ? "text-label font-medium text-coral-300" : "text-label text-white/70"
+          status.kind === "failed" || status.kind === "invalid" ? "text-body font-medium text-coral-300" : "text-body text-white/70"
         }
       >
         {live}

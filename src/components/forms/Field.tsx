@@ -30,7 +30,11 @@ function describedBy({ id, hint, error }: Pick<ShellProps, "id" | "hint" | "erro
  */
 const required = (optional?: boolean) => (optional ? undefined : true);
 
-/** A visible label, the control, an optional hint and the field's error message. */
+/**
+ * A visible label, the control, an optional hint and the field's error message. The hint and the error are
+ * body size (16 px): they tell the person what to type or what to fix, so they are not small print. The
+ * label stays at label size, in medium weight.
+ */
 function Shell({ id, label, hint, error, optional, className, children }: ShellProps & { children: ReactNode }) {
   return (
     <div className={cx("flex flex-col", className)}>
@@ -40,13 +44,13 @@ function Shell({ id, label, hint, error, optional, className, children }: ShellP
       </label>
       <div className="mt-2">{children}</div>
       {hint ? (
-        <p id={`${id}-hint`} className="mt-2 text-label text-ink/65">
+        <p id={`${id}-hint`} className="mt-2 text-body text-ink/65">
           {hint}
         </p>
       ) : null}
       {error ? (
-        <p id={`${id}-error`} className="mt-2 flex items-start gap-1.5 text-label font-medium text-coral-800">
-          <svg aria-hidden="true" viewBox="0 0 16 16" width="16" height="16" className="mt-0.5 shrink-0" fill="none">
+        <p id={`${id}-error`} className="mt-2 flex items-start gap-1.5 text-body font-medium text-coral-800">
+          <svg aria-hidden="true" viewBox="0 0 16 16" width="16" height="16" className="mt-1 shrink-0" fill="none">
             <circle cx="8" cy="8" r="6.5" stroke="currentColor" strokeWidth="1.4" />
             <path d="M8 4.5v4.25M8 11v.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
           </svg>
