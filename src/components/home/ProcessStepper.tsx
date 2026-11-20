@@ -140,7 +140,7 @@ export function ProcessStepper({ photos }: { photos: ProcessPhotos }) {
                     {step.body}
                   </p>
                   {/* Stacked layout (phones, tablets, and reduced motion): each step shows its own photo. */}
-                  <div className="relative mt-5 aspect-[16/10] overflow-hidden rounded-[22px] motion-safe:lg:hidden">
+                  <div className="relative mt-5 aspect-[16/10] overflow-hidden rounded-panel motion-safe:lg:hidden">
                     <PhotoImage photo={photos[step.slot]} fill sizes="(min-width: 810px) 80vw, 100vw" />
                   </div>
                 </li>
@@ -148,7 +148,7 @@ export function ProcessStepper({ photos }: { photos: ProcessPhotos }) {
             </ol>
             {/* Media panel (desktop): the photos are stacked, and each one is revealed by a circle that grows from
                 the left edge when its step becomes active, settling from a slight zoom and blur. Decorative. */}
-            <div className="relative hidden aspect-[4/3] overflow-hidden rounded-[30px] bg-ink motion-safe:lg:block">
+            <div className="relative hidden aspect-[4/3] overflow-hidden rounded-card bg-ink motion-safe:lg:block">
               {processSteps.map((step, i) => (
                 <div
                   key={step.slot}

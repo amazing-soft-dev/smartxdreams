@@ -34,7 +34,7 @@ export function LegalPage({ doc }: { doc: LegalDocument }) {
             {doc.title}
           </h1>
           <p className="mt-4 max-w-[60ch] text-body-l text-ink/70">{doc.summary}</p>
-          <p role="note" className="mt-8 max-w-[68ch] rounded-[18px] border border-coral-600/50 bg-coral-50 px-5 py-4 text-label text-ink">
+          <p role="note" className="mt-8 max-w-[68ch] rounded-bar border border-coral-600/50 bg-coral-50 px-5 py-4 text-label text-ink">
             <strong className="font-semibold">Draft for legal review.</strong> A lawyer has not reviewed this text yet, and it may change
             before launch. It describes how the website works today. Draft of <time dateTime={doc.draftDate}>{date}</time>.
           </p>

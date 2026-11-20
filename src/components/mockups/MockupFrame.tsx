@@ -22,7 +22,7 @@ export function MockupFrame({ title, caption, children, className, tone = "light
     <div
       aria-hidden="true"
       className={cx(
-        "flex flex-col overflow-hidden rounded-[22px] text-left shadow-[0_24px_60px_rgb(0_0_0/0.35)] ring-1",
+        "flex flex-col overflow-hidden rounded-panel text-left shadow-[0_24px_60px_rgb(0_0_0/0.35)] ring-1",
         dark ? "bg-ink-800 text-white ring-white/10" : "bg-white text-ink ring-ink/5",
         className,
       )}

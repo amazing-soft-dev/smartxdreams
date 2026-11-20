@@ -15,7 +15,7 @@ type ShellProps = {
  * field's boundary). A 2 px coral-700 ring marks an invalid field, so colour is not the only signal.
  */
 const control =
-  "w-full rounded-[14px] bg-white px-4 text-body text-ink ring-1 ring-ink/50 transition-shadow placeholder:text-ink/45 " +
+  "w-full rounded-field bg-white px-4 text-body text-ink ring-1 ring-ink/50 transition-shadow placeholder:text-ink/45 " +
   "focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 aria-invalid:ring-2 aria-invalid:ring-coral-700";
 
 /** Ids of the hint and error, for aria-describedby. The error is listed first so it is read first. */

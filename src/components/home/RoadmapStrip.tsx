@@ -14,7 +14,7 @@ export function RoadmapStrip({ showHeading = true, className = "mt-16" }: Roadma
       {showHeading ? <h3 className="text-h6">Roadmap</h3> : null}
       <ol className={cx("grid gap-3 md:grid-cols-2 lg:grid-cols-4", showHeading && "mt-6")}>
         {roadmap.map((item) => (
-          <li key={item.title} className="relative rounded-[22px] border border-ink/10 p-6">
+          <li key={item.title} className="relative rounded-panel border border-ink/10 p-6">
             <span
               className={cx(
                 "inline-flex items-center gap-2 rounded-full px-2.5 py-1 font-mono text-micro tracking-[0.04em] uppercase",

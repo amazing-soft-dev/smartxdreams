@@ -61,7 +61,7 @@ export function Header() {
         <div
           data-surface={onDark ? "dark" : "light"}
           className={cx(
-            "flex h-15 items-center justify-between gap-4 rounded-[18px] pr-2 pl-4 backdrop-blur-xl md:pl-5",
+            "flex h-15 items-center justify-between gap-4 rounded-bar pr-2 pl-4 backdrop-blur-xl md:pl-5",
             "transition-[background-color,color,box-shadow] duration-400 ease-[var(--ease-standard)]",
             onDark ? "bg-ink/70 text-white ring-1 ring-white/10" : "bg-white/75 text-ink shadow-tag ring-1 ring-ink/5",
           )}

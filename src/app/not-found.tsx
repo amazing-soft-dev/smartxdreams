@@ -102,7 +102,7 @@ export default function NotFound() {
                 <li key={item.href}>
                   <Link
                     href={item.href}
-                    className="flex h-full flex-col rounded-[18px] bg-white/[0.06] px-5 py-4 ring-1 ring-white/10 transition-colors duration-250 hover:bg-white/10"
+                    className="flex h-full flex-col rounded-bar bg-white/[0.06] px-5 py-4 ring-1 ring-white/10 transition-colors duration-250 hover:bg-white/10"
                   >
                     <span className="text-body-l text-white">{item.label}</span>
                     {item.description ? <span className="mt-1 text-label text-white/65">{item.description}</span> : null}

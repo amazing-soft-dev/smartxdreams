@@ -96,13 +96,13 @@ export default async function PostPage({ params }: PostPageProps) {
             {post.draft ? (
               <p
                 role="note"
-                className="mt-8 max-w-[68ch] rounded-[18px] border border-coral-600/50 bg-coral-50 px-5 py-4 text-label text-ink"
+                className="mt-8 max-w-[68ch] rounded-bar border border-coral-600/50 bg-coral-50 px-5 py-4 text-label text-ink"
               >
                 <strong className="font-semibold">Draft.</strong> Nobody has reviewed this post yet, so it may change. It is hidden from
                 search engines until it is published.
               </p>
             ) : null}
-            <div className="relative mt-10 aspect-[16/9] overflow-hidden rounded-[30px] md:aspect-[21/9]">
+            <div className="relative mt-10 aspect-[16/9] overflow-hidden rounded-card md:aspect-[21/9]">
               <PostCover post={post} priority sizes="(min-width: 1280px) 1280px, 100vw" />
             </div>
           </Container>

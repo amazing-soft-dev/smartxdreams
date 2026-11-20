@@ -60,7 +60,7 @@ export function TableOfContents({ headings, variant }: { headings: Heading[]; va
   const active = useActiveHeading(headings.map((h) => h.id));
   if (variant === "inline") {
     return (
-      <details className="group mb-4 rounded-[18px] bg-canvas px-5 py-3 lg:hidden">
+      <details className="group mb-4 rounded-bar bg-canvas px-5 py-3 lg:hidden">
         <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between text-label font-medium text-ink">
           On this page
           <svg
