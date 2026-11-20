@@ -70,8 +70,10 @@ export function Footer() {
           </nav>
         </div>
 
-        {/* The bottom bar stands on the ground: the ridge's crest takes the place of a divider line. */}
-        <div className="relative mt-16 flex flex-col gap-4 pt-8 text-micro text-white/60">
+        {/* The bottom bar stands on the ground: the ridge's crest takes the place of a divider line. Label
+            size (14 px): it holds links and a control (Privacy, Terms, the pause switch), and the 12 px
+            micro size is for mono labels. */}
+        <div className="relative mt-16 flex flex-col gap-4 pt-8 text-label text-white/60">
           <FooterHorizon />
           <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2">
             <p>
