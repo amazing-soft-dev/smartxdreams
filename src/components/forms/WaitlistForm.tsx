@@ -260,9 +260,11 @@ export function WaitlistForm({ product, products = [] }: WaitlistFormProps) {
             aria-required="true"
             aria-invalid={errors.consent ? true : undefined}
             aria-describedby={describedBy("consent")}
-            className="mt-1 size-5 shrink-0 accent-violet-300"
+            // 24 px: the smallest target WCAG 2.5.8 allows. The label beside it is part of the same target.
+            className="size-6 shrink-0 accent-violet-300"
           />
-          <label htmlFor={fieldId("consent")} className="text-label text-white/75">
+          {/* Body size: this is the consent the visitor gives, not small print. */}
+          <label htmlFor={fieldId("consent")} className="text-body text-white/75">
             {waitlistConsent.text}{" "}
             <Link href="/privacy" className="text-white underline underline-offset-4">
               Privacy policy
