@@ -55,7 +55,7 @@ export default async function BlogCategoryPage({ params }: CategoryPageProps) {
         aria-labelledby="category-title"
         data-surface="dark"
         data-nav-theme="dark"
-        className="relative isolate overflow-hidden bg-ink pt-36 pb-16 text-white md:pt-44 md:pb-20"
+        className="relative isolate overflow-hidden bg-ink pt-28 pb-12 text-white md:pt-44 md:pb-20"
       >
         <Glow color="violet" size={820} opacity={0.35} className="-top-1/2 left-1/2 -translate-x-1/2" />
         <Container className="text-center">
