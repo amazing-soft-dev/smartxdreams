@@ -5,6 +5,7 @@ import { ContactForm } from "@/components/forms/ContactForm";
 import { ContactFormFromUrl } from "@/components/forms/ContactFormFromUrl";
 import { Reveal } from "@/components/motion/Reveal";
 import { FaqSection } from "@/components/sections/FaqSection";
+import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Container } from "@/components/ui/Container";
 import { Glow } from "@/components/ui/Glow";
@@ -36,7 +37,7 @@ export default function ContactPage() {
         aria-labelledby="contact-title"
         data-surface="dark"
         data-nav-theme="dark"
-        className="relative isolate overflow-hidden bg-ink pt-36 pb-20 text-white md:pt-44 md:pb-24"
+        className="relative isolate overflow-hidden bg-ink pt-28 pb-14 text-white md:pt-44 md:pb-24"
       >
         {/* Hands writing a letter. Decorative, under an ink veil so text keeps its contrast. */}
         <div aria-hidden="true" className="absolute inset-0 -z-10">
@@ -51,8 +52,16 @@ export default function ContactPage() {
               <SplitText text={contact.hero.title} tone="dark" aboveFold />
             </h1>
             <p className="mx-auto mt-6 max-w-2xl text-body-l text-white/70">{contact.hero.body}</p>
+            {/* The form is the page's one job, and it starts under the three cards: 1553 px down on a phone,
+                970 px at 1440 x 900. This button puts the way to it on the first screen (about 430 px down at
+                390 x 844, 490 px at 1366 x 768) and moves keyboard focus to the form section. */}
+            <div className="mt-8 flex justify-center">
+              <Button href="#contact-form" variant="coral" size="lg">
+                {contact.hero.cta}
+              </Button>
+            </div>
           </div>
-          <ul className="mt-14 grid gap-3 md:grid-cols-3">
+          <ul className="mt-10 grid gap-3 md:mt-14 md:grid-cols-3">
             {contact.channels.map((channel, i) => (
               <li key={channel.title}>
                 <Reveal preset="up75" delay={0.2 + i * stagger.group} className="h-full" aboveFold>
