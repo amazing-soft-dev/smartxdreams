@@ -221,9 +221,11 @@ export function WaitlistForm({ product, products = [] }: WaitlistFormProps) {
           Email address
         </label>
         {/* The resting outline is white at 40%, 3.8:1 on ink. It is set only while the field is valid: beside
-            ring-coral-300 it would win the cascade and hide the invalid colour. */}
+            ring-coral-300 it would win the cascade and hide the invalid colour.
+            Below 640 px the field has a row to itself and the button sits under it: side by side, a 360 px
+            phone left 117 px to type an address in (96 px on the large-text SeniorAIPlans page). */}
         <div
-          className={`mt-2 flex gap-2 rounded-[18px] bg-white/10 p-1.5 focus-within:ring-2 focus-within:ring-violet-300 ${errors.email ? "ring-2 ring-coral-300" : "ring-1 ring-white/40"}`}
+          className={`mt-2 flex flex-col gap-1.5 rounded-[18px] bg-white/10 p-1.5 focus-within:ring-2 focus-within:ring-violet-300 sm:flex-row sm:gap-2 ${errors.email ? "ring-2 ring-coral-300" : "ring-1 ring-white/40"}`}
         >
           <input
             id={fieldId("email")}
@@ -236,7 +238,7 @@ export function WaitlistForm({ product, products = [] }: WaitlistFormProps) {
             aria-invalid={errors.email ? true : undefined}
             aria-describedby={describedBy("email")}
             // Placeholder: white at 50% is 4.73:1 over the field's fill (white at 10% on ink).
-            className="min-w-0 flex-1 bg-transparent px-3 text-body text-white placeholder:text-white/50 focus:outline-none"
+            className="min-h-12 min-w-0 flex-1 bg-transparent px-3 text-body text-white placeholder:text-white/50 focus:outline-none sm:min-h-0"
           />
           <button
             type="submit"
@@ -258,9 +260,11 @@ export function WaitlistForm({ product, products = [] }: WaitlistFormProps) {
             aria-required="true"
             aria-invalid={errors.consent ? true : undefined}
             aria-describedby={describedBy("consent")}
-            className="mt-1 size-5 shrink-0 accent-violet-300"
+            // 24 px: the smallest target WCAG 2.5.8 allows. The label beside it is part of the same target.
+            className="size-6 shrink-0 accent-violet-300"
           />
-          <label htmlFor={fieldId("consent")} className="text-label text-white/75">
+          {/* Body size: this is the consent the visitor gives, not small print. */}
+          <label htmlFor={fieldId("consent")} className="text-body text-white/75">
             {waitlistConsent.text}{" "}
             <Link href="/privacy" className="text-white underline underline-offset-4">
               Privacy policy
