@@ -19,8 +19,10 @@ export const metadata: Metadata = pageMetadata({
 
 /**
  * schema.org AboutPage pointing at the Organization from the root layout. Its main entity is that
- * Organization (by @id, so the two merge) with the team as its employees.
+ * Organization (by @id, so the two merge) with the introduced team members as its employees. While every
+ * profile is illustrative there are none, and the property is left out.
  */
+const employees = teamJsonLd();
 const aboutJsonLd = {
   "@context": "https://schema.org",
   "@type": "AboutPage",
@@ -28,7 +30,11 @@ const aboutJsonLd = {
   url: absoluteUrl("/about"),
   about: { "@id": `${siteUrl}/#organization` },
   isPartOf: { "@id": `${siteUrl}/#website` },
-  mainEntity: { "@type": "Organization", "@id": `${siteUrl}/#organization`, employee: teamJsonLd() },
+  mainEntity: {
+    "@type": "Organization",
+    "@id": `${siteUrl}/#organization`,
+    ...(employees.length > 0 ? { employee: employees } : {}),
+  },
 };
 
 /** /about: the studio's story, how it works, where it is headed and who is behind it. */

@@ -89,8 +89,15 @@ describe("pageMetadata", () => {
 });
 
 describe("teamJsonLd", () => {
-  it("describes each person on the team as a Person who works for the Organization", () => {
-    const people = teamJsonLd();
+  it("leaves illustrative profiles out", () => {
+    expect(teamJsonLd().map((p) => p.name)).toEqual(team.filter((p) => !p.illustrative).map((p) => p.name));
+    const [first, ...rest] = team;
+    const mixed = [{ ...first!, illustrative: false }, ...rest.map((p) => ({ ...p, illustrative: true }))];
+    expect(teamJsonLd(mixed).map((p) => p.name)).toEqual([first!.name]);
+  });
+
+  it("describes each introduced person as a Person who works for the Organization", () => {
+    const people = teamJsonLd(team.map((p) => ({ ...p, illustrative: false })));
     expect(people.map((p) => p.name)).toEqual(team.map((p) => p.name));
     for (const [i, p] of people.entries()) {
       expect(p["@type"]).toBe("Person");
