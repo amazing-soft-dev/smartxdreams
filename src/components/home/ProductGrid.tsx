@@ -8,8 +8,13 @@ import { audienceLabel } from "@/content/selectors";
 import { cx } from "@/lib/cx";
 import { stagger } from "@/styles/motion";
 
-/** Bento layout: the first and last cards are wide on desktop, the rest are single cells. */
-const spans = ["lg:col-span-2", "", "", "", "", "lg:col-span-2"];
+/**
+ * Bento layout, from 1440 px: four columns, the first and last cards two columns wide, the rest single
+ * cells (311 px at 1440). Between 1024 and 1439 px four columns would leave single cells 227 to 311 px wide,
+ * with summaries wrapping at about 20 characters, so the grid is three equal columns there (307 px at 1024,
+ * 392 px at 1280).
+ */
+const spans = ["xl:col-span-2", "", "", "", "", "xl:col-span-2"];
 /** Card surfaces, alternating so neighbours never share a tone. dark: white text, light: ink text. */
 const tones = [
   { surface: "bg-ink text-white", dark: true, pill: "bg-white/15" },
@@ -31,7 +36,7 @@ export function ProductGrid() {
         title="One studio, *six focused products.*"
         description="Each product does one job well, for one kind of person. All six are in development; join the waitlist for the ones you need."
       />
-      <ul className="mt-14 grid gap-3 md:grid-cols-2 lg:grid-cols-4">
+      <ul className="mt-14 grid gap-3 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {products.map((product, i) => {
           const tone = tones[i % tones.length] ?? tones[0];
           const pill = cx("rounded-full px-3 py-1 text-micro font-medium", tone.pill);
