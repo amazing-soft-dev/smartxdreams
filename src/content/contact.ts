@@ -5,6 +5,8 @@ export const contact = {
   hero: {
     title: "Talk to the *people* building it.",
     body: "Questions about a product, an idea for one we should build, or a request about your data: send a message and a person will read it.",
+    /** The hero's button, which goes to the form further down the page. */
+    cta: "Write a message",
   },
   channels: [
     {

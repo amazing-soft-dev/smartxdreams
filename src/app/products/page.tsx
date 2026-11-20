@@ -40,7 +40,9 @@ export default function ProductsPage() {
         aria-labelledby="products-title"
         data-surface="dark"
         data-nav-theme="dark"
-        className="relative isolate overflow-hidden bg-ink pt-36 pb-20 text-white md:pt-44"
+        // Phones: 112 px above the tag (40 px under the header bar, as on Home) and 48 px below the copy, so
+        // the list starts on the first screen. From 810 px the hero is as roomy as before.
+        className="relative isolate overflow-hidden bg-ink pt-28 pb-12 text-white md:pt-44 md:pb-20"
       >
         <Glow color="violet" size={900} opacity={0.4} className="-top-1/2 left-1/2 -translate-x-1/2" />
         <Container className="text-center">
@@ -53,7 +55,9 @@ export default function ProductsPage() {
           </p>
         </Container>
       </section>
-      <Section labelledBy="products-title" surface="canvas">
+      {/* 40 px above the chips on phones in place of the section's 72 px: with the shorter hero, the first
+          card starts 96 px higher (519 px in place of 615 px at 390 px wide). */}
+      <Section labelledBy="products-title" surface="canvas" className="max-md:pt-10">
         {/* The browser reads search params, so it renders inside Suspense; the fallback lists every product. */}
         <Suspense fallback={<ProductsListFallback />}>
           <ProductsBrowser />
