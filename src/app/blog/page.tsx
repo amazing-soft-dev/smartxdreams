@@ -27,7 +27,7 @@ export const metadata: Metadata = {
 /** Server-rendered grid shown until the browser reads ?category=, and in the static HTML: every post but the featured one. */
 function ArticleGrid({ posts }: { posts: Post[] }) {
   return (
-    <ul className="mt-30 grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+    <ul className="mt-30 grid gap-3 min-[700px]:grid-cols-2 min-[1200px]:grid-cols-3">
       {posts.map((post) => (
         <li key={post.slug}>
           <PostTeaser post={post} />
