@@ -1,3 +1,4 @@
+import { firstSentence } from "@/lib/first-sentence";
 import { Reveal } from "@/components/motion/Reveal";
 import { ProductLogo } from "@/components/product/ProductLogo";
 import { TransitionLink } from "@/components/transition/TransitionLink";
@@ -106,7 +107,7 @@ export function ProductGrid() {
                   </div>
                   {/* Text stays at 90% strength: enough for 4.5:1 on every card surface. */}
                   <p className="mt-3 max-w-md text-body">{product.tagline}</p>
-                  <p className="mt-auto pt-8 text-label">{product.summary.split(". ")[0]}.</p>
+                  <p className="mt-auto pt-8 text-label">{firstSentence(product.summary)}</p>
                 </article>
               </Reveal>
             </li>

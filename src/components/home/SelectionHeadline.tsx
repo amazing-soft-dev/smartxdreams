@@ -22,7 +22,14 @@ type SelectionHeadlineProps = {
 export const SELECTION_CYCLE_MS = 2350;
 export const SELECTION_MOVE_MS = 650;
 
-type Box = { x: number; y: number; width: number; height: number };
+/**
+ * The selected word's box, relative to the heading. `room` is how far the chip can run to the right of the
+ * box's left edge before it leaves the screen.
+ */
+type Box = { x: number; y: number; width: number; height: number; room: number };
+
+/** The chip is 12 px monospace with 0.04em tracking: under 8 px a character, plus 16 px of padding. */
+const chipWidth = (label: SelectionTarget["label"]) => (label.kind.length + 3 + label.value.length) * 8 + 16;
 
 /**
  * A headline with a design-tool style selection box that hops from word to word: a 1 px violet outline with
@@ -62,13 +69,25 @@ export function SelectionHeadline({ text, targets, id, className }: SelectionHea
       if (!el || !root) return;
       const a = el.getBoundingClientRect();
       const b = root.getBoundingClientRect();
-      setBox({ x: a.left - b.left, y: a.top - b.top, width: a.width, height: a.height });
+      setBox({
+        x: a.left - b.left,
+        y: a.top - b.top,
+        width: a.width,
+        height: a.height,
+        // 8 px short of the screen's edge; the chip starts 7 px left of the word.
+        room: document.documentElement.clientWidth - 8 - (a.left - 7),
+      });
     };
     measure();
     const observer = new ResizeObserver(measure);
     if (heading.current) observer.observe(heading.current);
     return () => observer.disconnect();
   }, [target]);
+
+  // On a narrow phone a chip that starts at a word near the right edge ("AI" at 360 px) would run off the
+  // screen and be cut by the hero. It slides left by what does not fit, on the same curve as the box, so the
+  // two travel together.
+  const chipShift = box && label ? Math.max(0, chipWidth(label) - box.room) : 0;
 
   return (
     <h1 ref={heading} id={id} className={`relative ${className ?? ""}`}>
@@ -101,7 +120,14 @@ export function SelectionHeadline({ text, targets, id, className }: SelectionHea
             <span key={pos} className={`absolute ${pos} size-2 rounded-[1px] border border-violet-300 bg-ink`} />
           ))}
           {label ? (
-            <span className="absolute bottom-[calc(100%+6px)] left-[-1px] rounded-md bg-violet-300 px-2 py-1 font-mono text-micro leading-none font-semibold tracking-[0.04em] whitespace-nowrap text-ink">
+            <span
+              data-selection-chip=""
+              className="absolute bottom-[calc(100%+6px)] left-[-1px] rounded-md bg-violet-300 px-2 py-1 font-mono text-micro leading-none font-semibold tracking-[0.04em] whitespace-nowrap text-ink"
+              style={{
+                transform: `translateX(${-chipShift}px)`,
+                transition: reduced ? undefined : `transform ${SELECTION_MOVE_MS}ms cubic-bezier(0.7, 0, 0.2, 1)`,
+              }}
+            >
               {label.kind} / {label.value}
             </span>
           ) : null}

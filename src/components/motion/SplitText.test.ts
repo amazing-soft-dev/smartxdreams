@@ -24,6 +24,21 @@ describe("SplitText", () => {
     expect(render("A *b* c", "dark")).toMatch(/class="inline-block text-violet-300"[^>]*>b</);
   });
 
+  it("keeps punctuation that touches an accent in the same word, in the plain colour", () => {
+    const stop = render("Send us a *message*.");
+    expect(stop.replace(/<[^>]+>/g, "")).toBe("Send us a message.");
+    expect(stop.match(/data-word=""/g)).toHaveLength(4);
+    expect(stop).toContain('<span class="text-violet-500">message</span>.</span>');
+
+    const comma = render("We do the *paperwork*, so you can decide.", "dark");
+    expect(comma.replace(/<[^>]+>/g, "")).toBe("We do the paperwork, so you can decide.");
+    expect(comma).toContain('<span class="text-violet-300">paperwork</span>,</span>');
+
+    const bracket = render("One (*two*) three");
+    expect(bracket.replace(/<[^>]+>/g, "")).toBe("One (two) three");
+    expect(bracket.match(/data-word=""/g)).toHaveLength(3);
+  });
+
   it("marks every word for the reduced-motion and no-JavaScript fallbacks", () => {
     const html = render("Three plain words");
     expect(html.match(/data-reveal=""/g)).toHaveLength(3);

@@ -83,7 +83,8 @@ export function BlogBrowser({ items, options, featuredSlug }: BlogBrowserProps) 
               {i.card}
             </div>
           )}
-          className="mt-10 gap-3 md:grid-cols-2 lg:grid-cols-3"
+          // The same steps as the product list: two columns from 700 px, three from 1200 px.
+          className="mt-10 gap-3 min-[700px]:grid-cols-2 min-[1200px]:grid-cols-3"
           empty={<p className="mt-10 text-body-l text-ink/70">No other articles yet. The featured post above is the newest.</p>}
         />
       </Reveal>

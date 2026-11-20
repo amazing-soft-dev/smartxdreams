@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { DidYouMean } from "@/components/not-found/DidYouMean";
 import { Button } from "@/components/ui/Button";
+import { Container } from "@/components/ui/Container";
 import { Glow } from "@/components/ui/Glow";
 import { Photo } from "@/components/ui/Photo";
 import { Section } from "@/components/ui/Section";
@@ -47,14 +48,17 @@ const tiles = [
 export default function NotFound() {
   return (
     <main id="main" tabIndex={-1}>
-      <Section surface="dark" labelledBy="not-found-title" className="isolate min-h-[90svh] pt-36 md:pt-44">
+      {/* Uncontained: the backdrop is placed against the section, so it fills the page edge to edge and runs up
+          behind the header. Inside Section's own Container it was a content-width box with hard edges. */}
+      <Section surface="dark" labelledBy="not-found-title" contained={false} className="isolate min-h-[90svh] pt-36 md:pt-44">
         {/* A motorway disappearing into fog: a quiet nod to being lost. Decorative, under an ink veil so text keeps its contrast. */}
         <div aria-hidden="true" className="absolute inset-0 -z-10">
           <Photo slot="not-found" fill sizes="100vw" />
           <div className="absolute inset-0 bg-ink/80" />
         </div>
-        <Glow color="coral" size={720} opacity={0.35} className="top-24 left-1/2 -translate-x-1/2" />
-        <div className="flex flex-col items-center text-center">
+        {/* 96 px below the section's top padding, where it sat when it was placed against the container. */}
+        <Glow color="coral" size={720} opacity={0.35} className="top-60 left-1/2 -translate-x-1/2 md:top-68" />
+        <Container className="relative flex flex-col items-center text-center">
           <div aria-hidden="true" className="flex gap-3 md:gap-5">
             {tiles.map((tile, i) => (
               <span
@@ -107,7 +111,7 @@ export default function NotFound() {
               ))}
             </ul>
           </nav>
-        </div>
+        </Container>
       </Section>
     </main>
   );

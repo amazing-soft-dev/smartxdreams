@@ -163,3 +163,6 @@ public/_img/
 /playwright-report/
 /blob-report/
 /playwright/.cache/
+
+# senior-design-review outputs (screenshots, reports)
+.design-review/runs/
